@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bbc468d73ea1ca4e88cae5fde730ae9, type: 3}
+  m_Name: Traveler
+  m_EditorClassIdentifier: Assembly-CSharp::BackgroundData
+  backgroundName: "\u65C5\u884C\u8005"
+  description: "\u4E00\u4F4D\u795E\u79D8\u7684\u5973\u5B50\u6258\u68A6\u5411\u4F60\u6C42\u52A9\uFF0C\u8BF7\u4F60\u62EF\u6551\u6751\u5E84\u3002\u5979\u81EA\u79F0\u5F53\u5730\u96E8\u795E\uFF0C\u5982\u80FD\u9664\u53BB\u5C71\u4E2D\u5996\u7978\uFF0C\u65E5\u540E\u5FC5\u5B9A\u62A5\u7B54\u3002"

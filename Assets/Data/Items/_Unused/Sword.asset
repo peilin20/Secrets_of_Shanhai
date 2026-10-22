@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ef7b434babc9e54e8da89bb78b5fd6c, type: 3}
+  m_Name: Sword
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: "\u5251"
+  kind: 0
+  value: 300
+  element: 1
+  image: {fileID: 0}
+  description: "\u4EC5\u6218\u6597\uFF0C\u6BCF\u8F6E1\u6B21\u3002\u5BF9\u65E0\u5B9E\u4F53\u751F\u7269\u65E0\u6548\u3002\n\u975E\u6D88\u8017\n\u6B66\u8005\u4E13\u7528"
+  effects:
+  - label: "\u6218\u6597\u503C\u52A0\u6210"
+    value: +1d6
+  - label: "\u6218\u6597\u503C\u5C5E\u6027"
+    value: "\u65E0\u5C5E\u6027"

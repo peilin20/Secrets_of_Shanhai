@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fc00f41c0e6f3a45adb125c4fba6513, type: 3}
+  m_Name: Ranger
+  m_EditorClassIdentifier: Assembly-CSharp::ClassData
+  className: "\u6563\u4EBA"
+  description: "\u201C\u8BA9\u6211\u8BD5\u8BD5\uFF0C\u8BF4\u4E0D\u5B9A\u884C\u3002\u201D\n\u4EC0\u4E48\u90FD\u4F1A\u4E00\u70B9\uFF0C\u4EC0\u4E48\u90FD\u6562\u8D4C\u4E00\u628A\u3002\u4ECA\u5929\u80FD\u8C08\u5224\uFF0C\u660E\u5929\u4E5F\u8BB8\u5C31\u80FD\u6253\u67B6\u3002"
+  weapons:
+  - {fileID: 11400000, guid: 8ab777ffc25784f4586feddac2998a2a, type: 2}

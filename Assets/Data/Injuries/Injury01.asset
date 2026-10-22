@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7301bbb5f2fe1d84f904f955b7292273, type: 3}
+  m_Name: Injury01
+  m_EditorClassIdentifier: Assembly-CSharp::InjuryData
+  difficulty: Low
+  element: 3
+  effect: "\u62BD\u5230\u65F6\uFF0C\u5931\u53BB1\u4EF6\u9053\u5177\u3002\u5F03\u6389\u8FD9\u5F20\u724C\u3002\u5982\u6CA1\u6709\u9053\u5177\u5219\u65E0\u4E8B\u53D1\u751F"
+  copiesInPile: 4

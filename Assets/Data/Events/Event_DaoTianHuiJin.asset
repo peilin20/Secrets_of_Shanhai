@@ -1,0 +1,32 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8b2183bfedb0e345b19cf887d8374e6, type: 3}
+  m_Name: Event_DaoTianHuiJin
+  m_EditorClassIdentifier: Assembly-CSharp::EventData
+  title: "\u7A3B\u7530\u91CC\u7684\u7070\u70EC\u5C0F\u5996"
+  image: {fileID: 0}
+  description: "\u4E00\u7FA4\u5C0F\u5B69\u5927\u5C0F\u7684\u5C0F\u7CBE\u602A\u5728\u7A3B\u7530\u91CC\u5954\u8DD1\u6253\u95F9\u3002\u4ED6\u4EEC\u7684\u5934\u53D1\u662F\u660E\u4EAE\u7684\u706B\u7130\uFF0C\u6240\u5230\u4E4B\u5904\u4E00\u7247\u7126\u9ED1\u3002"
+  options:
+  - label: "\u6218\u6597\u89E3\u51B3:"
+    text: "\u6559\u8BAD\u4ED6\u4EEC\uFF0C\u53EF\u6076\u7684\u7EB5\u706B\u72C2\uFF01\u8FDB\u5165\u6218\u6597\u3010\u7070\u70EC\u5C0F\u5996\u6218\u6597\u3011"
+    kind: 0
+    buttonName: "\u7070\u70EC\u5C0F\u5996\u6218\u6597"
+    combat: {fileID: 11400000, guid: 357bb3d55a3d3b64bb1a695353ad42ca, type: 2}
+    social: {fileID: 0}
+  - label: "\u4EA4\u6D89\u89E3\u51B3:"
+    text: "\u7FFB\u5F00\u6307\u5B9A\u4E8B\u4EF6\u5361\u3010\u4F60\u4EEC\u4E0D\u8981\u518D\u70E7\u5566\u3011"
+    kind: 1
+    buttonName: "\u4F60\u4EEC\u4E0D\u8981\u518D\u70E7\u5566"
+    combat: {fileID: 0}
+    social: {fileID: 11400000, guid: 6eb9a2672543c1841bdd90fafe46575e, type: 2}
+  nextStep: "\u4E0B\u4E00\u6B65\uFF1A\u6839\u636E\u4E3B\u7EBF\u5361\u6307\u793A\u51B3\u5B9A\u7FFB\u4E0B\u4E00\u5F20\u4E8B\u4EF6\u5361\u6216\u8005\u8FDB\u5165\u65B0\u4E3B\u7EBF\u5361"
+  notFirstEvent: 0

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ef7b434babc9e54e8da89bb78b5fd6c, type: 3}
+  m_Name: JiaoDiMoYou
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: "\u811A\u5E95\u62B9\u6CB9"
+  kind: 0
+  mechanic: 4
+  value: 0
+  hasElement: 0
+  element: 0
+  image: {fileID: 0}
+  description: "\u6563\u4EBA\u4E13\u5C5E"
+  effects:
+  - label: "\u6548\u679C"
+    value: "\u6D88\u8017\u4EFB\u610F3\u679Atoken\uFF0C\u5168\u961F\u5B89\u5168\u4ECE\u6218\u6597/\u793E\u4EA4\u4E2D\u64A4\u9000\u3002\u6D88\u8017\u7684token\u5982\u679C\u6709\u81F3\u5C11\u4E24\u679A\u514B\u5236\u5BF9\u65B9\u5C5E\u6027\uFF0C\u4F60\u53EF\u4EE5\u62BD\u53D61\u5F20\u9053\u5177"
+  copiesInPile: 1
+  exclusiveTo: {fileID: 11400000, guid: 0ecae4fe3c845344b913bde43c012f56, type: 2}

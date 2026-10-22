@@ -1,0 +1,16 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bbc468d73ea1ca4e88cae5fde730ae9, type: 3}
+  m_Name: SpiritInvestigator
+  m_EditorClassIdentifier: Assembly-CSharp::BackgroundData
+  backgroundName: "\u7075\u6C14\u8C03\u67E5\u8005"
+  description: "\u4F60\u7684\u5E08\u5085\u5BDF\u89C9\u5230\u4E86\u8FD9\u7247\u533A\u57DF\u7075\u6C14\u5931\u8861\uFF0C\u6D3E\u4F60\u524D\u6765\u67E5\u770B\u3002\u4E34\u884C\u524D\uFF0C\u5E08\u5085\u7ED9\u4E86\u4F60\u4E00\u4E2A\u9526\u56CA\uFF0C\u5429\u5490\u4F60\u53EA\u6709\u5728\u751F\u6B7B\u5173\u5934\u624D\u80FD\u6253\u5F00\u3002\n\n\u4ECE\u9053\u5177\u5806\u4E2D\u83B7\u5F97\u9526\u56CA\u5361\u3002"

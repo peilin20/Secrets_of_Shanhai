@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4ef7b434babc9e54e8da89bb78b5fd6c, type: 3}
+  m_Name: FaGun
+  m_EditorClassIdentifier: Assembly-CSharp::ItemData
+  itemName: "\u6CD5\u68CD"
+  kind: 0
+  mechanic: 0
+  value: 0
+  hasElement: 0
+  element: 0
+  image: {fileID: 0}
+  description: "\u6563\u4EBA\u4E13\u5C5E\uFF08\u521D\u59CB\u88C5\u5907\uFF09"
+  effects:
+  - label: "\u6548\u679C"
+    value: "\u6D88\u8017\u4EFB\u610F1\u679Atoken\uFF0C+1d4token\u5C5E\u6027\u6218\u6597\u503C"
+  copiesInPile: 0
+  exclusiveTo: {fileID: 11400000, guid: 0ecae4fe3c845344b913bde43c012f56, type: 2}

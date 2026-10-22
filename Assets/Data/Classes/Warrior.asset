@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8fc00f41c0e6f3a45adb125c4fba6513, type: 3}
+  m_Name: Warrior
+  m_EditorClassIdentifier: Assembly-CSharp::ClassData
+  className: "\u6B66\u58EB"
+  description: "\u201C\u522B\u5E9F\u8BDD\uFF0C\u62D4\u5200\u3002\u201D\n\u7B80\u5355\u3001\u7A33\u5B9A\u3001\u53EF\u9760\u3002\u9047\u5230\u89E3\u51B3\u4E0D\u4E86\u7684\u95EE\u9898\uFF0C\u90A3\u5C31\u591A\u780D\u51E0\u5200\u3002"
+  weapons:
+  - {fileID: 11400000, guid: a396f1a9db933774f947c8fba231e92b, type: 2}

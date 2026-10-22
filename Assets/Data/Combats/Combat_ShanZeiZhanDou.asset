@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27f0a23828d6ab9419d4ed3634e2d265, type: 3}
+  m_Name: Combat_ShanZeiZhanDou
+  m_EditorClassIdentifier: Assembly-CSharp::CombatData
+  title: "\u5C71\u8D3C\uFF08\u6218\u6597\uFF09"
+  element: 3
+  hasSpecies: 1
+  species: 3
+  image: {fileID: 0}
+  description: 
+  greatSuccessThreshold: 12
+  greatSuccessReward: "\u5C71\u8D3C\u56DB\u6563\u800C\u9003\uFF0C\u4E22\u4E0B\u4E86\u62A2\u6765\u7684\u8D22\u7269\uFF08\u62BD\u53D62\u5F20\u9053\u5177\u5361\uFF09\u3002"
+  successThreshold: 7
+  successReward: "\u5C71\u8D3C\u5934\u76EE\u8BA4\u8F93\uFF0C\u4EA4\u51FA\u4E00\u90E8\u5206\u8D22\u7269\uFF08\u62BD\u53D61\u5F20\u9053\u5177\u5361\uFF09\u3002"
+  failureResult: "\u4F60\u4EEC\u88AB\u6253\u5F97\u72FC\u72C8\u800C\u9003\uFF0C\u56E2\u961F\u603B\u8BA1\u629B\u5F03\u4EF7\u503C200\u5143\u7684\u9053\u5177\u724C\u3002"
+  special: 
