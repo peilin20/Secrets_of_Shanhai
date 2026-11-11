@@ -52,10 +52,11 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         if (!data) return;
         if (valueText) valueText.text = "";
         if (nameText) nameText.text = data.Title;
-        if (elementCircle) { elementCircle.enabled = true; elementCircle.color = ElementToken.ColorFor(data.element); }
-        if (elementText) elementText.text = CombatCard.ElementChar(data.element);
+        if (elementCircle) { elementCircle.enabled = !data.special; elementCircle.color = ElementToken.ColorFor(data.element); }
+        if (elementText) elementText.text = data.special ? "" : CombatCard.ElementChar(data.element);
         if (itemImage) itemImage.enabled = false;
-        if (descriptionText) descriptionText.text = "负伤（难度 " + data.Level + "）\n" + InjuryData.TypeOf(data.element);
+        if (descriptionText) descriptionText.text = data.special ? "特殊负伤（无法去除）"
+            : "负伤（难度 " + data.Level + "）\n" + InjuryData.TypeOf(data.element);
         if (effectsText) effectsText.text = "<b>效果：</b>" + data.effect;
         var background = GetComponent<Image>();
         if (background) background.color = InjuryColor;

@@ -45,6 +45,30 @@ public class ItemDeck : MonoBehaviour
         UpdateCount();
     }
 
+    // Takes the top consumable (消耗品) out of the pile, e.g. for 行脚商人's starting items. Null if none is left.
+    public ItemData TakeConsumable()
+    {
+        for (int i = pile.Count - 1; i >= 0; i--)
+        {
+            if (!pile[i] || pile[i].kind != ItemKind.Consumable) continue;
+            var item = pile[i];
+            pile.RemoveAt(i);
+            UpdateCount();
+            return item;
+        }
+        return null;
+    }
+
+    // Takes one copy of this card out of the pile. Null if none is left.
+    public ItemData Take(ItemData card)
+    {
+        int i = pile.LastIndexOf(card);
+        if (i < 0) return null;
+        pile.RemoveAt(i);
+        UpdateCount();
+        return card;
+    }
+
     public void Draw()
     {
         // A drawn card nobody may take (e.g. 专属 to a class no one plays): clicking the pile discards it.

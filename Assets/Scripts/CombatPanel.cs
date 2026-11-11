@@ -381,10 +381,10 @@ public class CombatPanel : MonoBehaviour
         if (!fighters.Contains(p)) fighters.Add(p);
         var deck = InjuryDeck.Find();
         if (!deck) return;
-        deck.WentOnStage(p);
+        deck.WentOnStage(p, round);
         if (stagePaid.Contains(p)) return;
         stagePaid.Add(p);
-        total += deck.CombatOnStage(p, first, log);
+        total += deck.CombatOnStage(p, first, log, (v, e) => ApplyCounter(v, e, out _));
     }
 
     // Null if the item can be used right now, otherwise the reason it can't.
@@ -392,7 +392,12 @@ public class CombatPanel : MonoBehaviour
     {
         switch (item.mechanic)
         {
-            case ItemMechanic.SocialOnly: return "只能在社交中使用";
+            case ItemMechanic.SocialOnly:
+            case ItemMechanic.Sugar:
+            case ItemMechanic.Rattle: return "只能在社交中使用";
+            case ItemMechanic.Salve:
+            case ItemMechanic.Panacea: return "在背包里点击这张卡使用";
+            case ItemMechanic.NoEffect: return "没有使用效果";
             case ItemMechanic.FailureGuard: return "战斗失败时在结算画面使用";
             case ItemMechanic.ExtraTurn: return player == fighter && fought ? null : "本轮上场的玩家出战后才能使用";
             case ItemMechanic.Reroll:
@@ -438,6 +443,7 @@ public class CombatPanel : MonoBehaviour
                 log.Add(src + "：获得额外回合，可以再出战一次");
                 break;
             case ItemMechanic.RainCharm: yield return UseRainCharm(player, src); break;
+            case ItemMechanic.SpiceTea: yield return UseSpiceTea(player, src); break;
             case ItemMechanic.Reroll: yield return UseReroll(src); break;
             case ItemMechanic.Disguise: yield return UseDisguise(player, src); break;
             case ItemMechanic.Burst: yield return UseBurst(player, src); break;
@@ -622,8 +628,9 @@ public class CombatPanel : MonoBehaviour
         InjuryData injury = null;
         yield return DrawInjury(player, x => injury = x);
         if (!injury) { Fail(src + "：没有负伤牌可抽"); yield break; }
+        yield return Hit(player, src + "（抽到" + CombatCard.ElementChar(injury.element) + "负伤）", 2, injury.element, "2", null);
         enemyElementNextRound = injury.element;
-        log.Add(src + "：抽到" + CombatCard.ElementChar(injury.element) + "负伤，下回合敌方属性变为" + CombatCard.ElementChar(injury.element));
+        log.Add("  下回合敌方属性变为" + CombatCard.ElementChar(injury.element));
     }
 
     // 替伤符: per token spent, move one injury card of that element to a teammate or the enemy
@@ -635,18 +642,18 @@ public class CombatPanel : MonoBehaviour
         {
             var movable = new List<int>();
             for (int i = 0; i < player.injuries.Count; i++)
-                if (Count(player, player.injuries[i].element) > 0) movable.Add(i);
+                if (player.injuries[i].special ? TokensOf(player).Count > 0 : Count(player, player.injuries[i].element) > 0) movable.Add(i);
             if (movable.Count == 0) break;
 
             var labels = new List<string>();
             var colors = new List<Color>();
             foreach (var i in movable)
             {
-                labels.Add("转移" + CombatCard.ElementChar(player.injuries[i].element) + "负伤");
-                colors.Add(ElementToken.ColorFor(player.injuries[i].element));
+                labels.Add("转移" + player.injuries[i].Title);
+                colors.Add(player.injuries[i].special ? Tan : ElementToken.ColorFor(player.injuries[i].element));
             }
             if (moved > 0) { labels.Add("完成"); colors.Add(Tan); }
-            yield return Choose(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token）", labels, colors);
+            yield return Choose(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token，特殊负伤消耗任意 1 枚）", labels, colors);
             if (choice >= movable.Count) break;
             var injury = player.injuries[movable[choice]];
 
@@ -655,15 +662,22 @@ public class CombatPanel : MonoBehaviour
             colors = new List<Color>();
             foreach (var p in players) if (p != player) { targets.Add(p); labels.Add(p.playerName); colors.Add(Tan); }
             labels.Add("敌人"); colors.Add(new Color(0.86f, 0.55f, 0.45f));
-            yield return Choose("把" + CombatCard.ElementChar(injury.element) + "负伤转移给谁？", labels, colors);
+            yield return Choose("把" + injury.Title + "转移给谁？", labels, colors);
+            int targetChoice = choice;
 
-            Spend(player, injury.element);
+            if (injury.special)
+            {
+                yield return ChooseToken(player, player.playerName + "：消耗哪一枚 token 转移" + injury.Title + "？", false, null);
+                Spend(player, (Element)choice);
+            }
+            else Spend(player, injury.element);
+            choice = targetChoice;
             player.injuries.Remove(injury);
             moved++;
             if (choice < targets.Count)
             {
                 var target = targets[choice];
-                log.Add(src + "：把" + CombatCard.ElementChar(injury.element) + "负伤转移给 " + target.playerName);
+                log.Add(src + "：把" + injury.Title + "转移给 " + target.playerName);
                 var deck = InjuryDeck.Find();
                 if (deck) yield return deck.Give(target, injury, false, log);   // Their backpack may need room.
                 else { target.injuries.Add(injury); target.Refresh(); }
@@ -674,7 +688,7 @@ public class CombatPanel : MonoBehaviour
                 yield return RollDie(4, x => a = x);
                 yield return RollDie(4, x => b = x);
                 LowerThresholds(a + b);
-                log.Add(src + "：把" + CombatCard.ElementChar(injury.element) + "负伤转移给敌人，2d4 = " + a + "+" + b
+                log.Add(src + "：把" + injury.Title + "转移给敌人，2d4 = " + a + "+" + b
                         + "，全胜 / 胜利条件各 -" + (a + b));
             }
             player.Refresh();
@@ -713,6 +727,17 @@ public class CombatPanel : MonoBehaviour
             for (int k = 0; k < r; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
         }
         log.Add(src + "：消耗" + n + "枚金，获得" + gained + "枚临时水token（" + string.Join("+", rolls.ToArray()) + "）");
+    }
+
+    // 香料茶: 2d4 temporary 水 tokens (this event only).
+    IEnumerator UseSpiceTea(CharacterCard player, string src)
+    {
+        int a = 0, b = 0;
+        yield return RollDie(4, x => a = x);
+        yield return RollDie(4, x => b = x);
+        int gained = 0;
+        for (int k = 0; k < a + b; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
+        log.Add(src + "：获得" + gained + "枚临时水token（" + a + "+" + b + "）");
     }
 
     // 贡品: roll the last roll's dice again.

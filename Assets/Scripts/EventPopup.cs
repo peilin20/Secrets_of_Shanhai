@@ -46,7 +46,7 @@ public class EventPopup : MonoBehaviour
             var button = Instantiate(optionButtonTemplate, optionRow);
             button.gameObject.SetActive(true);
             button.GetComponent<Image>().color = option.kind == OptionKind.Combat ? combatColor
-                : option.kind == OptionKind.Loot ? lootColor : socialColor;
+                : option.kind == OptionKind.Loot || option.kind == OptionKind.Choice || option.kind == OptionKind.Story ? lootColor : socialColor;
             button.transform.Find("Name").GetComponent<Text>().text = option.buttonName;
             button.transform.Find("Kind").GetComponent<Text>().text = option.kind.ToString();
             var picked = option;
@@ -61,6 +61,16 @@ public class EventPopup : MonoBehaviour
     // Loot options draw an item card and finish the event.
     void OnOptionPicked(EventOption option)
     {
+        if (option.kind == OptionKind.Choice)
+        {
+            StartCoroutine(PickChoice(option));
+            return;
+        }
+        if (option.kind == OptionKind.Story)
+        {
+            StartCoroutine(PickStory(option));
+            return;
+        }
         if (option.kind == OptionKind.Loot)
         {
             Hide();
@@ -84,6 +94,67 @@ public class EventPopup : MonoBehaviour
         if (!combat) return;
         Hide();
         combat.Open(option.combat, option.buttonName);
+    }
+
+    // A choice with no contest (e.g. 白泽 deciding whether to help 赤鱬): accepting ends the event,
+    // refusing goes back to the event's other options.
+    System.Collections.IEnumerator PickChoice(EventOption option)
+    {
+        if (option.requiresSpecies)
+        {
+            bool found = false;
+            foreach (var p in FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude))
+                if (p.species == option.species) found = true;
+            if (!found)
+            {
+                yield return ChoicePrompt.Ask("队里没有" + CombatPanel.SpeciesName(option.species) + "，不能选这一项",
+                    new System.Collections.Generic.List<string> { "确定" }, null);
+                yield break;
+            }
+        }
+        int answer = 1;
+        yield return ChoicePrompt.Ask(string.IsNullOrEmpty(option.choiceText) ? option.text : option.choiceText,new System.Collections.Generic.List<string> { option.acceptButton, option.refuseButton }, x => answer = x);
+        if (answer != 0) yield break;   // Refused: back to the event card.
+        if (!string.IsNullOrEmpty(option.acceptResult))
+            yield return ChoicePrompt.Ask(option.acceptResult, new System.Collections.Generic.List<string> { "确定" }, null);
+        Hide();
+        ResolveCurrentEvent();
+        var story = FindFirstObjectByType<StoryCard>();
+        if (story) story.AdvanceWhenEventsDone();
+    }
+
+    // A plain decision: the team hands out its items, then the card turns into the next event
+    // (same slot), or the event ends and the story moves on.
+    System.Collections.IEnumerator PickStory(EventOption option)
+    {
+        var players = new System.Collections.Generic.List<CharacterCard>(FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude));
+        players.Sort((a, b) => string.Compare(a.playerName, b.playerName, System.StringComparison.Ordinal));
+        foreach (var item in option.rewardItems)
+        {
+            if (!item) continue;
+            var takers = players.FindAll(p => p.HasFreeItemSlot && p.CanHold(item));
+            if (takers.Count == 0)
+            {
+                yield return ChoicePrompt.Ask("没有人的背包放得下" + item.itemName + "，只能放弃", new System.Collections.Generic.List<string> { "确定" }, null);
+                continue;
+            }
+            var names = new System.Collections.Generic.List<string>();
+            foreach (var p in takers) names.Add(p.playerName);
+            int pick = 0;
+            yield return ChoicePrompt.Ask("获得" + item.itemName + "：给谁？", names, x => pick = x);
+            takers[pick].TryAddItem(item);
+            takers[pick].Refresh();
+        }
+        if (option.nextEvent && source)
+        {
+            source.SetEvent(option.nextEvent);
+            Show(source);
+            yield break;
+        }
+        Hide();
+        ResolveCurrentEvent();
+        var story = FindFirstObjectByType<StoryCard>();
+        if (story) story.AdvanceWhenEventsDone();
     }
 
     public void Hide()

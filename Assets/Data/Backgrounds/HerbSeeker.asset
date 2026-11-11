@@ -14,3 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BackgroundData
   backgroundName: "\u5BFB\u836F\u8005"
   description: "\u4F60\u4FEE\u70BC\u65F6\u8D70\u706B\u5165\u9B54\uFF0C\u4F53\u5185\u7075\u6C14\u5931\u8C03\u3002\u65ED\u65E5\u6751\u9644\u8FD1\u7684\u751F\u957F\u7684\u4E00\u79CD\u7075\u8349\u4E0D\u4EC5\u80FD\u533B\u6CBB\uFF0C\u8FD8\u80FD\u8BA9\u4F60\u4FEE\u4E3A\u5927\u6DA8\u3002\n\n\u5F00\u5C40\u643A\u5E26\u65E0\u6CD5\u53BB\u9664\u7684\u7279\u6B8A\u8D1F\u4F24\u5361\u3002"
+  startItems: []
+  randomConsumables: 0
+  startInjury: {fileID: 11400000, guid: 636fae7d57af25a4eacbabd2e5004e75, type: 2}

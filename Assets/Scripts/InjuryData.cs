@@ -10,7 +10,11 @@ public class InjuryData : ScriptableObject
     [TextArea(2, 6)] public string effect;
     public int copiesInPile = 1;       // 总量
 
-    public string Title => CombatCard.ElementChar(element) + "负伤";
+    [Header("Special")]
+    public bool special;               // e.g. 寻药者's 特殊负伤: no element, can't be removed by anything.
+    public string customTitle;
+
+    public string Title => !string.IsNullOrEmpty(customTitle) ? customTitle : CombatCard.ElementChar(element) + "负伤";
 
     // 难度 1–3 (the 负伤 sheet says Low / Medium / High).
     public int Level => difficulty == "Medium" ? 2 : difficulty == "High" ? 3 : 1;

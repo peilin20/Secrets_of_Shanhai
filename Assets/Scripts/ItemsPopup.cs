@@ -87,6 +87,13 @@ public class ItemsPopup : MonoBehaviour
     {
         int slot = System.Array.IndexOf(cardsInSlots, card);
         if (slot < 0) return;
+        if (card.item && (card.item.mechanic == ItemMechanic.Salve || card.item.mechanic == ItemMechanic.Panacea))
+        {
+            var deck = InjuryDeck.Find();
+            var who = owner;
+            if (deck) StartCoroutine(deck.UseHealItem(who, slot, () => { if (isActiveAndEnabled) Show(who); }));
+            return;
+        }
         if (card.item && card.item.kind == ItemKind.Consumable)
         {
             titleText.text = owner.playerName + " 的道具   （" + card.item.itemName + " 是消耗品，在战斗中使用，不能装备）";

@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27f0a23828d6ab9419d4ed3634e2d265, type: 3}
+  m_Name: Combat_JingKouZhiLuan
+  m_EditorClassIdentifier: Assembly-CSharp::CombatData
+  title: "\u4E95\u53E3\u4E4B\u4E71\uFF08\u6218\u6597\uFF09"
+  element: 4
+  hasSpecies: 0
+  species: 0
+  image: {fileID: 0}
+  description: 
+  greatSuccessThreshold: 19
+  greatSuccessReward: "\u4F60\u4EEC\u5F7B\u5E95\u5236\u4F0F\u4E86\u8D64\u9C6C\u3002\u68C0\u67E5\u4E95\u5E95\u65F6\uFF0C\u4F60\u4EEC\u53D1\u73B0\u4E95\u5E95\u7684\u6D45\u6C34\u662F\u5B83\u4EEC\u6700\u540E\u7684\u6816\u8EAB\u4E4B\u5730\u3002\u5E76\u4E14\uFF0C\u8FD9\u4E95\u5E95\u85CF\u7740\u4E00\u6761\u7A84\u5C0F\u7684\u6697\u6E20\uFF0C\u4E0D\u77E5\u9053\u901A\u5411\u54EA\u91CC\u3002\u83B7\u5F972\u6C34token+\u9053\u5177+\u79D8\u95FB\u724C"
+  successThreshold: 8
+  successReward: "\u4F60\u4EEC\u628A\u8D64\u9C6C\u6253\u56DE\u4E86\u4E95\u91CC\uFF0C\u8FD8\u60F3\u529E\u6CD5\u628A\u4E95\u53E3\u6682\u65F6\u5C01\u4E86\u8D77\u6765\u3002\u83B7\u5F972\u6C34token+\u79D8\u95FB\u724C"
+  failureResult: "\u6240\u6709\u89D2\u8272\u62BD\u53D61\u91D1\u8D1F\u4F24\u724C\uFF08\u88AB\u8D64\u9C6C\u7684\u5927\u5C3E\u5DF4\u7529\u8138\uFF09"
+  special: "\u770B\u5230\u4F60\u4EEC\u53D7\u4F24\uFF0C\u6751\u6C11\u4E3A\u4F60\u4EEC\u62FF\u6765\u4E86\u8349\u836F\uFF08\u6218\u8D25\u65F6\uFF0C\u83B7\u5F972\u201C\u4F24\u836F-\u91D1\u201D\u9053\u5177\uFF09"

@@ -14,5 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InjuryData
   difficulty: Low
   element: 0
-  effect: "\u5728\u4E00\u6B21\u4E8B\u4EF6\u5B8C\u5168\u4E0D\u4E0A\u573A\u540E\uFF0C\u5F03\u6389\u8FD9\u5F20\u724C\u5E76\u83B7\u5F972\u6728token"
+  effect: "\u5728\u4E00\u6B21\u4E8B\u4EF6\u5B8C\u5168\u4E0D\u4E0A\u573A\u540E\uFF0C\u5F03\u6389\u8FD9\u5F20\u724C\u5E76\u83B7\u5F971\u6728token"
   copiesInPile: 4

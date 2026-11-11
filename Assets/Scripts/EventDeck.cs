@@ -74,6 +74,28 @@ public class EventDeck : MonoBehaviour
         return drawn;
     }
 
+    // Draws these exact cards (e.g. a story card's own events) into empty slots, taking them out of the pile if they're in it.
+    public int DrawSpecific(List<EventData> wanted)
+    {
+        int drawn = 0;
+        int next = 0;
+        foreach (var slot in slots)
+        {
+            while (next < wanted.Count && !wanted[next]) next++;
+            if (next >= wanted.Count) break;
+            if (slot.childCount > 0) continue;
+            var data = wanted[next++];
+            pile.Remove(data);
+            totalDrawn++;
+            var card = Instantiate(eventCardPrefab, slot);
+            card.SetEvent(data);
+            StartCoroutine(FlyIn(card.transform, drawn * delayBetweenCards));
+            drawn++;
+        }
+        UpdateCount();
+        return drawn;
+    }
+
     IEnumerator FlyIn(Transform card, float delay)
     {
         var rt = (RectTransform)card;

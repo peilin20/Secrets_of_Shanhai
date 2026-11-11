@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27f0a23828d6ab9419d4ed3634e2d265, type: 3}
+  m_Name: Combat_QiHuoKeJu
+  m_EditorClassIdentifier: Assembly-CSharp::CombatData
+  title: "\u5947\u8D27\u53EF\u5C45\uFF08\u6218\u6597\uFF09"
+  element: 1
+  hasSpecies: 1
+  species: 3
+  image: {fileID: 0}
+  description: 
+  greatSuccessThreshold: 19
+  greatSuccessReward: "\u62A4\u536B\u5B8C\u5168\u4E0D\u662F\u4F60\u4EEC\u7684\u5BF9\u624B\u3002\u4E3A\u6C42\u8131\u8EAB\uFF0C\u4ED6\u4EEC\u4E0D\u4EC5\u8FD8\u4E86\u94B1\uFF0C\u8FD8\u8DDF\u4F60\u8BF4\u4E86\u5173\u4E8E\u8FD9\u6751\u5B50\u7684\u4E00\u4EF6\u602A\u4E8B\u3002\u83B7\u5F971\u706Btoken\uFF0C\u83B7\u5F971\u91D1token+1\u9053\u5177+\u79D8\u95FB\u724C"
+  successThreshold: 8
+  successReward: "\u540C\u4F34\u5012\u4E0B\u540E\uFF0C\u5546\u961F\u4E22\u4E0B\u655B\u6765\u7684\u4E0D\u4E49\u4E4B\u8D22\u614C\u5F20\u9003\u79BB\u3002\u83B7\u5F971\u706Btoken\uFF0C\u83B7\u5F971\u91D1token"
+  failureResult: "\u7B2C\u4E00\u8F6E\u51FA\u573A\u89D2\u8272\u62BD\u53D61\u571F\u8D1F\u4F24\u724C\uFF08\u662F\u8C01\u88AB\u66B4\u6253\u4E86\u5462\uFF09"
+  special: 

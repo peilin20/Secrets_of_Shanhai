@@ -1,0 +1,53 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8b2183bfedb0e345b19cf887d8374e6, type: 3}
+  m_Name: Event_QiHuoKeJu
+  m_EditorClassIdentifier: Assembly-CSharp::EventData
+  title: "\u5947\u8D27\u53EF\u5C45"
+  image: {fileID: 0}
+  description: "\u51E0\u540D\u9955\u992E\u6751\u6C11\u4E0E\u4E00\u961F\u4EBA\u7C7B\u5546\u8D3E\u8D77\u4E86\u4E89\u6267\u3002\n\n\u5546\u961F\u542C\u8BF4\u4E86\u6751\u4E2D\u7684\u5E72\u65F1\uFF0C\u7279\u610F\u8FD0\u6765\u6E05\u6C34\uFF0C\u9AD8\u4EF7\u8D29\u5356\u3002\u4F46\u6751\u6C11\u4E70\u4E0B\u6C34\u540E\u624D\u53D1\u73B0\uFF0C\u6728\u6876\u5E95\u90E8\u94FA\u6EE1\u4E86\u77F3\u5757\uFF0C\u6C34\u8D28\u4E0D\u4EC5\u7CDF\u7CD5\uFF0C\u91CF\u4E5F\u6BD4\u770B\u8D77\u6765\u5C11\u3002\n\n\u9762\u5BF9\u8D28\u95EE\uFF0C\u5546\u4EBA\u77E2\u53E3\u5426\u8BA4\uFF0C\u4E0D\u613F\u610F\u628A\u94B1\u8FD8\u7ED9\u6751\u6C11\u3002\u4E89\u6267\u95F4\uFF0C\u5546\u961F\u7684\u62A4\u536B\u5F00\u59CB\u63A8\u6421\u5E74\u8FC8\u7684\u6751\u6C11\u3002\n\n\u8981\u5E2E\u52A9\u6751\u6C11\u8981\u56DE\u94B1\u8D22\u5417\uFF1F"
+  options:
+  - label: "\u6218\u6597:"
+    text: "\u6B66\u529B\u5236\u670D\u5978\u5546"
+    kind: 0
+    buttonName: "\u6B66\u529B\u5236\u670D\u5978\u5546"
+    combat: {fileID: 11400000, guid: 204bbfddd7a62aa4ab2656a406f76ac2, type: 2}
+    social: {fileID: 0}
+    requiresSpecies: 0
+    species: 0
+    acceptButton: "\u7B54\u5E94"
+    refuseButton: "\u62D2\u7EDD"
+    acceptResult: 
+  - label: "\u793E\u4EA4:"
+    text: "\u820C\u6218\u5978\u5546"
+    kind: 1
+    buttonName: "\u820C\u6218\u5978\u5546"
+    combat: {fileID: 0}
+    social: {fileID: 11400000, guid: 630f7fb7030a53a48a1bdc4fbeb824d0, type: 2}
+    requiresSpecies: 0
+    species: 0
+    acceptButton: "\u7B54\u5E94"
+    refuseButton: "\u62D2\u7EDD"
+    acceptResult: 
+  - label: "\u793E\u4EA4:"
+    text: "\u548C\u5546\u961F\u4E00\u8D77\u7CCA\u5F04\u6751\u6C11"
+    kind: 1
+    buttonName: "\u548C\u5546\u961F\u4E00\u8D77\u7CCA\u5F04\u6751\u6C11"
+    combat: {fileID: 0}
+    social: {fileID: 11400000, guid: 98c8646d5c6c23f408aaa15f4c5c3be4, type: 2}
+    requiresSpecies: 0
+    species: 0
+    acceptButton: "\u7B54\u5E94"
+    refuseButton: "\u62D2\u7EDD"
+    acceptResult: 
+  nextStep: 
+  notFirstEvent: 0

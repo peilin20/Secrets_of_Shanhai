@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8b2183bfedb0e345b19cf887d8374e6, type: 3}
+  m_Name: Event_DaNaoXiTai
+  m_EditorClassIdentifier: Assembly-CSharp::EventData
+  title: "\u5927\u95F9\u620F\u53F0"
+  image: {fileID: 0}
+  description: "\u4E00\u652F\u5916\u6765\u7684\u620F\u73ED\u6B63\u5728\u6751\u4E2D\u642D\u53F0\u6F14\u51FA\u3002\u4E00\u540D\u636E\u8BF4\u662F\u626E\u6F14\u96E8\u795E\u7684\u6F14\u5458\u6234\u7740\u9C7C\u8138\u9762\u5177\u521A\u521A\u767B\u53F0\uFF0C\u4FBF\u88AB\u89C2\u4F17\u6012\u65A5\u4EB5\u6E0E\u795E\u660E\uFF0C\u751A\u81F3\u6295\u63B7\u9999\u6599\u4E0A\u53F0\u8981\u7ED9\u4ED6\u4EEC\u597D\u597D\u201C\u9A71\u90AA\u201D\u3002\n\u620F\u73ED\u575A\u6301\u8FD9\u5957\u88C5\u626E\u672C\u5C31\u51FA\u81EA\u9955\u992E\u6751\u591A\u5E74\u524D\u6D41\u4F20\u7684\u620F\u8C31\u3002\u53CC\u65B9\u5404\u6267\u4E00\u8BCD\uFF0C\u5927\u6253\u51FA\u624B\u3002\u620F\u73ED\u4F3C\u4E4E\u5BE1\u4E0D\u654C\u4F17\u2026\u2026"
+  options:
+  - label: "\u6218\u6597:"
+    text: "\u6B66\u529B\u538B\u5236\u6124\u6012\u7684\u6751\u6C11\u89C2\u4F17"
+    kind: 0
+    buttonName: "\u5236\u670D\u89C2\u4F17"
+    combat: {fileID: 11400000, guid: 7c66100824c2b48488de624fb5caefb7, type: 2}
+    social: {fileID: 0}
+    requiresSpecies: 0
+    species: 0
+    choiceText: 
+    acceptButton: "\u7B54\u5E94"
+    refuseButton: "\u62D2\u7EDD"
+    acceptResult: 
+    rewardItems: []
+    nextEvent: {fileID: 0}
+  - label: "\u793E\u4EA4:"
+    text: "\u8BF4\u670D\u89C2\u4F17\uFF0C\u8BA9\u4ED6\u4EEC\u5148\u5E73\u9759\u4E0B\u6765"
+    kind: 1
+    buttonName: "\u4E0A\u53F0\u6F14\u51FA"
+    combat: {fileID: 0}
+    social: {fileID: 11400000, guid: 6fb68cbe6801cc94cb9e64b848bb0dd4, type: 2}
+    requiresSpecies: 0
+    species: 0
+    choiceText: 
+    acceptButton: "\u7B54\u5E94"
+    refuseButton: "\u62D2\u7EDD"
+    acceptResult: 
+    rewardItems: []
+    nextEvent: {fileID: 0}
+  nextStep: 
+  notFirstEvent: 0

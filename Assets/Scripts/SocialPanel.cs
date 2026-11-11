@@ -303,7 +303,7 @@ public class SocialPanel : MonoBehaviour
         int bet = choice + 1;
         if (!speakers.Contains(p)) speakers.Add(p);
         var deck = InjuryDeck.Find();
-        if (deck) deck.WentOnStage(p);
+        if (deck) deck.WentOnStage(p, round);
 
         // 负伤 that change 好感度 when this character goes on stage are settled before the judgment.
         if (!onStageThisRound.Contains(p))
@@ -390,7 +390,31 @@ public class SocialPanel : MonoBehaviour
 
     int Need(SocialOutcome outcome)
     {
-        return Mathf.Max(0, outcome.favorNeeded - needLess);
+        int need = outcome.favorNeeded;
+        // 特殊 like "如果白泽在场，大成功难度下降为7": the best outcome needs that much at most.
+        if (social && social.outcomes.Count > 0 && outcome == social.outcomes[0] && !string.IsNullOrEmpty(social.special))
+        {
+            var m = Regex.Match(social.special, @"如果(\S{1,3}?)在场，大成功难度下降为\s*(\d+)");
+            if (m.Success && players.Exists(p => CombatPanel.SpeciesName(p.species) == m.Groups[1].Value))
+                need = Mathf.Min(need, int.Parse(m.Groups[2].Value));
+        }
+        return Mathf.Max(0, need - needLess);
+    }
+
+    // 特殊 like "如果九尾上场且取得胜利，额外获得1主属性token；取得大胜利时，额外获得2主属性token。"
+    void SpeciesWinBonus(SocialOutcome outcome, List<string> notes)
+    {
+        if (!social || string.IsNullOrEmpty(social.special)) return;
+        var m = Regex.Match(social.special, @"如果(\S{1,3}?)上场且取得胜利，额外获得\s*(\d+)\s*主属性\s*token[^\d]*取得大胜利时，额外获得\s*(\d+)\s*主属性\s*token");
+        if (!m.Success) return;
+        int n = int.Parse(outcome == social.outcomes[0] ? m.Groups[3].Value : m.Groups[2].Value);
+        foreach (var p in speakers)
+        {
+            if (CombatPanel.SpeciesName(p.species) != m.Groups[1].Value) continue;
+            int got = 0;
+            for (int i = 0; i < n; i++) got += AddToken(p, p.primaryElement, false);
+            notes.Add(p.playerName + "（" + m.Groups[1].Value + "）额外获得 " + got + " 枚" + CombatCard.ElementChar(p.primaryElement) + " token");
+        }
     }
 
     // --- ④ Items ---
@@ -458,7 +482,8 @@ public class SocialPanel : MonoBehaviour
         {
             if (player != speaker) return "装备只有本轮说话的玩家能用";
             if (item.mechanic == ItemMechanic.Escape) return CombatPanel.TokensOf(player).Count >= 3 ? null : "需要 3 枚 token";
-            foreach (var injury in player.injuries) if (injury && CombatPanel.Count(player, injury.element) > 0) return null;
+            foreach (var injury in player.injuries)
+                if (injury && (injury.special ? CombatPanel.TokensOf(player).Count > 0 : CombatPanel.Count(player, injury.element) > 0)) return null;
             return "没有能转移的负伤牌（需要负伤牌和同属性 token）";
         }
         switch (item.mechanic)
@@ -469,6 +494,12 @@ public class SocialPanel : MonoBehaviour
             case ItemMechanic.Retreat:
                 return null;
             case ItemMechanic.RainCharm: return CombatPanel.Count(player, Element.Metal) > 0 ? null : "没有金 token";
+            case ItemMechanic.SpiceTea: return null;
+            case ItemMechanic.Sugar: return player == speaker ? null : "只有本轮说话的玩家能用";
+            case ItemMechanic.Rattle: return "还没有设定哪些社交对象是孩子或调皮的精怪";
+            case ItemMechanic.Salve:
+            case ItemMechanic.Panacea: return "在背包里点击这张卡使用";
+            case ItemMechanic.NoEffect: return "没有使用效果";
             case ItemMechanic.ExtraTurn:
                 if (player != speaker || !spoke) return "本轮说话的玩家说完后才能使用";
                 return pool.Count > rounds - round ? null : "NPC 的候选池不够再说一次";
@@ -495,6 +526,8 @@ public class SocialPanel : MonoBehaviour
             case ItemMechanic.Sachet: yield return UseSachet(player, src); break;
             case ItemMechanic.Disguise: yield return UseDisguise(player, src); break;
             case ItemMechanic.RainCharm: yield return UseRainCharm(player, src); break;
+            case ItemMechanic.SpiceTea: UseSpiceTea(player, src); break;
+            case ItemMechanic.Sugar: yield return UseSugar(player, src); break;
             case ItemMechanic.Retreat: Retreat(src + "：全队安全撤离"); break;
             case ItemMechanic.ExtraTurn:
                 spoke = false;
@@ -562,6 +595,28 @@ public class SocialPanel : MonoBehaviour
         log.Add(src + "：消耗" + n + "枚金，获得" + gained + "枚临时水token（" + string.Join("+", rolls.ToArray()) + "）");
     }
 
+    // 香料茶: 2d4 temporary 水 tokens (this event only).
+    void UseSpiceTea(CharacterCard player, string src)
+    {
+        int a = Random.Range(1, 5), b = Random.Range(1, 5);
+        int gained = 0;
+        for (int k = 0; k < a + b; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
+        log.Add(src + "：获得" + gained + "枚临时水token（" + a + "+" + b + "）");
+    }
+
+    // 糖: counts as 1 token of an element the speaker picks (a temporary token, this event only).
+    IEnumerator UseSugar(CharacterCard player, string src)
+    {
+        var all = (Element[])System.Enum.GetValues(typeof(Element));
+        var labels = new List<string>();
+        var colors = new List<Color>();
+        foreach (var e in all) { labels.Add(CombatCard.ElementChar(e)); colors.Add(ElementToken.ColorFor(e)); }
+        yield return Choose(player.playerName + "：把糖当作哪种属性的 token？", labels, colors);
+        var element = all[choice];
+        int gained = AddToken(player, element, true);
+        log.Add(src + "：当作 1 枚" + CombatCard.ElementChar(element) + " token" + (gained == 0 ? "（被负伤挡住了）" : ""));
+    }
+
     // 替伤符: per token spent, move one 负伤 card of that element to a teammate or the NPC
     // (to the NPC: every outcome needs 2d4 less each time).
     IEnumerator UseInjuryTransfer(CharacterCard player, string src)
@@ -571,18 +626,19 @@ public class SocialPanel : MonoBehaviour
         {
             var movable = new List<int>();
             for (int i = 0; i < player.injuries.Count; i++)
-                if (player.injuries[i] && CombatPanel.Count(player, player.injuries[i].element) > 0) movable.Add(i);
+                if (player.injuries[i] && (player.injuries[i].special ? CombatPanel.TokensOf(player).Count > 0
+                    : CombatPanel.Count(player, player.injuries[i].element) > 0)) movable.Add(i);
             if (movable.Count == 0) break;
 
             var labels = new List<string>();
             var colors = new List<Color>();
             foreach (var i in movable)
             {
-                labels.Add("转移" + CombatCard.ElementChar(player.injuries[i].element) + "负伤");
-                colors.Add(ElementToken.ColorFor(player.injuries[i].element));
+                labels.Add("转移" + player.injuries[i].Title);
+                colors.Add(player.injuries[i].special ? Tan : ElementToken.ColorFor(player.injuries[i].element));
             }
             labels.Add(moved > 0 ? "完成" : "取消"); colors.Add(Tan);
-            yield return Choose(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token）", labels, colors);
+            yield return Choose(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token，特殊负伤消耗任意 1 枚）", labels, colors);
             if (choice >= movable.Count) break;
             var injury = player.injuries[movable[choice]];
 
@@ -591,15 +647,28 @@ public class SocialPanel : MonoBehaviour
             colors = new List<Color>();
             foreach (var p in players) if (p != player) { targets.Add(p); labels.Add(p.playerName); colors.Add(Tan); }
             labels.Add("NPC"); colors.Add(Blue);
-            yield return Choose("把" + CombatCard.ElementChar(injury.element) + "负伤转移给谁？", labels, colors);
+            yield return Choose("把" + injury.Title + "转移给谁？", labels, colors);
+            int targetChoice = choice;
 
-            CombatPanel.Spend(player, injury.element);
+            if (injury.special)
+            {
+                // Any one token pays for the 特殊负伤.
+                var have = new List<Element>();
+                foreach (Element e in System.Enum.GetValues(typeof(Element))) if (CombatPanel.Count(player, e) > 0) have.Add(e);
+                labels = new List<string>();
+                colors = new List<Color>();
+                foreach (var e in have) { labels.Add(CombatCard.ElementChar(e) + " ×" + CombatPanel.Count(player, e)); colors.Add(ElementToken.ColorFor(e)); }
+                yield return Choose(player.playerName + "：消耗哪一枚 token 转移" + injury.Title + "？", labels, colors);
+                CombatPanel.Spend(player, have[choice]);
+            }
+            else CombatPanel.Spend(player, injury.element);
+            choice = targetChoice;
             player.injuries.Remove(injury);
             moved++;
             if (choice < targets.Count)
             {
                 var target = targets[choice];
-                log.Add(src + "：把" + CombatCard.ElementChar(injury.element) + "负伤转移给 " + target.playerName);
+                log.Add(src + "：把" + injury.Title + "转移给 " + target.playerName);
                 var deck = InjuryDeck.Find();
                 if (deck) yield return deck.Give(target, injury, false, log);   // Their backpack may need room.
                 else { target.injuries.Add(injury); target.Refresh(); }
@@ -608,7 +677,7 @@ public class SocialPanel : MonoBehaviour
             {
                 int a = Random.Range(1, 5), b = Random.Range(1, 5);
                 needLess += a + b;
-                log.Add(src + "：把" + CombatCard.ElementChar(injury.element) + "负伤转移给 NPC，2d4 = " + a + "+" + b
+                log.Add(src + "：把" + injury.Title + "转移给 NPC，2d4 = " + a + "+" + b
                         + "，所有选项所需好感度 -" + (a + b));
             }
             player.Refresh();
@@ -793,6 +862,7 @@ public class SocialPanel : MonoBehaviour
         var notes = new List<string>();
         var injuries = InjuryDeck.Find();
         yield return RewardRules.Give(outcome.reward, players, speakers, tokenPrefab, notes);
+        SpeciesWinBonus(outcome, notes);
         if (injuries) notes.AddRange(injuries.OnWin(false));
         ShowResult(outcome.label, outcome.reward, string.Join("\n", notes.ToArray()), false);
     }

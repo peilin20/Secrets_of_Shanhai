@@ -35,7 +35,13 @@ public enum ItemMechanic
     Disguise,           // 易容面具: the enemy takes you for a species you pick
     SocialOnly,         // 社交道具: social events only
     FailureGuard,       // 失败保护: on a failed combat, protects one character from the failure
-    Burst               // 单次高强度输出: one token of each element = 10 of your primary element
+    Burst,              // 单次高强度输出: one token of each element = 10 of your primary element
+    SpiceTea,           // 香料茶: 2d4 temporary 水 tokens for this event
+    Salve,              // 伤药: discard one of your injury cards (used from the backpack)
+    Panacea,            // 仙草: discard all your injury cards, +1 token of each one's element (used from the backpack)
+    Sugar,              // 糖: in social, the speaker counts it as 1 token of any element
+    Rattle,             // 拨浪鼓: +2 favor with children / naughty spirits (not wired up yet)
+    NoEffect            // 一些钱: nothing to use
 }
 
 // An item card: name, value, element, picture, description and numerical effects.

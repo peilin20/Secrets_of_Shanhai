@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f7e4d8aa9b32ca40953aadde894a339, type: 3}
+  m_Name: Social_QuanTuiCunMin
+  m_EditorClassIdentifier: Assembly-CSharp::SocialData
+  title: "\u529D\u9000\u6751\u6C11"
+  image: {fileID: 0}
+  description: 
+  pool: 03000000000000000100000002000000i
+  startingFavor: 3
+  hasSpecies: 0
+  species: 3
+  outcomes:
+  - label: "\u5927\u6210\u529F"
+    favorNeeded: 8
+    reward: "\u83B7\u5F974token+\u79D8\u95FB\u724C"
+  - label: "\u6210\u529F"
+    favorNeeded: 5
+    reward: "\u83B7\u5F972token+\u79D8\u95FB\u724C"
+  failureResult: "\u7B2C\u4E00\u8F6E\u4E0A\u573A\u89D2\u8272\u62BD\u53D61\u6728\u8D1F\u4F24\u724C\uFF0C\u7B2C\u4E09\u8F6E\u4E0A\u573A\u89D2\u8272\u62BD\u53D61\u571F\u8D1F\u4F24\u724C\uFF08\u4F60\u4EEC\u529D\u963B\u5931\u8D25\uFF0C\u8FD8\u5728\u6DF7\u6218\u4E2D\u88AB\u8BEF\u4F24\uFF09"
+  failureCombat: {fileID: 0}
+  special: "\u5982\u679C\u7B2C\u4E09\u8F6E\u65E0\u4EBA\u51FA\u573A\uFF0C\u5219\u65E0\u9700\u62BD\u53D6\u7B2C\u4E09\u8F6E\u7684\u8D1F\u4F24\u724C"
+  hasSpeciesBonus: 0
+  bonusSpecies: 0
+  bonusAmount: 0
+  bonusButton: 

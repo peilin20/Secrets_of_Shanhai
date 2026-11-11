@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8bbc468d73ea1ca4e88cae5fde730ae9, type: 3}
+  m_Name: RichHeir
+  m_EditorClassIdentifier: Assembly-CSharp::BackgroundData
+  backgroundName: "\u5BCC\u5BB6\u5B50\u5F1F"
+  description: "\u4F60\u51FA\u8EAB\u5BCC\u8D35\u4E4B\u5BB6\uFF0C\u4ECE\u5C0F\u9526\u8863\u7389\u98DF\u3002\u8FD9\u6B21\u524D\u5F80\u65ED\u65E5\u6751\u7ED8\u5236\u8206\u56FE\uFF0C\u5BB6\u91CC\u7279\u5730\u4E3A\u4F60\u51C6\u5907\u4E86\u4E0D\u5C11\u76D8\u7F20\u3002\u4F60\u4E0D\u7F3A\u94B1\uFF0C\u53EA\u7F3A\u4E00\u4E2A\u8BC1\u660E\u81EA\u5DF1\u4E0D\u662F\u5E9F\u7269\u7684\u673A\u4F1A\u3002\n\n\u83B7\u5F97\u6D88\u8017\u54C1-\u4E00\u4E9B\u94B1"
+  startItems:
+  - {fileID: 11400000, guid: b78079eb84fee094abf79b2480648688, type: 2}
+  randomConsumables: 0
+  startInjury: {fileID: 0}

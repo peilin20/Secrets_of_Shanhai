@@ -120,12 +120,17 @@ public class InjuryDeck : MonoBehaviour
         inEvent = true;
         eventNumber++;
         onStage.Clear();
+        byRound.Clear();
     }
 
-    public void WentOnStage(CharacterCard p)
+    // `round` (1, 2, 3…) records who went on stage in which round, for "第三轮上场角色…".
+    public void WentOnStage(CharacterCard p, int round = 0)
     {
         if (!onStage.Contains(p)) onStage.Add(p);
+        if (round > 0 && !byRound.ContainsKey(round)) byRound[round] = p;
     }
+
+    readonly Dictionary<int, CharacterCard> byRound = new Dictionary<int, CharacterCard>();
 
     // Null if the player may go on stage now, otherwise why not. `first`: nobody has gone on stage yet.
     public string StageBlock(CharacterCard p, bool combat, bool first)
@@ -144,19 +149,27 @@ public class InjuryDeck : MonoBehaviour
     }
 
     // 负伤 that change the combat value when this player goes on stage:
-    // "每次上场战斗值-1", "在战斗中，如果第一个出场，战斗值+3".
-    public int CombatOnStage(CharacterCard p, bool first, List<string> log)
+    // "每次上场战斗值-1", "在战斗中，如果第一个出场，水属性战斗值+1". An element-ed bonus goes through
+    // `counter` (克制 ×2 / ×½ against the enemy).
+    public int CombatOnStage(CharacterCard p, bool first, List<string> log, System.Func<int, Element, int> counter = null)
     {
         int change = 0;
         foreach (var injury in p.injuries)
         {
             if (!injury) continue;
-            var m = Regex.Match(injury.effect, @"每次上场战斗值\s*([+-])\s*(\d+)");
-            if (!m.Success && first) m = Regex.Match(injury.effect, @"战斗中，如果第一个出场，战斗值\s*([+-])\s*(\d+)");
+            var m = Regex.Match(injury.effect, @"每次上场()战斗值\s*([+-])\s*(\d+)");
+            if (!m.Success && first) m = Regex.Match(injury.effect, @"战斗中，如果第一个出场，(?:(金|木|水|火|土)属性)?战斗值\s*([+-])\s*(\d+)");
             if (!m.Success) continue;
-            int n = int.Parse(m.Groups[2].Value) * (m.Groups[1].Value == "-" ? -1 : 1);
+            int n = int.Parse(m.Groups[3].Value) * (m.Groups[2].Value == "-" ? -1 : 1);
+            string what = "战斗值";
+            if (m.Groups[1].Value != "")
+            {
+                var e = ElementOf(m.Groups[1].Value);
+                what = m.Groups[1].Value + "属性战斗值";
+                if (counter != null && n > 0) n = counter(n, e);
+            }
             change += n;
-            Note(log, "  " + p.playerName + " 上场：" + injury.Title + "，战斗值 " + (n >= 0 ? "+" : "") + n);
+            Note(log, "  " + p.playerName + " 上场：" + injury.Title + "，" + what + " " + (n >= 0 ? "+" : "") + n);
         }
         return change;
     }
@@ -203,15 +216,39 @@ public class InjuryDeck : MonoBehaviour
     // The 失败 text says who draws which 负伤: "所有上场玩家抽取一张水属性负伤卡", "一名玩家抽取一张“负伤”牌",
     // "第一位上场的玩家…", "最后一位上场的玩家…", "后两个上场的玩家…", "选择一名主属性不为火的角色…获得一张“烧伤”牌".
     // Players protected by 失败保护 are skipped. Ends with a summary of who got what.
+    // A text with several 负伤 clauses ("第一轮上场角色抽取1木负伤牌，第三轮上场角色抽取1土负伤牌") settles each one.
     public IEnumerator ApplyFailure(string text, List<CharacterCard> players, List<CharacterCard> protectedPlayers)
     {
         if (string.IsNullOrEmpty(text) || !text.Contains("负伤")) yield break;
+        var clauses = new List<string>();
+        foreach (var part in Regex.Split(Regex.Replace(text, @"（[^）]*）", ""), @"[，,；;。]"))
+            if (part.Contains("负伤")) clauses.Add(part);
+        if (clauses.Count == 0) clauses.Add(text);
+        var lines = new List<string>();
+        foreach (var clause in clauses) yield return ApplyFailureClause(clause, text, players, protectedPlayers, lines);
+        if (protectedPlayers.Count > 0)
+            foreach (var p in protectedPlayers) lines.Add(p.playerName + " 用失败保护躲过了负伤");
+        yield return Tell("失败结算", lines);
+    }
+
+    // `fullText` is the whole 失败 text, for who-can-be-picked limits written outside the clause ("【请选择一名主属性不为火的角色】").
+    IEnumerator ApplyFailureClause(string text, string fullText, List<CharacterCard> players, List<CharacterCard> protectedPlayers, List<string> lines)
+    {
         var element = InjuryElement(text);
         var free = players.FindAll(p => !protectedPlayers.Contains(p));
         var stage = onStage.FindAll(p => free.Contains(p));
         var targets = new List<CharacterCard>();
+        var roundMatch = Regex.Match(text, @"第\s*(一|二|三|1|2|3)\s*轮\s*(出场|上场)");
         if (text.Contains("所有上场")) targets.AddRange(stage);
-        else if (text.Contains("第一位上场")) { if (onStage.Count > 0 && free.Contains(onStage[0])) targets.Add(onStage[0]); }
+        else if (text.Contains("所有角色") || text.Contains("每位角色") || text.Contains("所有玩家")) targets.AddRange(free);
+        else if (roundMatch.Success)
+        {
+            // Nobody went on stage that round: nothing to draw.
+            int r = "一二三".IndexOf(roundMatch.Groups[1].Value) + 1;
+            if (r == 0) r = int.Parse(roundMatch.Groups[1].Value);
+            if (byRound.TryGetValue(r, out var who) && free.Contains(who)) targets.Add(who);
+        }
+        else if (text.Contains("第一位上场") || text.Contains("第一名上场") || text.Contains("第一位出场") || text.Contains("第一名出场")) { if (onStage.Count > 0 && free.Contains(onStage[0])) targets.Add(onStage[0]); }
         else if (text.Contains("最后一位上场")) { if (onStage.Count > 0 && free.Contains(onStage[onStage.Count - 1])) targets.Add(onStage[onStage.Count - 1]); }
         else if (text.Contains("后两个上场"))
         {
@@ -221,7 +258,7 @@ public class InjuryDeck : MonoBehaviour
         else
         {
             // One player, picked by the team (some cards limit who can be picked).
-            var m = Regex.Match(text, @"主属性不为\s*(金|木|水|火|土)");
+            var m = Regex.Match(fullText, @"主属性不为\s*(金|木|水|火|土)");
             if (m.Success) free = free.FindAll(p => p.primaryElement != ElementOf(m.Groups[1].Value));
             if (free.Count == 0) yield break;
             var names = new List<string>();
@@ -232,19 +269,21 @@ public class InjuryDeck : MonoBehaviour
             targets.Add(free[pick]);
         }
 
-        var lines = new List<string>();
+        // "抽取2土负伤牌": each target draws that many.
+        var countMatch = Regex.Match(text, @"抽取\s*(\d+)\s*(?:张|枚)?\s*(?:金|木|水|火|土)?\s*(?:属性)?\s*负伤");
+        int count = countMatch.Success ? Mathf.Max(1, int.Parse(countMatch.Groups[1].Value)) : 1;
         foreach (var p in targets)
         {
-            var injury = Draw(element);
-            if (!injury) continue;
-            var log = new List<string>();
-            yield return Give(p, injury, true, log);
-            lines.Add(p.playerName + " 抽到" + injury.Title + "：" + injury.effect);
-            lines.AddRange(log);
+            for (int k = 0; k < count; k++)
+            {
+                var injury = Draw(element);
+                if (!injury) continue;
+                var log = new List<string>();
+                yield return Give(p, injury, true, log);
+                lines.Add(p.playerName + " 抽到" + injury.Title + "：" + injury.effect);
+                lines.AddRange(log);
+            }
         }
-        if (protectedPlayers.Count > 0)
-            foreach (var p in protectedPlayers) lines.Add(p.playerName + " 用失败保护躲过了负伤");
-        yield return Tell("失败结算", lines);
     }
 
     // "水属性负伤", "金负伤", or a kind of wound ("烧伤"…) from the 负伤规则 table.
@@ -315,6 +354,49 @@ public class InjuryDeck : MonoBehaviour
         for (int i = 0; i < n; i++) CombatPanel.Spend(p, e);
         p.injuries.Remove(injury);
         p.Refresh();
+        done?.Invoke();
+    }
+
+    // 伤药 / 仙草 clicked in the backpack. 伤药: discard one injury card the player picks.
+    // 仙草: discard all of them, +1 token of each card's element. The item is used up.
+    public IEnumerator UseHealItem(CharacterCard p, int slot, System.Action done)
+    {
+        var item = p.items[slot];
+        var removable = p.injuries.FindAll(x => x && !x.special);   // 特殊负伤 can't be removed.
+        if (removable.Count == 0)
+        {
+            yield return ChoicePrompt.Ask(item.itemName + "：" + p.playerName + " 身上没有能去除的负伤牌", new List<string> { "关闭" }, null);
+            yield break;
+        }
+        var lines = new List<string>();
+        if (item.mechanic == ItemMechanic.Salve)
+        {
+            var labels = new List<string>();
+            foreach (var injury in removable) labels.Add(injury.Title);
+            labels.Add("取消");
+            int answer = labels.Count - 1;
+            yield return ChoicePrompt.Ask(p.playerName + " 使用伤药：弃掉哪张负伤牌？", labels, x => answer = x);
+            if (answer >= removable.Count) yield break;
+            var chosen = removable[answer];
+            p.injuries.Remove(chosen);
+            lines.Add(p.playerName + " 的" + chosen.Title + "弃掉了（伤药）");
+        }
+        else
+        {
+            int answer = 1;
+            yield return ChoicePrompt.Ask(p.playerName + " 使用仙草：弃掉身上全部 " + removable.Count + " 张负伤牌？",
+                new List<string> { "使用", "取消" }, x => answer = x);
+            if (answer != 0) yield break;
+            foreach (var injury in removable)
+            {
+                p.injuries.Remove(injury);
+                int n = p.GainToken(injury.element, tokenPrefab);
+                lines.Add(p.playerName + " 的" + injury.Title + "弃掉了（仙草）" + (n > 0 ? "，获得 1 枚" + CombatCard.ElementChar(injury.element) + " token" : ""));
+            }
+        }
+        p.items[slot] = null;
+        p.Refresh();
+        yield return Tell(item.itemName, lines);
         done?.Invoke();
     }
 

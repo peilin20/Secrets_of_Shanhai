@@ -32,7 +32,7 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         var deck = FindFirstObjectByType<EventDeck>();
         if (!deck) return;
 
-        int drawn = deck.Draw(story.eventCardsToDraw);
+        int drawn = story.fixedEvents.Count > 0 ? deck.DrawSpecific(story.fixedEvents) : deck.Draw(story.eventCardsToDraw);
         if (drawn > 0)
         {
             eventsDrawn = true;
@@ -116,6 +116,23 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         return true;
     }
 
+    // A long story text gets a smaller font so it never runs into the 下一步 line.
+    public int bodyMaxFontSize = 18;
+    public int bodyMinFontSize = 12;
+
+    void FitBody()
+    {
+        var rect = ((RectTransform)bodyText.transform).rect;
+        if (rect.width <= 0 || rect.height <= 0) return;
+        for (int size = bodyMaxFontSize; size >= bodyMinFontSize; size--)
+        {
+            bodyText.fontSize = size;
+            var settings = bodyText.GetGenerationSettings(new Vector2(rect.width, 0f));
+            float height = bodyText.cachedTextGeneratorForLayout.GetPreferredHeight(bodyText.text, settings) / bodyText.pixelsPerUnit;
+            if (height <= rect.height) break;
+        }
+    }
+
     public void Refresh()
     {
         if (!story) return;
@@ -129,11 +146,15 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             if (fitter && story.image) fitter.aspectRatio = story.image.rect.width / story.image.rect.height;
         }
         if (subtitleText) subtitleText.text = story.subtitle;
-        if (bodyText) bodyText.text = story.body;
+        if (bodyText)
+        {
+            bodyText.text = story.body;
+            FitBody();
+        }
         if (nextStepText) nextStepText.text = story.nextStep;
         if (drawButton)
         {
-            int n = story.eventCardsToDraw;
+            int n = story.fixedEvents.Count > 0 ? story.fixedEvents.Count : story.eventCardsToDraw;
             // Hidden when the story draws no events (SetActive isn't allowed from OnValidate, so only in play).
             if (Application.isPlaying) drawButton.gameObject.SetActive(n > 0);
             if (drawButtonText && !eventsDrawn)
