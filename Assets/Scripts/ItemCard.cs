@@ -56,10 +56,11 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         if (elementText) elementText.text = data.special ? "" : CombatCard.ElementChar(data.element);
         if (itemImage) itemImage.enabled = false;
         if (descriptionText) descriptionText.text = data.special ? "特殊负伤（无法去除）"
-            : "负伤（难度 " + data.Level + "）\n" + InjuryData.TypeOf(data.element);
+            : CombatCard.ElementChar(data.element) + "属性负伤（难度 " + data.Level + "）\n" + InjuryData.TypeOf(data.element);
         if (effectsText) effectsText.text = "<b>效果：</b>" + data.effect;
         var background = GetComponent<Image>();
-        if (background) background.color = InjuryColor;
+        // Tinted by the injury's element, so its element shows at a glance.
+        if (background) background.color = data.special ? InjuryColor : Color.Lerp(InjuryColor, ElementToken.ColorFor(data.element), 0.45f);
     }
 
     public void Refresh()

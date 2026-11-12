@@ -651,21 +651,16 @@ public class CombatPanel : MonoBehaviour
                 if (player.injuries[i].special ? TokensOf(player).Count > 0 : Count(player, player.injuries[i].element) > 0) movable.Add(i);
             if (movable.Count == 0) break;
 
-            var labels = new List<string>();
-            var colors = new List<Color>();
-            foreach (var i in movable)
-            {
-                labels.Add("转移" + player.injuries[i].Title);
-                colors.Add(player.injuries[i].special ? Tan : ElementToken.ColorFor(player.injuries[i].element));
-            }
-            if (moved > 0) { labels.Add("完成"); colors.Add(Tan); }
-            yield return Choose(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token，特殊负伤消耗任意 1 枚）", labels, colors);
+            var cards = new List<InjuryData>();
+            foreach (var i in movable) cards.Add(player.injuries[i]);
+            yield return InjuryDeck.AskInjury(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token，特殊负伤消耗任意 1 枚）",
+                cards, moved > 0 ? "完成" : null, x => choice = x);
             if (choice >= movable.Count) break;
             var injury = player.injuries[movable[choice]];
 
             var targets = new List<CharacterCard>();
-            labels = new List<string>();
-            colors = new List<Color>();
+            var labels = new List<string>();
+            var colors = new List<Color>();
             foreach (var p in players) if (p != player) { targets.Add(p); labels.Add(p.playerName); colors.Add(Tan); }
             labels.Add("敌人"); colors.Add(new Color(0.86f, 0.55f, 0.45f));
             yield return Choose("把" + injury.Title + "转移给谁？", labels, colors);
@@ -1115,7 +1110,7 @@ public class CombatPanel : MonoBehaviour
         var injuries = InjuryDeck.Find();
         if (injuries)
         {
-            if (lost) yield return injuries.ApplyFailure(combat.failureResult, players, protectedPlayers);
+            if (lost) yield return injuries.ApplyFailure(combat.failureResult, players, protectedPlayers, combat.special);
             yield return injuries.EndEvent(players);
         }
         bool draw = drawItemAfter;

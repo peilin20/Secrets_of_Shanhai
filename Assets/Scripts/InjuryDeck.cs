@@ -56,6 +56,23 @@ public class InjuryDeck : MonoBehaviour
         return all.Count > 0 ? all[Random.Range(0, all.Count)] : null;
     }
 
+    // How an injury card looks on a choice button: its element's colour, with the element and the effect written on it.
+    public static string CardLabel(InjuryData x)
+        => x.special ? "<b>" + x.Title + "</b>（特殊）\n" + x.effect : "<b>" + CombatCard.ElementChar(x.element) + "属性负伤</b>\n" + x.effect;
+    public static Color CardColor(InjuryData x)
+        => x.special ? new Color(0.6f, 0.56f, 0.52f) : ElementToken.ColorFor(x.element);
+
+    // Asks the player to pick one of these injury cards (plus an optional extra button such as 取消 / 完成).
+    // `result` gets the index; the extra button is index cards.Count.
+    public static IEnumerator AskInjury(string question, List<InjuryData> cards, string extra, System.Action<int> result)
+    {
+        var labels = new List<string>();
+        var colors = new List<Color>();
+        foreach (var x in cards) { labels.Add(CardLabel(x)); colors.Add(CardColor(x)); }
+        if (!string.IsNullOrEmpty(extra)) { labels.Add(extra); colors.Add(new Color(0.88f, 0.82f, 0.68f)); }
+        yield return ChoicePrompt.AskCards(question, labels, colors, result);
+    }
+
     // --- Getting an injury ---
 
     // Puts an injury into the player's backpack. `drawn`: it came from the pile, so "抽到时" effects happen.
@@ -217,9 +234,14 @@ public class InjuryDeck : MonoBehaviour
     // "第一位上场的玩家…", "最后一位上场的玩家…", "后两个上场的玩家…", "选择一名主属性不为火的角色…获得一张“烧伤”牌".
     // Players protected by 失败保护 are skipped. Ends with a summary of who got what.
     // A text with several 负伤 clauses ("第一轮上场角色抽取1木负伤牌，第三轮上场角色抽取1土负伤牌") settles each one.
-    public IEnumerator ApplyFailure(string text, List<CharacterCard> players, List<CharacterCard> protectedPlayers)
+    // `special`: the card's 特殊 text, which may let the player swap the element they draw
+    // ("你也可以选择抽取一张水负伤牌而不是木负伤牌").
+    public IEnumerator ApplyFailure(string text, List<CharacterCard> players, List<CharacterCard> protectedPlayers, string special = null)
     {
         if (string.IsNullOrEmpty(text) || !text.Contains("负伤")) yield break;
+        swapFrom = swapTo = null;
+        var swap = Regex.Match(text + " " + special, @"抽取?一张\s*(金|木|水|火|土)\s*(?:属性)?\s*负伤(?:牌|卡)?\s*而不是\s*(金|木|水|火|土)\s*(?:属性)?\s*负伤");
+        if (swap.Success) { swapTo = ElementOf(swap.Groups[1].Value); swapFrom = ElementOf(swap.Groups[2].Value); }
         var clauses = new List<string>();
         foreach (var part in Regex.Split(Regex.Replace(text, @"（[^）]*）", ""), @"[，,；;。]"))
             if (part.Contains("负伤")) clauses.Add(part);
@@ -229,6 +251,24 @@ public class InjuryDeck : MonoBehaviour
         if (protectedPlayers.Count > 0)
             foreach (var p in protectedPlayers) lines.Add(p.playerName + " 用失败保护躲过了负伤");
         yield return Tell("失败结算", lines);
+    }
+
+    Element? swapFrom, swapTo;   // This failure lets a player draw swapTo instead of swapFrom.
+
+    // The player picks which element's 负伤 to draw; the buttons are in the elements' colours.
+    IEnumerator AskSwap(CharacterCard p, System.Action<Element> result)
+    {
+        var options = new List<Element> { swapFrom.Value, swapTo.Value };
+        var labels = new List<string>();
+        var colors = new List<Color>();
+        foreach (var e in options)
+        {
+            labels.Add("<b>" + CombatCard.ElementChar(e) + "属性负伤</b>\n从" + CombatCard.ElementChar(e) + "负伤牌里随机抽一张");
+            colors.Add(ElementToken.ColorFor(e));
+        }
+        int pick = 0;
+        yield return ChoicePrompt.AskCards(p.playerName + "：抽哪种负伤牌？", labels, colors, x => pick = x);
+        result(options[pick]);
     }
 
     // `fullText` is the whole 失败 text, for who-can-be-picked limits written outside the clause ("【请选择一名主属性不为火的角色】").
@@ -276,7 +316,14 @@ public class InjuryDeck : MonoBehaviour
         {
             for (int k = 0; k < count; k++)
             {
-                var injury = Draw(element);
+                var drawElement = element;
+                if (element.HasValue && swapFrom.HasValue && element.Value == swapFrom.Value)
+                {
+                    var chosen = element.Value;
+                    yield return AskSwap(p, x => chosen = x);
+                    drawElement = chosen;
+                }
+                var injury = Draw(drawElement);
                 if (!injury) continue;
                 var log = new List<string>();
                 yield return Give(p, injury, true, log);
@@ -371,11 +418,8 @@ public class InjuryDeck : MonoBehaviour
         var lines = new List<string>();
         if (item.mechanic == ItemMechanic.Salve)
         {
-            var labels = new List<string>();
-            foreach (var injury in removable) labels.Add(injury.Title);
-            labels.Add("取消");
-            int answer = labels.Count - 1;
-            yield return ChoicePrompt.Ask(p.playerName + " 使用伤药：弃掉哪张负伤牌？", labels, x => answer = x);
+            int answer = removable.Count;
+            yield return AskInjury(p.playerName + " 使用伤药：弃掉哪张负伤牌？", removable, "取消", x => answer = x);
             if (answer >= removable.Count) yield break;
             var chosen = removable[answer];
             p.injuries.Remove(chosen);

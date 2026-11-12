@@ -646,21 +646,16 @@ public class SocialPanel : MonoBehaviour
                     : CombatPanel.Count(player, player.injuries[i].element) > 0)) movable.Add(i);
             if (movable.Count == 0) break;
 
-            var labels = new List<string>();
-            var colors = new List<Color>();
-            foreach (var i in movable)
-            {
-                labels.Add("转移" + player.injuries[i].Title);
-                colors.Add(player.injuries[i].special ? Tan : ElementToken.ColorFor(player.injuries[i].element));
-            }
-            labels.Add(moved > 0 ? "完成" : "取消"); colors.Add(Tan);
-            yield return Choose(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token，特殊负伤消耗任意 1 枚）", labels, colors);
+            var cards = new List<InjuryData>();
+            foreach (var i in movable) cards.Add(player.injuries[i]);
+            yield return InjuryDeck.AskInjury(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token，特殊负伤消耗任意 1 枚）",
+                cards, moved > 0 ? "完成" : null, x => choice = x);
             if (choice >= movable.Count) break;
             var injury = player.injuries[movable[choice]];
 
             var targets = new List<CharacterCard>();
-            labels = new List<string>();
-            colors = new List<Color>();
+            var labels = new List<string>();
+            var colors = new List<Color>();
             foreach (var p in players) if (p != player) { targets.Add(p); labels.Add(p.playerName); colors.Add(Tan); }
             labels.Add("NPC"); colors.Add(Blue);
             yield return Choose("把" + injury.Title + "转移给谁？", labels, colors);
@@ -971,7 +966,7 @@ public class SocialPanel : MonoBehaviour
         var injuries = InjuryDeck.Find();
         if (injuries && !toCombat)
         {
-            if (failed && social) yield return injuries.ApplyFailure(social.failureResult, players, protectedPlayers);
+            if (failed && social) yield return injuries.ApplyFailure(social.failureResult, players, protectedPlayers, social.special);
             yield return injuries.EndEvent(players);
         }
         Close();

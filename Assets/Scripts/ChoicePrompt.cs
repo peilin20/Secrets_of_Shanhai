@@ -39,6 +39,47 @@ public class ChoicePrompt : MonoBehaviour
         result?.Invoke(p.answer);
     }
 
+    // Like Ask, but the answers are cards: taller buttons in their own colours, with wrapped text
+    // (e.g. a 负伤 card's element and effect). A dark colour gets white text.
+    public static IEnumerator AskCards(string text, List<string> answers, List<Color> colors, System.Action<int> result)
+    {
+        var p = Get();
+        if (!p) { result?.Invoke(0); yield break; }
+        p.message.text = text;
+        foreach (Transform child in p.row) Destroy(child.gameObject);
+        p.answer = -1;
+        float width = Mathf.Min(300f, (1060f - 12f * (answers.Count - 1)) / Mathf.Max(1, answers.Count));
+        p.row.sizeDelta = new Vector2(-40f, 190f);
+        p.message.rectTransform.offsetMin = new Vector2(40f, 230f);
+        for (int i = 0; i < answers.Count; i++)
+        {
+            int index = i;
+            var button = p.MakeButton(answers[i], width);
+            ((RectTransform)button.transform).sizeDelta = new Vector2(width, 180f);
+            var color = i < colors.Count ? colors[i] : Tan;
+            button.GetComponent<Image>().color = color;
+            var label = button.GetComponentInChildren<Text>();
+            label.fontSize = answers[i].Length > 60 ? 18 : 21;
+            label.supportRichText = true;
+            label.alignment = TextAnchor.MiddleCenter;
+            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.verticalOverflow = VerticalWrapMode.Truncate;
+            label.rectTransform.offsetMin = new Vector2(10f, 8f);
+            label.rectTransform.offsetMax = new Vector2(-10f, -8f);
+            float brightness = color.r * 0.3f + color.g * 0.59f + color.b * 0.11f;
+            label.color = brightness < 0.5f ? Color.white : Ink;
+            button.onClick.AddListener(() => p.answer = index);
+        }
+        p.gameObject.SetActive(true);
+        p.transform.SetAsLastSibling();
+        while (p.answer < 0) yield return null;
+        p.gameObject.SetActive(false);
+        // Back to the normal layout for plain questions.
+        p.row.sizeDelta = new Vector2(-40f, 64f);
+        p.message.rectTransform.offsetMin = new Vector2(40f, 110f);
+        result?.Invoke(p.answer);
+    }
+
     static ChoicePrompt Get()
     {
         if (instance) return instance;
