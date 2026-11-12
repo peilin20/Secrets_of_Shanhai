@@ -36,6 +36,9 @@ public class EventDeck : MonoBehaviour
         }
     }
 
+    void OnEnable() { L.Changed += UpdateCount; }
+    void OnDisable() { L.Changed -= UpdateCount; }
+
     void Start()
     {
         pile.AddRange(cards);
@@ -124,6 +127,6 @@ public class EventDeck : MonoBehaviour
 
     void UpdateCount()
     {
-        if (countText) countText.text = pile.Count > 0 ? pile.Count + " left" : "Empty";
+        if (countText) countText.text = pile.Count > 0 ? L.T("pile.left", pile.Count) : L.T("pile.empty");
     }
 }

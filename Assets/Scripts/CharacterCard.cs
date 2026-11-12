@@ -64,6 +64,9 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         EnsureSlots();
     }
 
+    void OnEnable() { L.Changed += Refresh; }
+    void OnDisable() { L.Changed -= Refresh; }
+
     void Start()
     {
         Refresh();
@@ -209,13 +212,13 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             var fitter = portraitImage.GetComponent<AspectRatioFitter>();
             if (fitter && portrait) fitter.aspectRatio = portrait.rect.width / portrait.rect.height;
         }
-        if (speciesText) speciesText.text = "Species: " + species + (characterClass ? "   Class: " + characterClass.className : "");
-        if (elementText) elementText.text = "Element: " + (elementChosen ? primaryElement.ToString() : "—");
+        if (speciesText) speciesText.text = L.T("card.species") + L.SpeciesName(species) + (characterClass ? "   " + L.T("card.class") + characterClass.className : "");
+        if (elementText) elementText.text = L.T("card.element") + (elementChosen ? L.ElementName(primaryElement) : "—");
         if (elementBadge) elementBadge.enabled = elementChosen;
         if (elementBadgeText) elementBadgeText.enabled = elementChosen;
         if (equippedText)
         {
-            var sb = new System.Text.StringBuilder("Equipped: " + (Equipped ? Equipped.itemName : "—"));
+            var sb = new System.Text.StringBuilder(L.T("card.equipped") + (Equipped ? Equipped.itemName : "—"));
             if (injuries.Count > 0)
             {
                 sb.Append("   负伤：");
@@ -225,12 +228,12 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         }
         // Fixed primary element token in the top right corner (not draggable).
         if (elementBadge) elementBadge.color = ElementToken.ColorFor(primaryElement);
-        if (elementBadgeText) elementBadgeText.text = primaryElement.ToString();
-        if (backgroundText) backgroundText.text = "Background: " + (background ? background.backgroundName : "");
+        if (elementBadgeText) elementBadgeText.text = L.ElementName(primaryElement);
+        if (backgroundText) backgroundText.text = L.T("card.background") + (background ? background.backgroundName : "");
         if (itemsButton)
         {
             var label = itemsButton.GetComponentInChildren<Text>();
-            if (label) label.text = "Items (" + UsedSlots + "/" + ItemSlots + ")";
+            if (label) label.text = L.T("card.items", UsedSlots, ItemSlots);
         }
     }
 }

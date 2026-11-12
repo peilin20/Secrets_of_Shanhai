@@ -89,6 +89,12 @@ public class CombatPanel : MonoBehaviour
     static readonly Color Tan = new Color(0.88f, 0.82f, 0.68f);
     static readonly Color Gold = new Color(0.95f, 0.75f, 0.35f);
 
+    // Read by the tutorial to know where the fight is.
+    public CharacterCard Fighter => fighter;
+    public bool Fought => fought;
+    public bool Finished => finished;
+    public int Round => round;
+
     void Awake()
     {
         if (closeButton) closeButton.onClick.AddListener(Close);
@@ -1013,11 +1019,16 @@ public class CombatPanel : MonoBehaviour
         string reward = "";
         if (won)
         {
-            GiveEveryonePrimaryToken();
-            reward = "每位玩家获得一枚自己主属性的 token";
-            // 负伤 that heal after winning a fight.
+            // 武士: "当你参与的战斗胜利时，获得1主属性token" — every 武士 who went on stage in this combat.
+            foreach (var p in fighters)
+            {
+                if (!p || !p.characterClass || p.characterClass.className != "武士") continue;
+                int got = AddToken(p, p.primaryElement, false);
+                reward += (reward.Length > 0 ? "\n" : "") + p.playerName + "（武士）获得 " + got + " 枚" + CombatCard.ElementChar(p.primaryElement) + " token";
+            }
+            // 负伤 that heal after winning a fight. (Primary-element tokens come with each new main story card, not here.)
             var injuries = InjuryDeck.Find();
-            if (injuries) foreach (var line in injuries.OnWin(true)) reward += "\n" + line;
+            if (injuries) foreach (var line in injuries.OnWin(true)) reward += (reward.Length > 0 ? "\n" : "") + line;
         }
         lost = !won && combat;
         ShowResult(title, description, reward, lost);

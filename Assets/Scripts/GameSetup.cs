@@ -4,21 +4,42 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Start-of-game setup. One player at a time, their character card moves to the middle of a dimmed screen:
-// 1. Choose a primary element: get 2 tokens of it and 1 token of a random other element.
-// 2. Choose one of the backgrounds.
-// 3. Choose a class: get that class's weapon cards.
-// Then the card goes back to its place and the next player sets up.
+// Character creation (its own scene). One player at a time:
+// 0. Type a name (in the middle of the screen, no card yet).
+// 1. Pick a species from the portraits (hover = full colour; click = its description and a confirm).
+// 2. The character card appears on the left with that species. Pick a primary element
+//    (its token comes when the game starts and the first main story card is dealt).
+// 3. Pick a background (its starting items / 负伤 are given).
+// 4. Pick a class, get its weapon cards, equip one (or none).
+// The 随机角色 button (bottom right) makes the current player at random instead.
+// All text follows the language setting, and switches right away when it changes.
+// When every player is done, the choices go to Party and the game scene loads.
 public class GameSetup : MonoBehaviour
 {
+    [System.Serializable]
+    public class SpeciesOption
+    {
+        public Species species;
+        public string displayName;
+        public Sprite portrait;
+        [TextArea(3, 10)] public string description;
+        [TextArea(3, 10)] public string descriptionEnglish;
+        public string Description => L.Current == Language.English && !string.IsNullOrEmpty(descriptionEnglish) ? descriptionEnglish : description;
+    }
+
     public bool runOnStart = true;
+    public int playerCount = 3;
+    public string nextScene = "SampleScene";
+    public List<SpeciesOption> speciesOptions = new List<SpeciesOption>();
     public List<BackgroundData> backgrounds = new List<BackgroundData>();
     public List<ClassData> classes = new List<ClassData>();
+    public List<ItemData> pileCards = new List<ItemData>();   // The game's item pile, for backgrounds that take cards from it.
     public ElementToken tokenPrefab;
 
     [Header("UI")]
-    public GameObject screen;            // The dimmed setup screen, shown only during setup.
-    public RectTransform cardHolder;     // Where the card sits while its player sets up.
+    public GameObject screen;            // The setup screen.
+    public CharacterCard displayCard;    // The card that shows the player being made (left side).
+    public RectTransform cardHolder;     // Where the card sits.
     public Text stepText;
     public RectTransform choiceRow;
     public Button choiceTemplate;        // Inactive; copied once per choice.
@@ -26,194 +47,542 @@ public class GameSetup : MonoBehaviour
     public RectTransform weaponRow;      // Shows the weapon cards a player just got (scale the row to size them).
     public ItemCard itemCardPrefab;
     public float cardScale = 0.9f;
-    public float bigTokenSize = 130f;   // Size of the token shown with the 占卜 / 随机 result.
+    public float bigTokenSize = 130f;  // Size of the token shown with the 占卜 / 随机 result.
+    public float layoutShiftWithCard = 50f;   // The choices move right a little while the card is shown.
 
     static readonly Color PlainButton = new Color(0.93f, 0.89f, 0.8f);
+    static readonly Color Ink = new Color(0.15f, 0.12f, 0.1f);
 
     int picked = -1;
     string[] lastInputs = new string[0];
+    readonly List<ItemData> pile = new List<ItemData>();
+    readonly List<ItemData> takenThisPlayer = new List<ItemData>();
+
+    int languageVersion;
+    Coroutine playerRoutine;
+    bool playerDone;
+    int currentPlayer;
+    bool nameEntered;
+    int currentAge = -1;   // -1: not entered (e.g. a random character).
+    GameObject speciesRow;
+    GameObject bigToken;
+    Button randomButton;
+
+    void OnEnable() { L.Changed += OnLanguageChanged; }
+    void OnDisable() { L.Changed -= OnLanguageChanged; }
+    void OnLanguageChanged() { languageVersion++; }
 
     void Start()
     {
-        screen.SetActive(false);
         if (runOnStart) StartCoroutine(RunSetup());
+        else screen.SetActive(false);
     }
 
     IEnumerator RunSetup()
     {
-        var players = new List<CharacterCard>(FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude));
-        players.Sort((a, b) => string.Compare(a.playerName, b.playerName, System.StringComparison.Ordinal));
         screen.SetActive(true);
         screen.transform.SetAsLastSibling();
+        BuildPile();
+        Party.Clear();
+        MakeRandomButton();
 
-        // Nobody has a primary element until they pick one.
-        foreach (var p in players)
+        var card = displayCard.transform;
+        card.SetParent(cardHolder, false);
+        ((RectTransform)card).anchoredPosition = Vector2.zero;
+        card.localScale = Vector3.one * cardScale;
+
+        for (int n = 0; n < playerCount; n++)
         {
-            p.elementChosen = false;
-            p.Refresh();
+            currentPlayer = n;
+            nameEntered = false;
+            currentAge = -1;
+            displayCard.playerName = L.T("setup.defaultName", n + 1);
+            playerDone = false;
+            playerRoutine = StartCoroutine(CreatePlayer());
+            while (!playerDone) yield return null;
         }
 
-        foreach (var player in players)
-        {
-            // Bring the card to the middle.
-            var card = player.transform;
-            var oldParent = card.parent;
-            int oldIndex = card.GetSiblingIndex();
-            Vector3 oldPosition = card.position;
-            Vector3 oldScale = card.localScale;
-            card.SetParent(cardHolder, false);
-            ((RectTransform)card).anchoredPosition = Vector2.zero;
-            card.localScale = Vector3.one * cardScale;
-
-            // Start from a clean card.
-            player.items.Clear();
-            player.EnsureSlots();
-            player.equippedSlot = -1;
-            if (player.tokenArea) foreach (Transform t in player.tokenArea) Destroy(t.gameObject);
-            player.injuries.Clear();
-
-            // 0. The player's name (left empty: keeps the current one).
-            yield return Choose(player.playerName + "：输入你的名字", new List<string> { "确定" },
-                i => PlainButton, i => "", new[] { player.playerName }, false);
-            if (lastInputs.Length > 0 && !string.IsNullOrWhiteSpace(lastInputs[0])) player.playerName = lastInputs[0].Trim();
-            player.Refresh();
-
-            // 1. Primary element: 2 tokens of it and 1 of a random other element.
-            var elements = (Element[])System.Enum.GetValues(typeof(Element));
-            var labels = new List<string>();
-            foreach (var e in elements) labels.Add(CombatCard.ElementChar(e));
-            // An empty cell so 占卜 and 随机 start on their own row, under the element buttons.
-            while (labels.Count % 3 != 0) labels.Add(null);
-            int divineIndex = labels.Count, randomIndex = labels.Count + 1;
-            labels.Add("占卜");
-            labels.Add("随机");
-            Element primary = elements[0];
-            string result = "";
-            bool decided = false;
-            while (!decided)
-            {
-                yield return Choose(player.playerName + "：选择主属性", labels,
-                    i => i < elements.Length ? ElementToken.ColorFor(elements[i]) : PlainButton,
-                    i => i == divineIndex ? "输入出生日期（公历），以日主五行为主属性"
-                       : i == randomIndex ? "随机选一个五行" : "");
-                if (picked < elements.Length)
-                {
-                    primary = elements[picked];
-                    decided = true;
-                }
-                else if (picked == randomIndex)
-                {
-                    primary = elements[Random.Range(0, elements.Length)];
-                    result = "你的主元素为：";
-                    decided = true;
-                }
-                else
-                {
-                    // 占卜: ask for the birth date until it is a real date, or go back.
-                    string prompt = player.playerName + "：输入出生日期（公历）";
-                    while (true)
-                    {
-                        yield return Choose(prompt, new List<string> { "确定", "返回" },
-                            i => PlainButton, i => "", new[] { "年", "月", "日" });
-                        if (picked == 1) break;
-                        if (Divination.TryParse(lastInputs[0], lastInputs[1], lastInputs[2], out var birth))
-                        {
-                            primary = Divination.DayMaster(birth);
-                            result = "占卜结果为：";
-                            decided = true;
-                            break;
-                        }
-                        prompt = player.playerName + "：这不是一个有效的日期，请重新输入出生年、月、日";
-                    }
-                }
-            }
-            if (result != "")
-            {
-                // Two empty rows for the token, then 继续 under it.
-                var bigToken = ShowBigToken(primary);
-                yield return Choose(player.playerName + "：" + result + CombatCard.ElementChar(primary) + "元素",
-                    new List<string> { null, null, null, null, null, null, "继续" }, i => PlainButton, i => "");
-                Destroy(bigToken);
-            }
-            player.primaryElement = primary;
-            player.elementChosen = true;
-            var others = new List<Element>(elements);
-            others.Remove(primary);
-            var bonus = others[Random.Range(0, others.Count)];
-            GiveTokens(player, new[] { primary, primary, bonus });
-            player.Refresh();
-            yield return Choose(player.playerName + "：获得了 2 个" + CombatCard.ElementChar(primary) + " token 和 1 个"
-                + CombatCard.ElementChar(bonus) + " token", new List<string> { "继续" }, i => PlainButton, i => "");
-
-            // 2. Background.
-            labels.Clear();
-            foreach (var b in backgrounds) labels.Add(b.backgroundName);
-            yield return Choose(player.playerName + "：选择背景", labels,
-                i => PlainButton, i => backgrounds[i].description);
-            player.background = backgrounds[picked];
-            player.Refresh();
-            yield return GiveBackgroundStart(player, player.background);
-
-            // 3. Class, and its weapon cards.
-            labels.Clear();
-            foreach (var c in classes) labels.Add(c.className);
-            yield return Choose(player.playerName + "：选择职业", labels,
-                i => PlainButton, i => classes[i].description + "\n\n" + WeaponList(classes[i]));
-            var chosen = classes[picked];
-            player.characterClass = chosen;
-            var slots = new List<int>();
-            foreach (var weapon in chosen.weapons)
-            {
-                player.TryAddItem(weapon);
-                slots.Add(player.items.IndexOf(weapon));
-            }
-            player.Refresh();
-
-            // 4. Show the new weapon cards and let the player equip one (or none).
-            ShowWeapons(chosen.weapons);
-            labels.Clear();
-            foreach (var weapon in chosen.weapons) labels.Add("装备 " + weapon.itemName);
-            labels.Add("暂不装备");
-            yield return Choose(player.playerName + "：获得武器卡 " + WeaponNames(chosen) + "，要装备哪一张？", labels,
-                i => PlainButton, i => "");
-            if (picked < slots.Count) player.ToggleEquip(slots[picked]);
-            ShowWeapons(null);
-
-            // Back to its place on the table.
-            card.SetParent(oldParent, true);
-            card.SetSiblingIndex(oldIndex);
-            card.localScale = oldScale;
-            card.position = oldPosition;
-        }
-
-        screen.SetActive(false);
+        UnityEngine.SceneManagement.SceneManager.LoadScene(nextScene);
     }
 
-    // Shows the choices as buttons and waits until one is clicked (the index ends up in `picked`).
-    // A null label leaves that grid cell empty.
-    // Each of `inputPlaceholders` adds a text box before the buttons; their texts end up in `lastInputs`.
-    IEnumerator Choose(string title, List<string> labels, System.Func<int, Color> color, System.Func<int, string> detail,
-        string[] inputPlaceholders = null, bool numbersOnly = true)
+    // A clean card for the current player (the name they typed stays).
+    void ResetPlayer()
     {
-        picked = -1;
-        stepText.text = title;
-        detailText.text = "";
-        // Hide the previous step's buttons right away (Destroy only happens at the end of the frame).
-        foreach (Transform child in choiceRow)
+        var player = displayCard;
+        // Cards a background took from the pile for this player go back.
+        foreach (var item in takenThisPlayer)
         {
-            if (child == choiceTemplate.transform) continue;
+            pile.Add(item);
+            Party.takenFromPile.Remove(item);
+        }
+        takenThisPlayer.Clear();
+        player.items.Clear();
+        player.EnsureSlots();
+        player.equippedSlot = -1;
+        if (player.tokenArea) foreach (Transform t in player.tokenArea) { t.gameObject.SetActive(false); Destroy(t.gameObject); }
+        player.injuries.Clear();
+        player.background = null;
+        player.characterClass = null;
+        player.elementChosen = false;
+        player.Refresh();
+        ClearStepUI();
+        ShowCard(false);
+    }
+
+    // Removes whatever the interrupted step had on screen.
+    void ClearStepUI()
+    {
+        if (speciesRow) Destroy(speciesRow);
+        if (bigToken) Destroy(bigToken);
+        ShowWeapons(null);
+        Clear(choiceRow, choiceTemplate.transform);
+        detailText.text = "";
+    }
+
+    IEnumerator CreatePlayer()
+    {
+        var player = displayCard;
+        ResetPlayer();
+
+        // 0. The player's name (left empty: keeps the default).
+        int number = currentPlayer + 1;
+        yield return Choose(() => L.T("setup.enterName"), () => new List<string> { L.T("setup.ok") },
+            i => PlainButton, i => "", () => new[] { L.T("setup.defaultName", number) }, false);
+        player.playerName = lastInputs.Length > 0 && !string.IsNullOrWhiteSpace(lastInputs[0])
+            ? lastInputs[0].Trim() : L.T("setup.defaultName", number);
+        nameEntered = true;
+
+        // 0b. Age (any whole number; 占卜 works out the birth year from it).
+        string ageKey = "setup.enterAge";
+        while (true)
+        {
+            yield return Choose(() => L.T(ageKey, player.playerName), () => new List<string> { L.T("setup.ok") },
+                i => PlainButton, i => "", () => new[] { L.T("setup.age") });
+            if (int.TryParse(lastInputs.Length > 0 ? lastInputs[0] : "", out int age) && age >= 0 && age < System.DateTime.Today.Year)
+            {
+                currentAge = age;
+                break;
+            }
+            ageKey = "setup.badAge";
+        }
+
+        // 1. Species.
+        yield return ChooseSpecies(player);
+        player.Refresh();
+        ShowCard(true);
+
+        // 2. Primary element.
+        var elements = (Element[])System.Enum.GetValues(typeof(Element));
+        int divineIndex = 6, randomIndex = 7;   // 5 elements, an empty cell, then 占卜 and 随机 on their own row.
+        System.Func<List<string>> elementLabels = () =>
+        {
+            var labels = new List<string>();
+            foreach (var e in elements) labels.Add(L.ElementName(e));
+            labels.Add(null);
+            labels.Add(L.T("setup.divine"));
+            labels.Add(L.T("setup.random"));
+            return labels;
+        };
+        Element primary = elements[0];
+        string resultKey = null;
+        bool decided = false;
+        while (!decided)
+        {
+            yield return Choose(() => L.T("setup.chooseElement", player.playerName), elementLabels,
+                i => i < elements.Length ? ElementToken.ColorFor(elements[i]) : PlainButton,
+                i => i == divineIndex ? L.T("setup.divineHint") : i == randomIndex ? L.T("setup.randomHint") : "");
+            if (picked < elements.Length)
+            {
+                primary = elements[picked];
+                decided = true;
+            }
+            else if (picked == randomIndex)
+            {
+                primary = elements[Random.Range(0, elements.Length)];
+                resultKey = "setup.randomResult";
+                decided = true;
+            }
+            else
+            {
+                // 占卜: ask for the birth date until it is a real date, or go back.
+                string promptKey = "setup.birthPrompt";
+                while (true)
+                {
+                    yield return Choose(() => L.T(promptKey, player.playerName), () => new List<string> { L.T("setup.ok"), L.T("setup.back") },
+                        i => PlainButton, i => "", () => new[] { L.T("setup.month"), L.T("setup.day") });
+                    if (picked == 1) break;
+                    if (Divination.TryParseWithAge(currentAge, lastInputs[0], lastInputs[1], System.DateTime.Today, out var birth))
+                    {
+                        primary = Divination.DayMaster(birth);
+                        resultKey = "setup.divineResult";
+                        decided = true;
+                        break;
+                    }
+                    promptKey = "setup.badDate";
+                }
+            }
+        }
+        if (resultKey != null)
+        {
+            // Two empty rows for the token, then 继续 under it.
+            bigToken = ShowBigToken(primary);
+            yield return Choose(() => L.T(resultKey, player.playerName, L.ElementName(primary)),
+                () => new List<string> { null, null, null, null, null, null, L.T("setup.continue") }, i => PlainButton, i => "");
+            Destroy(bigToken);
+        }
+        var tokens = GivePrimary(player, primary);
+
+        // 3. Background.
+        yield return Choose(() => L.T("setup.chooseBackground", player.playerName), BackgroundLabels,
+            i => PlainButton, i => backgrounds[i].description);
+        player.background = backgrounds[picked];
+        player.Refresh();
+        yield return GiveBackgroundStart(player, player.background, false);
+
+        // 4. Class, and its weapon cards.
+        yield return Choose(() => L.T("setup.chooseClass", player.playerName), ClassLabels,
+            i => PlainButton, i => classes[i].description + "\n\n" + L.T("setup.weapons", WeaponNames(classes[i])));
+        var chosen = classes[picked];
+        var slots = GiveClass(player, chosen);
+
+        // 5. Show the new weapon cards and let the player equip one (or none).
+        ShowWeapons(chosen.weapons);
+        yield return Choose(() => L.T("setup.gotWeapons", player.playerName, WeaponNames(chosen)),
+            () =>
+            {
+                var labels = new List<string>();
+                foreach (var weapon in chosen.weapons) labels.Add(L.T("setup.equip", weapon.itemName));
+                labels.Add(L.T("setup.noEquip"));
+                return labels;
+            },
+            i => PlainButton, i => "");
+        if (picked < slots.Count) player.ToggleEquip(slots[picked]);
+        ShowWeapons(null);
+
+        SavePlayer(tokens);
+    }
+
+    // 随机角色: the rest of this player is picked at random, then shown with 继续.
+    IEnumerator RandomPlayer()
+    {
+        var player = displayCard;
+        ResetPlayer();
+        var option = speciesOptions[Random.Range(0, speciesOptions.Count)];
+        player.species = option.species;
+        player.portrait = option.portrait;
+        ShowCard(true);   // Tokens need the card active to be placed.
+        var elements = (Element[])System.Enum.GetValues(typeof(Element));
+        var tokens = GivePrimary(player, elements[Random.Range(0, elements.Length)]);
+        player.background = backgrounds[Random.Range(0, backgrounds.Count)];
+        yield return GiveBackgroundStart(player, player.background, true);
+        var slots = GiveClass(player, classes[Random.Range(0, classes.Count)]);
+        if (slots.Count > 0 && slots[0] >= 0) player.ToggleEquip(slots[0]);
+        player.Refresh();
+        yield return Choose(() => L.T("setup.randomDone", player.playerName), () => new List<string> { L.T("setup.continue") },
+            i => PlainButton, i => "");
+        SavePlayer(tokens);
+    }
+
+    void OnRandomClicked()
+    {
+        if (playerDone) return;
+        if (playerRoutine != null) StopCoroutine(playerRoutine);
+        if (!nameEntered) displayCard.playerName = L.T("setup.defaultName", currentPlayer + 1);
+        playerRoutine = StartCoroutine(RandomPlayer());
+    }
+
+    // Sets the primary element. No tokens here: each player gets 1 primary token when a main story card
+    // is turned, the first one as the game starts. (Returns the starting tokens, none.)
+    List<Element> GivePrimary(CharacterCard player, Element primary)
+    {
+        player.primaryElement = primary;
+        player.elementChosen = true;
+        player.Refresh();
+        return new List<Element>();
+    }
+
+    // The class and its weapon cards; returns the slots they went into.
+    List<int> GiveClass(CharacterCard player, ClassData chosen)
+    {
+        player.characterClass = chosen;
+        var slots = new List<int>();
+        foreach (var weapon in chosen.weapons)
+        {
+            player.TryAddItem(weapon);
+            slots.Add(player.items.IndexOf(weapon));
+        }
+        player.Refresh();
+        return slots;
+    }
+
+    void SavePlayer(List<Element> tokens)
+    {
+        var player = displayCard;
+        Party.players.Add(new PlayerSetup
+        {
+            name = player.playerName,
+            age = currentAge,
+            species = player.species,
+            portrait = player.portrait,
+            primaryElement = player.primaryElement,
+            tokens = tokens,
+            background = player.background,
+            characterClass = player.characterClass,
+            items = new List<ItemData>(player.items),
+            equippedSlot = player.equippedSlot,
+            injuries = new List<InjuryData>(player.injuries),
+        });
+        takenThisPlayer.Clear();
+        playerDone = true;
+    }
+
+    List<string> BackgroundLabels()
+    {
+        var labels = new List<string>();
+        foreach (var b in backgrounds) labels.Add(b.backgroundName);
+        return labels;
+    }
+
+    List<string> ClassLabels()
+    {
+        var labels = new List<string>();
+        foreach (var c in classes) labels.Add(c.className);
+        return labels;
+    }
+
+    // The 随机角色 button in the bottom right corner.
+    void MakeRandomButton()
+    {
+        var button = Instantiate(choiceTemplate, screen.transform);
+        button.name = "RandomCharacterButton";
+        button.gameObject.SetActive(true);
+        var rt = (RectTransform)button.transform;
+        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 0f);
+        rt.anchoredPosition = new Vector2(-40f, 40f);
+        rt.sizeDelta = new Vector2(320f, 90f);
+        button.GetComponent<Image>().color = new Color(0.82f, 0.76f, 0.62f);
+        var label = button.GetComponentInChildren<Text>();
+        label.text = L.T("setup.randomCharacter");
+        label.gameObject.AddComponent<LocalizedText>().key = "setup.randomCharacter";
+        button.onClick.RemoveAllListeners();
+        button.onClick.AddListener(OnRandomClicked);
+        randomButton = button;
+    }
+
+    // The card is hidden for the name and species steps; the prompt and choices sit in the middle of the screen then.
+    Vector2[] normalPositions;
+    TextAnchor detailAlignment;
+    int detailFontSize;
+
+    void ShowCard(bool show)
+    {
+        cardHolder.gameObject.SetActive(show);
+        var rts = new[] { (RectTransform)stepText.transform, choiceRow, (RectTransform)detailText.transform };
+        if (normalPositions == null)
+        {
+            normalPositions = new Vector2[rts.Length];
+            for (int i = 0; i < rts.Length; i++) normalPositions[i] = rts[i].anchoredPosition;
+            detailAlignment = detailText.alignment;
+            detailFontSize = detailText.fontSize;
+            stepText.alignment = TextAnchor.MiddleCenter;
+            var grid = choiceRow.GetComponent<GridLayoutGroup>();
+            if (grid) grid.childAlignment = TextAnchor.UpperCenter;
+        }
+        detailText.alignment = detailAlignment;
+        detailText.fontSize = detailFontSize;
+        for (int i = 0; i < rts.Length; i++)
+        {
+            var pos = normalPositions[i];
+            if (show) pos.x += layoutShiftWithCard;
+            else if (i < 2) pos.y -= 220f;   // Prompt and buttons lower, towards the middle of the screen.
+            rts[i].anchoredPosition = pos;
+        }
+    }
+
+    // The four species as portraits: grey until the mouse is over one (its description shows under the row);
+    // clicking one picks it (it stays in colour) and shows a confirm button.
+    IEnumerator ChooseSpecies(CharacterCard player)
+    {
+        ShowCard(false);
+        Clear(choiceRow, choiceTemplate.transform);
+        detailText.text = "";
+        var font = stepText.font;
+        var stepRt = (RectTransform)stepText.transform;
+        var stepPos = stepRt.anchoredPosition;
+        stepRt.anchoredPosition = new Vector2(stepPos.x, 460f);   // Above the portraits.
+
+        speciesRow = new GameObject("SpeciesStep", typeof(RectTransform));
+        var page = (RectTransform)speciesRow.transform;
+        page.SetParent(screen.transform, false);
+        page.anchorMin = Vector2.zero;
+        page.anchorMax = Vector2.one;
+        page.offsetMin = page.offsetMax = Vector2.zero;
+
+        var row = new GameObject("SpeciesRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+        var rowRt = (RectTransform)row.transform;
+        rowRt.SetParent(page, false);
+        rowRt.anchoredPosition = new Vector2(0f, 70f);
+        rowRt.sizeDelta = new Vector2(1720f, 600f);
+        var layout = row.GetComponent<HorizontalLayoutGroup>();
+        layout.spacing = 40f;
+        layout.childAlignment = TextAnchor.MiddleCenter;
+        layout.childControlWidth = layout.childControlHeight = true;
+        layout.childForceExpandWidth = layout.childForceExpandHeight = true;
+
+        // The description of the species under the mouse (or the one picked), under the portraits.
+        var descGo = new GameObject("Description", typeof(RectTransform), typeof(Text));
+        var descRt = (RectTransform)descGo.transform;
+        descRt.SetParent(page, false);
+        descRt.anchoredPosition = new Vector2(0f, -320f);
+        descRt.sizeDelta = new Vector2(1300f, 150f);
+        var desc = descGo.GetComponent<Text>();
+        desc.font = font;
+        desc.fontSize = 30;
+        desc.alignment = TextAnchor.MiddleCenter;
+        desc.color = Ink;
+        desc.raycastTarget = false;
+
+        // Confirm button, shown once a species is picked.
+        var confirm = Instantiate(choiceTemplate, page);
+        confirm.gameObject.SetActive(false);
+        var confirmRt = (RectTransform)confirm.transform;
+        confirmRt.anchorMin = confirmRt.anchorMax = confirmRt.pivot = new Vector2(0.5f, 0.5f);
+        confirmRt.anchoredPosition = new Vector2(0f, -450f);
+        confirmRt.sizeDelta = new Vector2(360f, 90f);
+        confirm.GetComponent<Image>().color = PlainButton;
+        var confirmText = confirm.GetComponentInChildren<Text>();
+        bool confirmed = false;
+        confirm.onClick.RemoveAllListeners();
+        confirm.onClick.AddListener(() => confirmed = true);
+
+        int selected = -1, hovered = -1;
+        var names = new List<Text>();
+        var tints = new List<HoverTint>();
+        for (int i = 0; i < speciesOptions.Count; i++)
+        {
+            var option = speciesOptions[i];
+            var entry = new GameObject(option.displayName, typeof(RectTransform), typeof(Image), typeof(Button), typeof(HoverTint));
+            entry.transform.SetParent(rowRt, false);
+            entry.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);   // Clickable area only.
+            var art = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
+            var artRt = (RectTransform)art.transform;
+            artRt.SetParent(entry.transform, false);
+            artRt.anchorMin = new Vector2(0f, 0.13f);
+            artRt.anchorMax = Vector2.one;
+            artRt.offsetMin = artRt.offsetMax = Vector2.zero;
+            var image = art.GetComponent<Image>();
+            image.sprite = option.portrait;
+            image.preserveAspect = true;
+            image.raycastTarget = false;
+            var tint = entry.GetComponent<HoverTint>();
+            tint.target = image;
+            image.color = tint.normal;
+            int index = i;
+            tint.onEnter = () => hovered = index;
+            tint.onExit = () => { if (hovered == index) hovered = -1; };
+            tints.Add(tint);
+            var label = new GameObject("Name", typeof(RectTransform), typeof(Text));
+            var labelRt = (RectTransform)label.transform;
+            labelRt.SetParent(entry.transform, false);
+            labelRt.anchorMin = Vector2.zero;
+            labelRt.anchorMax = new Vector2(1f, 0.11f);
+            labelRt.offsetMin = labelRt.offsetMax = Vector2.zero;
+            var text = label.GetComponent<Text>();
+            text.font = font;
+            text.fontSize = 40;
+            text.fontStyle = FontStyle.Bold;
+            text.alignment = TextAnchor.MiddleCenter;
+            text.color = Ink;
+            text.raycastTarget = false;
+            names.Add(text);
+            entry.GetComponent<Button>().onClick.AddListener(() =>
+            {
+                selected = index;
+                for (int k = 0; k < tints.Count; k++) tints[k].Selected = k == index;
+            });
+        }
+
+        // Refresh the texts every frame: they follow the mouse, the pick and the language.
+        while (!confirmed)
+        {
+            stepText.text = L.T("setup.chooseSpecies", player.playerName);
+            for (int i = 0; i < names.Count; i++) names[i].text = L.SpeciesName(speciesOptions[i].species);
+            int shown = hovered >= 0 ? hovered : selected;
+            desc.text = shown >= 0 ? speciesOptions[shown].Description : L.T("setup.speciesHint");
+            confirm.gameObject.SetActive(selected >= 0);
+            if (selected >= 0) confirmText.text = L.T("setup.pickSpecies", L.SpeciesName(speciesOptions[selected].species));
+            yield return null;
+        }
+
+        var choice = speciesOptions[selected];
+        Destroy(speciesRow);
+        speciesRow = null;
+        stepRt.anchoredPosition = stepPos;
+        Clear(choiceRow, choiceTemplate.transform);
+        detailText.text = "";
+        player.species = choice.species;
+        player.portrait = choice.portrait;
+    }
+
+    static void Clear(Transform row, Transform keep)
+    {
+        foreach (Transform child in row)
+        {
+            if (child == keep) continue;
             child.gameObject.SetActive(false);
             Destroy(child.gameObject);
         }
+    }
+
+    // The item pile as it will be at the start of the game, so backgrounds can take cards from it.
+    void BuildPile()
+    {
+        pile.Clear();
+        foreach (var card in pileCards)
+            if (card) for (int c = 0; c < card.copiesInPile; c++) pile.Add(card);
+        for (int i = pile.Count - 1; i > 0; i--)
+        {
+            int j = Random.Range(0, i + 1);
+            (pile[i], pile[j]) = (pile[j], pile[i]);
+        }
+    }
+
+    ItemData TakeFromPile(System.Predicate<ItemData> match)
+    {
+        for (int i = pile.Count - 1; i >= 0; i--)
+        {
+            if (!match(pile[i])) continue;
+            var item = pile[i];
+            pile.RemoveAt(i);
+            Party.takenFromPile.Add(item);
+            takenThisPlayer.Add(item);
+            return item;
+        }
+        return null;
+    }
+
+    // Shows the choices as buttons and waits until one is clicked (the index ends up in `picked`).
+    // A null label leaves that grid cell empty. Each of `inputPlaceholders` adds a text box before the buttons;
+    // their texts end up in `lastInputs`. The title, labels and placeholders are re-read when the language changes.
+    IEnumerator Choose(System.Func<string> title, System.Func<List<string>> labels, System.Func<int, Color> color, System.Func<int, string> detail,
+        System.Func<string[]> inputPlaceholders = null, bool numbersOnly = true, System.Func<string> fixedDetail = null)
+    {
+        picked = -1;
+        stepText.text = title();
+        detailText.text = fixedDetail != null ? fixedDetail() : "";
+        // Hide the previous step's buttons right away (Destroy only happens at the end of the frame).
+        Clear(choiceRow, choiceTemplate.transform);
 
         var inputs = new List<InputField>();
         if (inputPlaceholders != null)
-            foreach (var p in inputPlaceholders) inputs.Add(MakeInput(p, numbersOnly));
+            foreach (var p in inputPlaceholders()) inputs.Add(MakeInput(p, numbersOnly));
         if (inputs.Count > 0) inputs[0].ActivateInputField();
 
-        for (int i = 0; i < labels.Count; i++)
+        var list = labels();
+        var buttonTexts = new Dictionary<int, Text>();
+        for (int i = 0; i < list.Count; i++)
         {
-            if (labels[i] == null)
+            if (list[i] == null)
             {
                 var spacer = new GameObject("Spacer", typeof(RectTransform));
                 spacer.transform.SetParent(choiceRow, false);
@@ -222,13 +591,33 @@ public class GameSetup : MonoBehaviour
             var button = Instantiate(choiceTemplate, choiceRow);
             button.gameObject.SetActive(true);
             button.GetComponent<Image>().color = color(i);
-            button.GetComponentInChildren<Text>().text = labels[i];
+            var text = button.GetComponentInChildren<Text>();
+            text.text = list[i];
+            buttonTexts[i] = text;
             int index = i;
             button.onClick.AddListener(() => picked = index);
             var hover = button.gameObject.AddComponent<SetupHover>();
-            hover.onHover = () => detailText.text = detail(index);
+            hover.onHover = () => { if (fixedDetail == null) detailText.text = detail(index); };
         }
-        while (picked < 0) yield return null;
+        int seen = languageVersion;
+        while (picked < 0)
+        {
+            if (seen != languageVersion)
+            {
+                seen = languageVersion;
+                stepText.text = title();
+                if (fixedDetail != null) detailText.text = fixedDetail();
+                else detailText.text = "";
+                list = labels();
+                foreach (var kv in buttonTexts) kv.Value.text = list[kv.Key];
+                if (inputPlaceholders != null)
+                {
+                    var hints = inputPlaceholders();
+                    for (int i = 0; i < inputs.Count && i < hints.Length; i++) ((Text)inputs[i].placeholder).text = hints[i];
+                }
+            }
+            yield return null;
+        }
         lastInputs = new string[inputs.Count];
         for (int i = 0; i < inputs.Count; i++) lastInputs[i] = inputs[i].text;
     }
@@ -291,41 +680,37 @@ public class GameSetup : MonoBehaviour
         return field;
     }
 
-    // What the background card gives at the start: its items, random 消耗品 from the item pile, a 负伤.
-    // The new cards are shown with a "获得…" step.
-    IEnumerator GiveBackgroundStart(CharacterCard player, BackgroundData bg)
+    // What the background card gives at the start: its items, cards from the item pile, a 负伤.
+    // Unless `silent`, the new cards are shown with a "获得…" step.
+    IEnumerator GiveBackgroundStart(CharacterCard player, BackgroundData bg, bool silent)
     {
         if (!bg) yield break;
         var got = new List<ItemData>();
         foreach (var item in bg.startItems)
             if (item && player.TryAddItem(item)) got.Add(item);
-        if (bg.pileItems.Count > 0)
+        foreach (var wanted in bg.pileItems)
         {
-            var pile = FindFirstObjectByType<ItemDeck>();
-            foreach (var wanted in bg.pileItems)
-            {
-                var item = pile ? pile.Take(wanted) : null;
-                if (item && player.TryAddItem(item)) got.Add(item);
-            }
+            var item = TakeFromPile(x => x == wanted);
+            if (item && player.TryAddItem(item)) got.Add(item);
         }
-        if (bg.randomConsumables > 0)
+        for (int i = 0; i < bg.randomConsumables; i++)
         {
-            var deck = FindFirstObjectByType<ItemDeck>();
-            for (int i = 0; i < bg.randomConsumables && deck; i++)
-            {
-                var item = deck.TakeConsumable();
-                if (item && player.TryAddItem(item)) got.Add(item);
-            }
+            var item = TakeFromPile(x => x && x.kind == ItemKind.Consumable);
+            if (item && player.TryAddItem(item)) got.Add(item);
         }
         player.Refresh();
-        if (got.Count > 0)
+        if (got.Count > 0 && !silent)
         {
             ShowWeapons(got);
-            var names = new StringBuilder();
-            for (int i = 0; i < got.Count; i++) names.Append(i == 0 ? "" : i == got.Count - 1 ? " 和 " : "、").Append(got[i].itemName);
-            string kind = got.TrueForAll(x => x.kind == ItemKind.Consumable) ? "消耗品" : "道具";
-            yield return Choose(player.playerName + "（" + bg.backgroundName + "）：获得" + kind + " " + names, new List<string> { "继续" },
-                i => PlainButton, i => "");
+            bool consumables = got.TrueForAll(x => x.kind == ItemKind.Consumable);
+            yield return Choose(() =>
+                {
+                    var names = new StringBuilder();
+                    for (int i = 0; i < got.Count; i++)
+                        names.Append(i == 0 ? "" : i == got.Count - 1 ? L.T("setup.and") : L.T("setup.listSep")).Append(got[i].itemName);
+                    return L.T(consumables ? "setup.gotConsumables" : "setup.gotItems", player.playerName, bg.backgroundName, names.ToString());
+                },
+                () => new List<string> { L.T("setup.continue") }, i => PlainButton, i => "");
             ShowWeapons(null);
         }
         if (bg.startInjury)
@@ -333,8 +718,9 @@ public class GameSetup : MonoBehaviour
             var injuries = InjuryDeck.Find();
             if (injuries) yield return injuries.Give(player, bg.startInjury, false, null);
             else { player.injuries.Add(bg.startInjury); player.Refresh(); }
-            yield return Choose(player.playerName + "（" + bg.backgroundName + "）：开局携带" + bg.startInjury.Title + "：" + bg.startInjury.effect,
-                new List<string> { "继续" }, i => PlainButton, i => "");
+            if (!silent)
+                yield return Choose(() => L.T("setup.startInjury", player.playerName, bg.backgroundName, bg.startInjury.Title, bg.startInjury.effect),
+                    () => new List<string> { L.T("setup.continue") }, i => PlainButton, i => "");
         }
     }
 
@@ -374,14 +760,10 @@ public class GameSetup : MonoBehaviour
         var sb = new StringBuilder();
         for (int i = 0; i < c.weapons.Count; i++)
         {
-            if (i > 0) sb.Append("、");
+            if (i > 0) sb.Append(L.T("setup.listSep"));
             sb.Append(c.weapons[i] ? c.weapons[i].itemName : "?");
         }
         return sb.ToString();
     }
 
-    static string WeaponList(ClassData c)
-    {
-        return "武器卡：" + WeaponNames(c);
-    }
 }

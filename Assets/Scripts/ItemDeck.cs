@@ -23,19 +23,22 @@ public class ItemDeck : MonoBehaviour
     readonly List<ItemData> pile = new List<ItemData>();
     ItemCard drawnCard;
     bool flying;
-    string defaultPrompt;
 
     void Awake()
     {
-        if (promptText) defaultPrompt = promptText.text;
         if (pileButton) pileButton.onClick.AddListener(Draw);
     }
+
+    void OnEnable() { L.Changed += UpdateCount; }
+    void OnDisable() { L.Changed -= UpdateCount; }
 
     void Start()
     {
         // Each card goes into the pile as many times as its 总量 says.
         foreach (var card in cards)
             if (card) for (int c = 0; c < card.copiesInPile; c++) pile.Add(card);
+        // Cards the players' backgrounds already took in the character creation scene.
+        foreach (var taken in Party.takenFromPile) pile.Remove(taken);
         for (int i = pile.Count - 1; i > 0; i--)
         {
             int j = Random.Range(0, i + 1);
@@ -94,7 +97,7 @@ public class ItemDeck : MonoBehaviour
 
         if (promptText)
         {
-            promptText.text = AnyoneCanTake(item) ? defaultPrompt
+            promptText.text = AnyoneCanTake(item) ? L.T("items.givePrompt")
                 : "没有玩家能拿这张牌（" + (item.exclusiveTo ? item.itemName + " 是" + item.exclusiveTo.className + "专属" : "大家的道具栏都满了")
                   + "），点击道具牌堆弃掉";
             promptText.gameObject.SetActive(true);
@@ -164,6 +167,6 @@ public class ItemDeck : MonoBehaviour
 
     void UpdateCount()
     {
-        if (countText) countText.text = pile.Count > 0 ? pile.Count + " left" : "Empty";
+        if (countText) countText.text = pile.Count > 0 ? L.T("pile.left", pile.Count) : L.T("pile.empty");
     }
 }

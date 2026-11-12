@@ -19,10 +19,20 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
 
     bool eventsDrawn;
 
+    void OnEnable() { L.Changed += OnLanguageChanged; }
+    void OnDisable() { L.Changed -= OnLanguageChanged; }
+
+    void OnLanguageChanged()
+    {
+        if (eventsDrawn && drawButtonText) drawButtonText.text = L.T("story.eventsDrawn");
+        else Refresh();
+    }
+
     void Start()
     {
         Refresh();
         if (drawButton) drawButton.onClick.AddListener(DrawEvents);
+        if (dealOnStart) StartCoroutine(DealIn());
     }
 
     // Draws this story's event cards into the event slots. Each story card draws once.
@@ -37,11 +47,11 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         {
             eventsDrawn = true;
             drawButton.interactable = false;
-            drawButtonText.text = "Event Cards Drawn";
+            drawButtonText.text = L.T("story.eventsDrawn");
         }
         else
         {
-            drawButtonText.text = deck.CardsLeft == 0 ? "No event cards left" : "Event slots are full";
+            drawButtonText.text = deck.CardsLeft == 0 ? L.T("story.noEventsLeft") : L.T("story.slotsFull");
         }
     }
 
@@ -95,8 +105,12 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     // turn to the next main story card.
     public void AdvanceWhenEventsDone()
     {
+        if (holdStory) return;
         StartCoroutine(AdvanceNextFrame());
     }
+
+    // Set by the tutorial: its practice events don't move the story on.
+    [System.NonSerialized] public bool holdStory;
 
     System.Collections.IEnumerator AdvanceNextFrame()
     {
@@ -109,11 +123,73 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     public bool ShowNextStory()
     {
         if (!story || !story.nextStory) return false;
-        SetStory(story.nextStory);
-        // Some 负伤 heal when the team reaches the next main story card.
-        var injuries = InjuryDeck.Find();
-        if (injuries) injuries.StartCoroutine(injuries.OnNewStory());
+        StartCoroutine(FlipTo(story.nextStory));
         return true;
+    }
+
+    // --- Turning a main story card: the moment every player gets 1 primary token ---
+
+    [Header("Animation")]
+    public bool dealOnStart = true;    // The game's first main story card is dealt onto the table when the scene starts.
+    public float dealTime = 0.7f;
+    public float flipTime = 0.25f;
+
+    // The first card flies in from above, turning over, into its place; then the tokens are handed out.
+    System.Collections.IEnumerator DealIn()
+    {
+        var rt = (RectTransform)transform;
+        Vector2 target = rt.anchoredPosition;
+        Vector3 scale = rt.localScale;
+        Vector2 start = target + new Vector2(0f, 1100f);
+        for (float t = 0f; t < dealTime; t += Time.deltaTime)
+        {
+            float k = Mathf.SmoothStep(0f, 1f, t / dealTime);
+            rt.anchoredPosition = Vector2.Lerp(start, target, k);
+            rt.localScale = new Vector3(scale.x * Mathf.Abs(Mathf.Cos((1f - k) * Mathf.PI)), scale.y, scale.z) * Mathf.Lerp(0.5f, 1f, k);
+            rt.localEulerAngles = new Vector3(0f, 0f, Mathf.Lerp(-12f, 0f, k));
+            yield return null;
+        }
+        rt.anchoredPosition = target;
+        rt.localScale = scale;
+        rt.localEulerAngles = Vector3.zero;
+        yield return OnNewStory(false);
+    }
+
+    // The card turns over to the next main story card; then the tokens are handed out.
+    System.Collections.IEnumerator FlipTo(StoryData next)
+    {
+        var rt = (RectTransform)transform;
+        Vector3 scale = rt.localScale;
+        for (float t = 0f; t < flipTime; t += Time.deltaTime)
+        {
+            rt.localScale = new Vector3(scale.x * (1f - t / flipTime), scale.y, scale.z);
+            yield return null;
+        }
+        SetStory(next);
+        for (float t = 0f; t < flipTime; t += Time.deltaTime)
+        {
+            rt.localScale = new Vector3(scale.x * (t / flipTime), scale.y, scale.z);
+            yield return null;
+        }
+        rt.localScale = scale;
+        yield return OnNewStory(true);
+    }
+
+    // A main story card has been turned: every player gets 1 token of their primary element (负伤 may change that).
+    // On later cards, the 负伤 that heal on reaching the next main story card are settled too.
+    System.Collections.IEnumerator OnNewStory(bool reachedNext)
+    {
+        var injuries = InjuryDeck.Find();
+        var prefab = injuries ? injuries.tokenPrefab : null;
+        if (prefab)
+        {
+            // Each player's token flies from the token pool to their card (no message: the tutorial explains it).
+            Canvas.ForceUpdateCanvases();
+            var cards = new System.Collections.Generic.List<CharacterCard>(FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude));
+            cards.Sort((a, b) => string.Compare(a.name, b.name, System.StringComparison.Ordinal));
+            yield return TokenFlight.GiveEach(cards, p => p.primaryElement, prefab);
+        }
+        if (injuries && reachedNext) yield return injuries.OnNewStory();
     }
 
     // A long story text gets a smaller font so it never runs into the 下一步 line.
@@ -158,7 +234,7 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             // Hidden when the story draws no events (SetActive isn't allowed from OnValidate, so only in play).
             if (Application.isPlaying) drawButton.gameObject.SetActive(n > 0);
             if (drawButtonText && !eventsDrawn)
-                drawButtonText.text = "Draw " + n + " Event Card" + (n == 1 ? "" : "s");
+                drawButtonText.text = n == 1 ? L.T("story.drawEvent") : L.T("story.drawEvents", n);
         }
     }
 }
