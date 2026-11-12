@@ -53,8 +53,8 @@ public static class L
 
         // Tutorial: 战斗
         { "tut.combatStart", new[] {
-            "桌上出现了一张事件卡「大黄狗妖」。为了教学，每人先额外获得 2 枚主属性 token。\n点开这张事件卡。",
-            "An event card, \"The Yellow Dog Demon\", is on the table. For this practice, everyone gets 2 extra tokens of their main element.\nClick the event card to open it." } },
+            "桌上出现了一张事件卡「大黄狗妖」。点开这张事件卡。",
+            "An event card, \"The Yellow Dog Demon\", is on the table. Click it to open it." } },
         { "tut.combatOption",       new[] { "每张事件卡都可以选择不同的解决方式，比如战斗或社交。这次选择战斗。", "Each event card can be resolved in different ways, such as combat or social. This time, choose combat." } },
         { "tut.enemy", new[] {
             "这是敌人的战斗卡。右上角是敌人的属性，下面写着「全胜」和「胜利」需要的战斗值，以及失败会怎样。",

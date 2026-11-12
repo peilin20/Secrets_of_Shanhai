@@ -8721,7 +8721,7 @@ MonoBehaviour:
   gameScene: SampleScene
   tableCanvas: {fileID: 144946652}
   combatEvent: {fileID: 11400000, guid: dc5a5332bc2497c408761eefe89dfdfe, type: 2}
-  combatBonusTokens: 2
+  combatBonusTokens: 0
   startPart: 0
 --- !u!4 &1044434909
 Transform:

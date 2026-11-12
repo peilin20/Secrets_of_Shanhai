@@ -12,7 +12,7 @@ public class TutorialController : MonoBehaviour
     public string gameScene = "SampleScene";
     public Canvas tableCanvas;           // The game table the steps point at.
     public EventData combatEvent;        // 战斗教程: the practice event (大黄狗妖).
-    public int combatBonusTokens = 2;    // Extra primary tokens each player gets for the practice fight.
+    public int combatBonusTokens = 0;    // Extra primary tokens for the practice fight (0: follow the real rules).
     [Tooltip("For testing: 0 = from the start, 1 = jump to the combat part.")]
     public int startPart = 0;
 
@@ -157,8 +157,8 @@ public class TutorialController : MonoBehaviour
         };
     }
 
-    // The practice fight: the event goes on the table, everyone gets a few extra primary tokens and
-    // equips a weapon if they have one, and the story card stays put afterwards.
+    // The practice fight: the event goes on the table, everyone equips a weapon if they have one
+    // (plus combatBonusTokens extra primary tokens, none by default), and the story card stays put afterwards.
     void PrepareCombat(EventDeck eventDeck, StoryCard story)
     {
         if (story) story.holdStory = true;
