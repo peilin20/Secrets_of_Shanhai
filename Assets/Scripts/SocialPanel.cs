@@ -66,6 +66,7 @@ public class SocialPanel : MonoBehaviour
 
     readonly List<Element> pool = new List<Element>();
     readonly List<Element> drawn = new List<Element>();
+    readonly List<Element> fullPool = new List<Element>();   // This encounter's whole pool (drawn ones included), for the display.
     readonly List<CharacterCard> speakers = new List<CharacterCard>();       // Everyone who talked in this event.
     readonly List<CharacterCard> onStageThisRound = new List<CharacterCard>();// On-stage 负伤 are paid once per appearance.
     readonly List<CharacterCard> protectedPlayers = new List<CharacterCard>();// Used 失败保护.
@@ -113,6 +114,21 @@ public class SocialPanel : MonoBehaviour
         speaker = null;
         pool.Clear();
         if (data) pool.AddRange(data.pool);
+        // Pool shapes like 3-1 / 1-1-1-1 where the card names fewer elements than the shape needs:
+        // the rest are random elements not already in the pool, picked for this encounter.
+        if (data && data.randomOthers > 0)
+        {
+            var others = new List<Element>();
+            foreach (Element e in System.Enum.GetValues(typeof(Element))) if (!pool.Contains(e)) others.Add(e);
+            for (int i = 0; i < data.randomOthers && others.Count > 0; i++)
+            {
+                int k = Random.Range(0, others.Count);
+                pool.Add(others[k]);
+                others.RemoveAt(k);
+            }
+        }
+        fullPool.Clear();
+        fullPool.AddRange(pool);
         drawn.Clear();
         speakers.Clear();
         onStageThisRound.Clear();
@@ -1024,7 +1040,7 @@ public class SocialPanel : MonoBehaviour
             if (social)
             {
                 var drawnLeft = new List<Element>(drawn);
-                var all = new List<Element>(social.pool);
+                var all = new List<Element>(fullPool);
                 all.Sort();
                 foreach (var e in all)
                 {

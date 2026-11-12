@@ -15,7 +15,8 @@ MonoBehaviour:
   title: "\u8FFD\u95EE\u8001\u7FC1"
   image: {fileID: 0}
   description: 
-  pool: 01000000010000000100000001000000i
+  pool: 01000000i
+  randomOthers: 3
   startingFavor: 3
   hasSpecies: 1
   species: 3
