@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f7e4d8aa9b32ca40953aadde894a339, type: 3}
+  m_Name: Social_ZhuiWenLaoWeng
+  m_EditorClassIdentifier: Assembly-CSharp::SocialData
+  title: "\u8FFD\u95EE\u8001\u7FC1"
+  image: {fileID: 0}
+  description: 
+  pool: 01000000010000000100000001000000i
+  startingFavor: 3
+  hasSpecies: 1
+  species: 3
+  outcomes:
+  - label: "\u5927\u6210\u529F"
+    favorNeeded: 6
+    reward: "1\u9053\u5177"
+  - label: "\u6210\u529F"
+    favorNeeded: 3
+    reward: "\u53D9\u4E8B"
+  failureResult: 
+  failureCombat: {fileID: 0}
+  special: 
+  hasSpeciesBonus: 0
+  bonusSpecies: 0
+  bonusAmount: 0
+  bonusButton: 

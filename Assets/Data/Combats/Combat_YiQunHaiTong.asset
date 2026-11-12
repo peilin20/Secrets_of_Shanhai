@@ -15,7 +15,7 @@ MonoBehaviour:
   title: "\u4F01\u56FE\u6293\u4F4F\u5B69\u5B50\u4EEC"
   element: 2
   hasSpecies: 0
-  species: 0
+  species: 3
   image: {fileID: 0}
   description: 
   greatSuccessThreshold: 8

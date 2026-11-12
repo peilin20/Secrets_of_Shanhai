@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EventData
   title: "\u4E00\u7FA4\u5B69\u7AE5"
   image: {fileID: 0}
-  description: "\uFF08\u4E8B\u4EF6\u63CF\u8FF0\u5F85\u586B\u5199\uFF09"
+  description: "\u5728\u8FD9\u4E2A\u8352\u50FB\u7684\u90B8\u5E97\u9644\u8FD1\uFF0C\u4F60\u4EEC\u7ADF\u7136\u542C\u5230\u4E86\u4E00\u7FA4\u5B69\u5B50\u5531\u6B4C\u7684\u58F0\u97F3\u3002\n\n\u201C\u5C71\u65E0\u4E3B\uFF0C\u6C34\u65E0\u540D\u3002\n\u4E95\u751F\u8349\uFF0C\u65E7\u5E99\u503E\u3002\n\u95E8\u5317\u5F00\uFF0C\u5EA7\u671D\u5357\u3002\n\u4ECA\u95EE\u8DEF\uFF0C\u660E\u95EE\u5C71\u3002\u201D\n\n\u5FAA\u58F0\u671B\u53BB\uFF0C\u53EA\u89C1\u51E0\u4E2A\u5B69\u7AE5\u6B63\u8E66\u8E66\u8DF3\u8DF3\u5730\u53CD\u590D\u5531\u7740\u51E0\u53E5\u6B4C\u8C23\u3002\n\u53EF\u8FD9\u524D\u540E\u4E0D\u89C1\u6751\u820D\u7684\u5730\u65B9\uFF0C\u8FD9\u4E9B\u5B69\u5B50\u53C8\u662F\u4ECE\u54EA\u91CC\u6765\u7684\uFF1F"
   options:
   - label: "\u6218\u6597:"
     text: "\u4F01\u56FE\u6293\u4F4F\u5B69\u5B50\u4EEC"
@@ -22,6 +22,20 @@ MonoBehaviour:
     buttonName: "\u4F01\u56FE\u6293\u4F4F\u5B69\u5B50\u4EEC"
     combat: {fileID: 11400000, guid: d7ef643516a8a414fa8ff7cca77cc4d3, type: 2}
     social: {fileID: 0}
+    requiresSpecies: 0
+    species: 0
+    choiceText: 
+    acceptButton: "\u7B54\u5E94"
+    refuseButton: "\u62D2\u7EDD"
+    acceptResult: 
+    rewardItems: []
+    nextEvent: {fileID: 0}
+  - label: "\u793E\u4EA4:"
+    text: "\u95EE\u8BDD"
+    kind: 1
+    buttonName: "\u95EE\u8BDD"
+    combat: {fileID: 0}
+    social: {fileID: 11400000, guid: 46558c2eee3a05f4ea71da795fa73861, type: 2}
     requiresSpecies: 0
     species: 0
     choiceText: 
