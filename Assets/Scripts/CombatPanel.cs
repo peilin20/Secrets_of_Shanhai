@@ -857,17 +857,10 @@ public class CombatPanel : MonoBehaviour
         }
     }
 
+    // Every die goes through 承天问卜 (the stick box in the middle of a dimmed screen; the player clicks it).
     IEnumerator RollDie(int sides, System.Action<int> result)
     {
-        var sticks = FindFirstObjectByType<FortuneSticks>();
-        if (sides == 6 && sticks)
-        {
-            while (sticks.IsRolling) yield return null;
-            bool done = false;
-            sticks.Roll(r => { result(r); done = true; });
-            while (!done) yield return null;
-        }
-        else result(Random.Range(1, sides + 1));
+        yield return FortuneSticks.Ask(sides, result);
     }
 
     void LowerThresholds(int amount)

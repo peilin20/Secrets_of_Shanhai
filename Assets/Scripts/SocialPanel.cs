@@ -545,7 +545,7 @@ public class SocialPanel : MonoBehaviour
             case ItemMechanic.Sachet: yield return UseSachet(player, src); break;
             case ItemMechanic.Disguise: yield return UseDisguise(player, src); break;
             case ItemMechanic.RainCharm: yield return UseRainCharm(player, src); break;
-            case ItemMechanic.SpiceTea: UseSpiceTea(player, src); break;
+            case ItemMechanic.SpiceTea: yield return UseSpiceTea(player, src); break;
             case ItemMechanic.Sugar: yield return UseSugar(player, src); break;
             case ItemMechanic.Retreat: Retreat(src + "：全队安全撤离"); break;
             case ItemMechanic.ExtraTurn:
@@ -575,10 +575,16 @@ public class SocialPanel : MonoBehaviour
     {
         var species = disguises.TryGetValue(player, out var d) ? d : player.species;
         bool same = social && social.hasSpecies && social.species == species;
-        int r = same ? 4 : Random.Range(1, 5);
+        int r = 4;
+        if (!same) yield return RollDie(4, x => r = x);
         needLess += r;
         log.Add(src + "：所有选项所需好感度 -" + r + (same ? "（与目标种族相同，取最大值）" : "（1d4）"));
-        yield break;
+    }
+
+    // Every die goes through 承天问卜 (the stick box in the middle of a dimmed screen; the player clicks it).
+    IEnumerator RollDie(int sides, System.Action<int> result)
+    {
+        yield return FortuneSticks.Ask(sides, result);
     }
 
     // 易容面具: for this event, the NPC takes the user for a species they pick.
@@ -607,7 +613,8 @@ public class SocialPanel : MonoBehaviour
         for (int i = 0; i < n; i++)
         {
             CombatPanel.Spend(player, Element.Metal);
-            int r = Random.Range(1, 5);
+            int r = 0;
+            yield return RollDie(4, x => r = x);
             rolls.Add(r.ToString());
             for (int k = 0; k < r; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
         }
@@ -615,9 +622,11 @@ public class SocialPanel : MonoBehaviour
     }
 
     // 香料茶: 2d4 temporary 水 tokens (this event only).
-    void UseSpiceTea(CharacterCard player, string src)
+    IEnumerator UseSpiceTea(CharacterCard player, string src)
     {
-        int a = Random.Range(1, 5), b = Random.Range(1, 5);
+        int a = 0, b = 0;
+        yield return RollDie(4, x => a = x);
+        yield return RollDie(4, x => b = x);
         int gained = 0;
         for (int k = 0; k < a + b; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
         log.Add(src + "：获得" + gained + "枚临时水token（" + a + "+" + b + "）");
@@ -689,7 +698,9 @@ public class SocialPanel : MonoBehaviour
             }
             else
             {
-                int a = Random.Range(1, 5), b = Random.Range(1, 5);
+                int a = 0, b = 0;
+                yield return RollDie(4, x => a = x);
+                yield return RollDie(4, x => b = x);
                 needLess += a + b;
                 log.Add(src + "：把" + injury.Title + "转移给 NPC，2d4 = " + a + "+" + b
                         + "，所有选项所需好感度 -" + (a + b));

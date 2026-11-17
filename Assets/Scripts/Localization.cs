@@ -67,8 +67,8 @@ public static class L
             "上场玩家装备的武器会出现在这里。武器卡上写着要消耗什么 token、能打出多少战斗值。点卡片可以放大。",
             "The player's equipped weapon appears here. The card says which tokens it costs and how much combat value it deals. Click it to enlarge." } },
         { "tut.fight", new[] {
-            "② 点这个按钮，用武器出战。按提示选择要消耗的 token；需要掷骰时，签筒会帮你掷。",
-            "② Click this button to attack with the weapon. Choose the tokens to spend when asked; if a roll is needed, the fortune-stick box rolls for you." } },
+            "② 点这个按钮，用武器出战。按提示选择要消耗的 token；需要掷骰时，会弹出签筒，点它抽签。",
+            "② Click this button to attack with the weapon. Choose the tokens to spend when asked; if a roll is needed, the fortune-stick box pops up: click it to draw." } },
         { "tut.total",              new[] { "③ 打出的战斗值按克制换算后，加进这场战斗的总值。", "③ The combat value, after counters, is added to the fight's total." } },
         { "tut.items", new[] {
             "④ 任何玩家都可以随时使用自己的消耗品，比如土块、小树枝。把鼠标移到道具上可以看到它的效果。",
@@ -142,6 +142,9 @@ public static class L
         // Story card
         { "story.drawEvents",       new[] { "抽取 {0} 张事件卡", "Draw {0} Event Cards" } },
         { "story.drawEvent",        new[] { "抽取 1 张事件卡", "Draw 1 Event Card" } },
+        { "fortune.title",          new[] { "承天问卜", "Ask of Heaven" } },
+        { "fortune.hint",           new[] { "点击签筒抽签（1d{0}）", "Click the stick box to draw (1d{0})" } },
+        { "fortune.result",         new[] { "抽到 {0}", "You drew {0}" } },
         { "story.eventsDrawn",      new[] { "已抽取事件卡", "Event Cards Drawn" } },
         { "story.noEventsLeft",     new[] { "事件卡已抽完", "No event cards left" } },
         { "story.slotsFull",        new[] { "事件栏已满", "Event slots are full" } },
