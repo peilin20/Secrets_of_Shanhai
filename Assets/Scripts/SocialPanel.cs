@@ -92,7 +92,8 @@ public class SocialPanel : MonoBehaviour
 
     void Awake()
     {
-        if (closeButton) closeButton.onClick.AddListener(Close);
+        // Once a combat / social is chosen it has to be played out (leaving early would not give spent tokens back).
+        if (closeButton) closeButton.gameObject.SetActive(false);
         if (continueButton) continueButton.onClick.AddListener(Continue);
         if (speakButton) speakButton.onClick.AddListener(() =>
         {
