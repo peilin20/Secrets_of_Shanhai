@@ -811,7 +811,7 @@ public class CombatPanel : MonoBehaviour
             yield return OfferPursuit(player);
     }
 
-    // How the hit's element stands against the enemy's, for the calculation box. Only 克制 changes the value.
+    // How the hit's element stands against the enemy's, for the calculation box. In combat only 克制 changes the value.
     string Relation(Element? attribute, bool counter)
     {
         if (!attribute.HasValue) return "无属性，不计克制 ×1";
@@ -820,9 +820,7 @@ public class CombatPanel : MonoBehaviour
         if (!counter) return vs + "这次不计克制 ×1";
         if (ElementRules.Counters(attribute.Value, enemyElement)) return vs + "<b>" + ours + "克" + theirs + "，×2</b>";
         if (ElementRules.Counters(enemyElement, attribute.Value)) return vs + theirs + "克" + ours + "，×½";
-        if (ElementRules.Generates(attribute.Value, enemyElement)) return vs + ours + "生" + theirs + "（相生，不变）×1";
-        if (ElementRules.Generates(enemyElement, attribute.Value)) return vs + theirs + "生" + ours + "（相生，不变）×1";
-        return vs + (attribute.Value == enemyElement ? "同属性" : "无生克") + " ×1";
+        return vs + "无克制 ×1";   // 相生 only matters in social.
     }
 
     // The 克制 relationship is bold in the log when the attack counters the enemy.
