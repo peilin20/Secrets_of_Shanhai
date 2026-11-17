@@ -99,6 +99,8 @@ public class CombatPanel : MonoBehaviour
     {
         // Once a combat / social is chosen it has to be played out (leaving early would not give spent tokens back).
         if (closeButton) closeButton.gameObject.SetActive(false);
+        // The calculation box: plain ink, bold only where it matters.
+        if (resultText) { resultText.fontStyle = FontStyle.Normal; resultText.color = new Color(0.2f, 0.16f, 0.12f); resultText.supportRichText = true; }
         if (continueButton) continueButton.onClick.AddListener(Continue);
         if (fightButton) fightButton.onClick.AddListener(() =>
         {
@@ -132,6 +134,7 @@ public class CombatPanel : MonoBehaviour
         fighter = null;
         lastRoll = null;
         log.Clear();
+        lastCalc = null;
         disguises.Clear();
         fighters.Clear();
         stagePaid.Clear();
@@ -795,6 +798,10 @@ public class CombatPanel : MonoBehaviour
         string counterNote = "不计克制";
         int final = counter ? ApplyCounter(value, attribute, out counterNote) : value;
         total += final;
+        lastCalc = "<b>" + source.Trim() + "</b>\n"
+                 + "战斗值：" + detail + " = " + value + "\n"
+                 + Relation(attribute, counter) + "\n"
+                 + "<b>→ 战斗值 +" + final + "</b>";
         log.Add(source + "：" + detail + " = " + value + "，" + (attribute.HasValue ? CombatCard.ElementChar(attribute.Value) + "属性" : "无属性")
                 + "，" + counterNote + " → +" + final);
         if (roll != null && roll.sides.Count > 0) { roll.final = final; lastRoll = roll; }
@@ -802,6 +809,20 @@ public class CombatPanel : MonoBehaviour
 
         if (counter && attribute.HasValue && combat && ElementRules.Counters(enemyElement, attribute.Value))
             yield return OfferPursuit(player);
+    }
+
+    // How the hit's element stands against the enemy's, for the calculation box. Only 克制 changes the value.
+    string Relation(Element? attribute, bool counter)
+    {
+        if (!attribute.HasValue) return "无属性，不计克制 ×1";
+        string ours = CombatCard.ElementChar(attribute.Value), theirs = CombatCard.ElementChar(enemyElement);
+        string vs = ours + "属性 对 敌方" + theirs + "：";
+        if (!counter) return vs + "这次不计克制 ×1";
+        if (ElementRules.Counters(attribute.Value, enemyElement)) return vs + "<b>" + ours + "克" + theirs + "，×2</b>";
+        if (ElementRules.Counters(enemyElement, attribute.Value)) return vs + theirs + "克" + ours + "，×½";
+        if (ElementRules.Generates(attribute.Value, enemyElement)) return vs + ours + "生" + theirs + "（相生，不变）×1";
+        if (ElementRules.Generates(enemyElement, attribute.Value)) return vs + theirs + "生" + ours + "（相生，不变）×1";
+        return vs + (attribute.Value == enemyElement ? "同属性" : "无生克") + " ×1";
     }
 
     // The 克制 relationship is bold in the log when the attack counters the enemy.
@@ -1140,16 +1161,24 @@ public class CombatPanel : MonoBehaviour
     {
         roundText.text = round <= rounds ? "第 " + round + " / " + rounds + " 轮" : "战斗结束";
         totalText.text = "战斗总值：" + total;
-        if (combat && !finished)
-            resultText.text = "敌方属性：" + CombatCard.ElementChar(enemyElement)
-                + (enemyElement != combat.element ? "（本轮被改变）" : "")
-                + (enemyElementNextRound.HasValue ? "，下回合变为" + CombatCard.ElementChar(enemyElementNextRound.Value) : "")
-                + "\n全胜需 ≥" + greatNeed + "   胜利需 ≥" + winNeed;
-        else if (!combat) resultText.text = "还没有关联战斗卡。";
+        // Left: the enemy card shows the current element and what's needed now.
+        if (combat && cardView) cardView.ShowLive(enemyElement, greatNeed, winNeed);
+        // Right: how the latest combat value was worked out, then the whole log (newest lines kept in view).
+        if (!combat) resultText.text = "还没有关联战斗卡。";
+        else
+        {
+            string calc = string.IsNullOrEmpty(lastCalc) ? "出战后，这里会显示战斗值是怎么算出来的。" : lastCalc;
+            if (enemyElementNextRound.HasValue) calc += "\n下回合敌方属性变为" + CombatCard.ElementChar(enemyElementNextRound.Value);
+            resultText.text = calc;
+        }
+        int from = Mathf.Max(0, log.Count - logLinesShown);
         var sb = new StringBuilder();
-        foreach (var line in log) sb.AppendLine(line);
+        for (int i = from; i < log.Count; i++) sb.AppendLine(log[i]);
         logText.text = sb.ToString();
     }
+
+    public int logLinesShown = 14;
+    string lastCalc;   // The latest hit, step by step.
 
     // --- Reading simple effects from the card text ---
 

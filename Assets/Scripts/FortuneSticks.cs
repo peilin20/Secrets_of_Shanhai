@@ -62,6 +62,9 @@ public class FortuneSticks : MonoBehaviour
         var canvas = sticks ? sticks.GetComponentInParent<Canvas>() : null;
         if (!sticks || !canvas) { result(Random.Range(1, sides + 1)); yield break; }
         while (sticks.rolling) yield return null;
+        // The last stick goes back in the box before this draw.
+        sticks.numberText.text = "";
+        sticks.SetStickY(sticks.hiddenY);
         canvas = canvas.rootCanvas;
         var font = sticks.numberText ? sticks.numberText.font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
