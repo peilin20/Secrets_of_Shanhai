@@ -105,6 +105,32 @@ public class ItemsPopup : MonoBehaviour
         });
     }
 
+    // The combat / social field shows a display-only copy of the character card (its buttons are stripped and it
+    // ignores clicks). This makes the copy's 道具 bar open the player's backpack again.
+    public static void HookCopiedItemsButton(GameObject copy, CharacterCard player)
+    {
+        if (!copy || !player || !player.itemsButton) return;
+        var path = new System.Collections.Generic.List<int>();
+        for (var t = player.itemsButton.transform; t && t != player.transform; t = t.parent) path.Insert(0, t.GetSiblingIndex());
+        var target = copy.transform;
+        foreach (var i in path)
+        {
+            if (i >= target.childCount) return;
+            target = target.GetChild(i);
+        }
+        var group = target.gameObject.AddComponent<CanvasGroup>();
+        group.ignoreParentGroups = true;   // The rest of the copy still ignores clicks.
+        group.blocksRaycasts = true;
+        group.interactable = true;
+        var button = target.gameObject.AddComponent<Button>();
+        var who = player;
+        button.onClick.AddListener(() =>
+        {
+            var popup = FindFirstObjectByType<ItemsPopup>(FindObjectsInactive.Include);
+            if (popup) popup.Show(who);
+        });
+    }
+
     public void Hide()
     {
         gameObject.SetActive(false);

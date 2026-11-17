@@ -225,6 +225,7 @@ public class SocialPanel : MonoBehaviour
             crt.anchorMin = crt.anchorMax = crt.pivot = new Vector2(0.5f, 0.5f);
             crt.anchoredPosition = Vector2.zero;
             crt.localScale = Vector3.one * fieldCardScale;
+            ItemsPopup.HookCopiedItemsButton(copy, player);
         }
         ShowFieldButtons();
     }
