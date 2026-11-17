@@ -219,6 +219,7 @@ public class CombatPanel : MonoBehaviour
             button.gameObject.SetActive(true);
             button.GetComponentInChildren<Text>().text = p.playerName;
             var player = p;
+            ItemsPopup.AddBackpackTab(button, p);
             button.onClick.AddListener(() => { if (!busy && !fought && round <= rounds) ShowFighter(player); });
             pickButtons.Add(button);
         }

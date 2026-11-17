@@ -185,6 +185,7 @@ public class SocialPanel : MonoBehaviour
             button.gameObject.SetActive(true);
             button.GetComponentInChildren<Text>().text = p.playerName;
             var player = p;
+            ItemsPopup.AddBackpackTab(button, p);
             button.onClick.AddListener(() => { if (!busy && !spoke && !extraTurn && !finished) ShowSpeaker(player); });
             pickButtons.Add(button);
         }

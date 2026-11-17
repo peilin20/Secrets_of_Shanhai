@@ -69,6 +69,42 @@ public class ItemsPopup : MonoBehaviour
         transform.SetAsLastSibling();
     }
 
+    // The combat / social window covers the character cards, so each player button there gets a small
+    // 背包 tab on its right end that opens this window on top (equipment stays locked during combat).
+    public static void AddBackpackTab(Button playerButton, CharacterCard player)
+    {
+        var parent = (RectTransform)playerButton.transform;
+        var name = playerButton.GetComponentInChildren<Text>();
+        const float width = 58f;
+        var go = new GameObject("BackpackTab", typeof(RectTransform), typeof(Image), typeof(Button));
+        var rt = (RectTransform)go.transform;
+        rt.SetParent(parent, false);
+        rt.anchorMin = new Vector2(1f, 0f); rt.anchorMax = new Vector2(1f, 1f);
+        rt.pivot = new Vector2(1f, 0.5f);
+        rt.sizeDelta = new Vector2(width, -8f);
+        rt.anchoredPosition = new Vector2(-4f, 0f);
+        go.GetComponent<Image>().color = new Color(0.55f, 0.42f, 0.28f);
+        var label = new GameObject("Label", typeof(RectTransform), typeof(Text));
+        var lrt = (RectTransform)label.transform;
+        lrt.SetParent(rt, false);
+        lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+        lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+        var t = label.GetComponent<Text>();
+        t.font = name ? name.font : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        t.fontSize = 18;
+        t.color = Color.white;
+        t.alignment = TextAnchor.MiddleCenter;
+        t.text = "背包";
+        // The player's name moves left to make room.
+        if (name) name.rectTransform.offsetMax = new Vector2(name.rectTransform.offsetMax.x - width, name.rectTransform.offsetMax.y);
+        var who = player;
+        go.GetComponent<Button>().onClick.AddListener(() =>
+        {
+            var popup = FindFirstObjectByType<ItemsPopup>(FindObjectsInactive.Include);
+            if (popup) popup.Show(who);
+        });
+    }
+
     public void Hide()
     {
         gameObject.SetActive(false);
