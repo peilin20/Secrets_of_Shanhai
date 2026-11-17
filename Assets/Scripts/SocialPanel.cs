@@ -639,7 +639,7 @@ public class SocialPanel : MonoBehaviour
         var labels = new List<string>();
         var colors = new List<Color>();
         foreach (var e in all) { labels.Add(CombatCard.ElementChar(e)); colors.Add(ElementToken.ColorFor(e)); }
-        yield return Choose(player.playerName + "：把糖当作哪种属性的 token？", labels, colors);
+        yield return Choose(player.playerName + "：把糖糕当作哪种属性的 token？", labels, colors);
         var element = all[choice];
         int gained = AddToken(player, element, true);
         log.Add(src + "：当作 1 枚" + CombatCard.ElementChar(element) + " token" + (gained == 0 ? "（被负伤挡住了）" : ""));
