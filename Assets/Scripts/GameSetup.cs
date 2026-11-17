@@ -409,7 +409,7 @@ public class GameSetup : MonoBehaviour
         var font = stepText.font;
         var stepRt = (RectTransform)stepText.transform;
         var stepPos = stepRt.anchoredPosition;
-        stepRt.anchoredPosition = new Vector2(stepPos.x, 480f);   // Above the portraits.
+        stepRt.anchoredPosition = new Vector2(stepPos.x, 495f);   // Above the portraits.
 
         speciesRow = new GameObject("SpeciesStep", typeof(RectTransform));
         var page = (RectTransform)speciesRow.transform;
@@ -421,8 +421,8 @@ public class GameSetup : MonoBehaviour
         var row = new GameObject("SpeciesRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
         var rowRt = (RectTransform)row.transform;
         rowRt.SetParent(page, false);
-        rowRt.anchoredPosition = new Vector2(0f, 235f);
-        rowRt.sizeDelta = new Vector2(1300f, 420f);
+        rowRt.anchoredPosition = new Vector2(0f, 110f);
+        rowRt.sizeDelta = new Vector2(1600f, 500f);
         var layout = row.GetComponent<HorizontalLayoutGroup>();
         layout.spacing = 40f;
         layout.childAlignment = TextAnchor.MiddleCenter;
@@ -433,12 +433,27 @@ public class GameSetup : MonoBehaviour
         var descGo = new GameObject("Description", typeof(RectTransform), typeof(Text));
         var descRt = (RectTransform)descGo.transform;
         descRt.SetParent(page, false);
+        // A short note on what species means, under the title.
+        var subGo = new GameObject("Subtitle", typeof(RectTransform), typeof(Text));
+        var subRt = (RectTransform)subGo.transform;
+        subRt.SetParent(page, false);
+        subRt.anchoredPosition = new Vector2(0f, 405f);
+        subRt.sizeDelta = new Vector2(1800f, 90f);
+        var sub = subGo.GetComponent<Text>();
+        sub.font = font;
+        sub.fontSize = 20;
+        sub.lineSpacing = 1.1f;
+        sub.alignment = TextAnchor.MiddleCenter;
+        sub.color = Ink;
+        sub.raycastTarget = false;
+
         // The general introduction until a species is under the mouse or picked; then that species' own text.
-        descRt.anchoredPosition = new Vector2(0f, -200f);
-        descRt.sizeDelta = new Vector2(1500f, 400f);
+        descRt.pivot = new Vector2(0.5f, 1f);
+        descRt.anchoredPosition = new Vector2(0f, -155f);
+        descRt.sizeDelta = new Vector2(1500f, 300f);
         var desc = descGo.GetComponent<Text>();
         desc.font = font;
-        desc.fontSize = 26;
+        desc.fontSize = 20;
         desc.lineSpacing = 1.1f;
         desc.supportRichText = true;
         desc.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -452,8 +467,8 @@ public class GameSetup : MonoBehaviour
         confirm.gameObject.SetActive(false);
         var confirmRt = (RectTransform)confirm.transform;
         confirmRt.anchorMin = confirmRt.anchorMax = confirmRt.pivot = new Vector2(0.5f, 0.5f);
-        confirmRt.anchoredPosition = new Vector2(0f, -465f);
-        confirmRt.sizeDelta = new Vector2(360f, 90f);
+        confirmRt.anchoredPosition = new Vector2(0f, -490f);
+        confirmRt.sizeDelta = new Vector2(360f, 75f);
         confirm.GetComponent<Image>().color = PlainButton;
         var confirmText = confirm.GetComponentInChildren<Text>();
         bool confirmed = false;
@@ -511,6 +526,7 @@ public class GameSetup : MonoBehaviour
         while (!confirmed)
         {
             stepText.text = L.T("setup.chooseSpecies", player.playerName);
+            sub.text = L.T("setup.speciesSubtitle");
             for (int i = 0; i < names.Count; i++) names[i].text = L.SpeciesName(speciesOptions[i].species);
             int shown = hovered >= 0 ? hovered : selected;
             desc.text = shown >= 0 ? "<b>" + L.SpeciesName(speciesOptions[shown].species) + "</b>\n" + speciesOptions[shown].Description : L.T("setup.speciesIntro");
