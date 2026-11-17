@@ -505,12 +505,14 @@ public class CombatPanel : MonoBehaviour
             yield break;
         }
         Element? spent = null;
-        for (int i = 0; i < plan.costPrimary; i++) { Spend(player, player.primaryElement); spent = player.primaryElement; }
+        var spentList = new Dictionary<Element, int>();
+        for (int i = 0; i < plan.costPrimary; i++) { Spend(player, player.primaryElement); spent = player.primaryElement; Count1(spentList, player.primaryElement); }
         for (int i = 0; i < plan.costAny; i++)
         {
             yield return ChooseToken(player, player.playerName + "：选择要消耗的 token", false);
             Spend(player, (Element)choice);
             spent = (Element)choice;
+            Count1(spentList, spent.Value);
         }
 
         var roll = new LastRoll { player = player, itemName = item.itemName };
@@ -532,7 +534,7 @@ public class CombatPanel : MonoBehaviour
         }
         else attribute = ParseElement(plan.attr);
 
-        string paid = plan.costPrimary + plan.costAny > 0 ? "（消耗" + (plan.costPrimary + plan.costAny) + "枚token）" : "";
+        string paid = spentList.Count > 0 ? "（" + TokenWords(spentList) + "）" : "";
         roll.attribute = attribute;
         yield return Hit(player, src + paid, roll.value, attribute, string.Join(" + ", parts.ToArray()) + note, roll);
     }
@@ -560,7 +562,7 @@ public class CombatPanel : MonoBehaviour
             if (pair.Value == best) top.Add(pair.Key);
         }
         var attr = top[Random.Range(0, top.Count)];
-        yield return Hit(player, src + "（消耗" + n + "枚token）", 3 * n, attr, n + "×3", null);
+        yield return Hit(player, src + "（" + TokenWords(spent) + "）", 3 * n, attr, n + "×3", null);
     }
 
     // 五行符: each token (at most one per element) is a separate +2 of that element.
@@ -579,7 +581,7 @@ public class CombatPanel : MonoBehaviour
             var el = (Element)choice;
             Spend(player, el);
             usedElements.Add(el);
-            yield return Hit(player, src + "（" + CombatCard.ElementChar(el) + " token）", 2, el, "2", null);
+            yield return Hit(player, src + "（" + CombatCard.ElementChar(el) + "token一枚）", 2, el, "2", null);
         }
     }
 
@@ -620,7 +622,7 @@ public class CombatPanel : MonoBehaviour
         yield return ChooseElement(player.playerName + "：选择要消耗 3 枚的属性", options, false);
         var el = (Element)choice;
         for (int i = 0; i < 3; i++) Spend(player, el);
-        yield return Hit(player, src + "（消耗3枚" + CombatCard.ElementChar(el) + "）", 6, el, "6", null);
+        yield return Hit(player, src + "（" + CombatCard.ElementChar(el) + "token三枚）", 6, el, "6", null);
         if (ElementRules.Counters(el, enemyElement))
             yield return Hit(player, src + "（克制敌方，额外伤害）", 5, el, "5", null, false);
     }
@@ -786,7 +788,7 @@ public class CombatPanel : MonoBehaviour
     IEnumerator UseBurst(CharacterCard player, string src)
     {
         foreach (Element e in System.Enum.GetValues(typeof(Element))) Spend(player, e);
-        yield return Hit(player, src + "（消耗五种属性token各一枚）", 10, player.primaryElement, "10", null);
+        yield return Hit(player, src + "（五种属性token各一枚）", 10, player.primaryElement, "10", null);
     }
 
     // --- Settling a hit ---
@@ -798,10 +800,7 @@ public class CombatPanel : MonoBehaviour
         string counterNote = "不计克制";
         int final = counter ? ApplyCounter(value, attribute, out counterNote) : value;
         total += final;
-        lastCalc = "<b>" + source.Trim() + "</b>\n"
-                 + "战斗值：" + detail + " = " + value + "\n"
-                 + Relation(attribute, counter) + "\n"
-                 + "<b>→ 战斗值 +" + final + "</b>";
+        lastCalc = "<b>" + source.Trim() + "</b>"+"\n" + "战斗值：" + value + CounterWords(attribute, counter, value, final);
         log.Add(source + "：" + detail + " = " + value + "，" + (attribute.HasValue ? CombatCard.ElementChar(attribute.Value) + "属性" : "无属性")
                 + "，" + counterNote + " → +" + final);
         if (roll != null && roll.sides.Count > 0) { roll.final = final; lastRoll = roll; }
@@ -811,16 +810,30 @@ public class CombatPanel : MonoBehaviour
             yield return OfferPursuit(player);
     }
 
-    // How the hit's element stands against the enemy's, for the calculation box. In combat only 克制 changes the value.
-    string Relation(Element? attribute, bool counter)
+    // The calculation box only mentions 克制, the one thing that changes the value: "，土克水 ×2 = 8".
+    string CounterWords(Element? attribute, bool counter, int value, int final)
     {
-        if (!attribute.HasValue) return "无属性，不计克制 ×1";
+        if (!counter || !attribute.HasValue || !combat) return "";
         string ours = CombatCard.ElementChar(attribute.Value), theirs = CombatCard.ElementChar(enemyElement);
-        string vs = ours + "属性 对 敌方" + theirs + "：";
-        if (!counter) return vs + "这次不计克制 ×1";
-        if (ElementRules.Counters(attribute.Value, enemyElement)) return vs + "<b>" + ours + "克" + theirs + "，×2</b>";
-        if (ElementRules.Counters(enemyElement, attribute.Value)) return vs + theirs + "克" + ours + "，×½";
-        return vs + "无克制 ×1";   // 相生 only matters in social.
+        if (ElementRules.Counters(attribute.Value, enemyElement)) return "，<b>" + ours + "克" + theirs + " ×2 = " + final + "</b>";
+        if (ElementRules.Counters(enemyElement, attribute.Value)) return "，" + theirs + "克" + ours + " ×½ = " + final;
+        return "";
+    }
+
+    static void Count1(Dictionary<Element, int> counts, Element e) => counts[e] = counts.TryGetValue(e, out int c) ? c + 1 : 1;
+
+    // "土token一枚", "土token两枚、火token一枚".
+    static string TokenWords(Dictionary<Element, int> counts)
+    {
+        var parts = new List<string>();
+        foreach (var pair in counts) parts.Add(CombatCard.ElementChar(pair.Key) + "token" + ChineseCount(pair.Value) + "枚");
+        return string.Join("、", parts.ToArray());
+    }
+
+    static string ChineseCount(int n)
+    {
+        string[] words = { "零", "一", "两", "三", "四", "五", "六", "七", "八", "九", "十" };
+        return n >= 0 && n < words.Length ? words[n] : n.ToString();
     }
 
     // The 克制 relationship is bold in the log when the attack counters the enemy.
@@ -845,7 +858,7 @@ public class CombatPanel : MonoBehaviour
             if (choice < 0) continue;
             var e = (Element)choice;
             Spend(q, e);
-            yield return Hit(q, "  追击 " + q.playerName + " 追击刃（消耗1枚" + CombatCard.ElementChar(e) + "）", 2, e, "2", null);
+            yield return Hit(q, "  追击 " + q.playerName + " 追击刃（" + CombatCard.ElementChar(e) + "token一枚）", 2, e, "2", null);
         }
     }
 
