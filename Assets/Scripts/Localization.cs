@@ -38,8 +38,8 @@ public static class L
             "Your tokens live here. You spend them in combat and social encounters.\nEach time a new main story card is turned, every player gets 1 token of their main element." } },
         { "tut.backpack",           new[] { "点这里打开背包。道具和负伤牌共用 6 个格子。", "Click here to open your backpack. Items and injury cards share its 6 slots." } },
         { "tut.story", new[] {
-            "这是主线卡，讲述当前的故事。\n按照卡片底部「下一步」的提示，点按钮抽取事件卡。",
-            "This is the main story card. It tells the current part of the story.\nFollow the \"Next step\" at the bottom of the card and use its button to draw event cards." } },
+            "这是主线卡，讲述当前的故事。\n点卡片底部的按钮抽取事件卡；事件都结束后，会自动翻到下一张主线卡。",
+            "This is the main story card. It tells the current part of the story.\nUse the button at the bottom of the card to draw event cards; once the events are done, the next main story card turns over by itself." } },
         { "tut.eventSlots", new[] {
             "抽到的事件卡会放在这里。点开一张事件卡，选择战斗或社交来解决它。\n所有事件都解决后，就会翻开下一张主线卡。",
             "Drawn event cards go here. Open one and choose combat or social to resolve it.\nOnce every event is resolved, the next main story card is turned." } },

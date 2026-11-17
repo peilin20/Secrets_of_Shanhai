@@ -28,6 +28,19 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         else Refresh();
     }
 
+    // The 下一步 line isn't shown: the game moves on by itself. The story text takes its room.
+    public bool showNextStep = false;
+
+    void Awake()
+    {
+        if (!showNextStep && nextStepText && bodyText)
+        {
+            nextStepText.gameObject.SetActive(false);
+            var body = (RectTransform)bodyText.transform;
+            body.offsetMin = new Vector2(body.offsetMin.x, body.offsetMin.y - ((RectTransform)nextStepText.transform).rect.height);
+        }
+    }
+
     void Start()
     {
         Refresh();
