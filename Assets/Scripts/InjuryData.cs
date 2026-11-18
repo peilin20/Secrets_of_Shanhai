@@ -14,7 +14,7 @@ public class InjuryData : ScriptableObject
     public bool special;               // e.g. 寻药者's 特殊负伤: no element, can't be removed by anything.
     public string customTitle;
 
-    public string Title => !string.IsNullOrEmpty(customTitle) ? customTitle : CombatCard.ElementChar(element) + "负伤";
+    public string Title => !string.IsNullOrEmpty(customTitle) ? customTitle : L.T("injury.title", L.ElementName(element));
 
     // 难度 1–3 (the 负伤 sheet says Low / Medium / High).
     public int Level => difficulty == "Medium" ? 2 : difficulty == "High" ? 3 : 1;

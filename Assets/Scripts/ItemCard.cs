@@ -83,7 +83,7 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         {
             var sb = new StringBuilder();
             foreach (var effect in item.effects)
-                sb.Append("<b>").Append(effect.label).Append("：</b>").Append(effect.value).Append('\n');
+                sb.Append("<b>").Append(effect.label).Append(L.T("sep.colon")).Append("</b>").Append(effect.value).Append('\n');
             effectsText.text = sb.ToString().TrimEnd('\n');
         }
     }

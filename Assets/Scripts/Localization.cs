@@ -188,6 +188,7 @@ public static class L
         { "deck.full",              new[] { "{0} 的背包满了（消耗品和负伤共 {1} 格），请选别的玩家", "{0}'s backpack is full (consumables and injuries share {1} slots). Choose another player" } },
         { "injury.special",         new[] { "特殊负伤（无法去除）", "Special injury (can't be removed)" } },
         { "injury.kind",            new[] { "{0}属性负伤（难度 {1}）", "{0} injury (difficulty {1})" } },
+        { "injury.title",           new[] { "{0}负伤", "{0} Injury" } },
         { "injury.effect",          new[] { "效果：", "Effect: " } },
         { "injury.typeMetal",       new[] { "锐器造成的划伤、穿刺", "Cuts and stab wounds from sharp weapons" } },
         { "injury.typeWood",        new[] { "慢性感染、毒性，延迟发作或有传染性的病症", "Chronic infections and poisons: illnesses that set in late or spread" } },

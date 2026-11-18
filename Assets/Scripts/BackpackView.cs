@@ -62,6 +62,6 @@ public static class BackpackView
         entry.Find("Owner").GetComponent<Text>().text = L.T("bag.injury");
         entry.Find("UseButton").gameObject.SetActive(false);
         var hover = entry.gameObject.AddComponent<SetupHover>();
-        hover.onHover = () => { if (detail) detail.text = injury.Title + "：" + injury.effect; };
+        hover.onHover = () => { if (detail) detail.text = L.T("items.nameDetail", injury.Title, injury.effect); };
     }
 }
