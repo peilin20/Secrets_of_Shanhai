@@ -215,7 +215,7 @@ public static class L
         { "inj.tellNewStory",       new[] { "新的主线牌", "New Main Story Card" } },
         { "inj.swapOption",         new[] { "从{0}负伤牌里随机抽一张", "Draw a random {0} injury card" } },
         { "inj.askSwap",            new[] { "{0}：抽哪种负伤牌？", "{0}: which injury card do you draw?" } },
-        { "inj.pickPlayer",         new[] { "失败：选择一名玩家抽取{0}", "Failure: choose a player to draw {0}" } },
+        { "inj.pickPlayer",         new[] { "失败：选择一名玩家抽取{0}", "Your party is under attack! Choose a player to draw {0}" } },
         { "inj.aInjuryOf",          new[] { "一张{0}负伤", "a {0} injury card" } },
         { "inj.aInjury",            new[] { "一张负伤牌", "an injury card" } },
         { "inj.notPrimary",         new[] { "（主属性不能是{0}）", "(their primary element can't be {0})" } },
