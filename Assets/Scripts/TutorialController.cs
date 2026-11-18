@@ -192,6 +192,7 @@ public class TutorialController : MonoBehaviour
                 doneWhen = () => (popup && popup.gameObject.activeInHierarchy) || SocialOpen(),
             },
             new Step { key = "tut.socialOption", target = () => OptionButton(popup, OptionKind.Social), doneWhen = SocialOpen },
+            new Step { key = "tut.socialGoal" },
             new Step { key = "tut.npc", target = () => social ? Rt(social.cardView) : null },
             new Step { key = "tut.pool", target = () => social ? social.poolRow : null },
             new Step { key = "tut.favor", targets = () => social ? new List<RectTransform> { Rt(social.favorText), Rt(social.needText) } : new List<RectTransform>() },
