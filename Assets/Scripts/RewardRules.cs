@@ -19,7 +19,7 @@ public static class RewardRules
             string who = m.Groups[1].Value;
             int n = int.Parse(m.Groups[2].Value);
             var element = InjuryDeck.ElementOf(m.Groups[3].Value);
-            string name = m.Groups[3].Value + " token";
+            string name = L.ElementName(element);
 
             if (who == "每人" || who.StartsWith("上场角色"))
             {
@@ -28,7 +28,7 @@ public static class RewardRules
                 {
                     int got = 0;
                     for (int i = 0; i < n; i++) got += p.GainToken(element, tokenPrefab);
-                    lines.Add(p.playerName + " 获得 " + got + " 枚" + name);
+                    lines.Add(L.T("reward.got", p.playerName, got, name));
                 }
                 continue;
             }
@@ -40,11 +40,11 @@ public static class RewardRules
             for (int i = 0; i < n; i++)
             {
                 int pick = 0;
-                yield return ChoicePrompt.Ask("团队获得 " + n + " 枚" + name + "（第 " + (i + 1) + " / " + n + " 枚）\n这一枚给谁？", names, x => pick = x);
+                yield return ChoicePrompt.Ask(L.T("reward.askTeam", n, name, i + 1), names, x => pick = x);
                 var p = players[pick];
                 given[p] = (given.TryGetValue(p, out int c) ? c : 0) + p.GainToken(element, tokenPrefab);
             }
-            foreach (var pair in given) lines.Add(pair.Key.playerName + " 获得 " + pair.Value + " 枚" + name);
+            foreach (var pair in given) lines.Add(L.T("reward.got", pair.Key.playerName, pair.Value, name));
         }
     }
 }

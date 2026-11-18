@@ -177,6 +177,17 @@ public static class L
         { "combat.itemsLabel",      new[] { "道具（任何玩家随时可用）", "Items (any player can use them at any time)" } },
         { "social.itemsLabel",      new[] { "道具（装备只有说话的玩家能用）", "Items (only the speaker can use equipment)" } },
         { "story.slotsFull",        new[] { "事件栏已满", "Event slots are full" } },
+        // Combat / social card faces, card rewards, character card
+        { "cc.was",                 new[] { "{0}（原{1}）", "{0} (was {1})" } },
+        { "cc.great",               new[] { "全胜(>={0}战斗值):", "Critical Success (≥{0} combat value): " } },
+        { "cc.win",                 new[] { "胜利(>={0}战斗值):", "Success (≥{0} combat value): " } },
+        { "cc.fail",                new[] { "失败：", "Failure: " } },
+        { "cc.special",             new[] { "特殊：", "Special: " } },
+        { "sc.start",               new[] { "初始好感度：", "Starting affinity: " } },
+        { "sc.need",                new[] { "({0}好感度):", " ({0} affinity): " } },
+        { "reward.got",             new[] { "{0} 获得 {1} 枚{2} token", "{0}: Tokens acquired: {1} {2}" } },
+        { "reward.askTeam",         new[] { "团队获得 {0} 枚{1} token（第 {2} / {0} 枚）\n这一枚给谁？", "Team tokens acquired: {0} {1} (token {2} / {0})\nWho should take this one?" } },
+        { "card.injuries",          new[] { "负伤：", "Injuries: " } },
         // Injury prompts and log lines (InjuryDeck)
         { "inj.specialTag",         new[] { "（特殊）", " (special)" } },
         { "inj.drewLoseItem",       new[] { "{0} 抽到{1}：{2}\n选择要失去的道具", "{0} drew {1}: {2}\nChoose an item to lose" } },

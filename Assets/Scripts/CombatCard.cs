@@ -58,7 +58,7 @@ public class CombatCard : MonoBehaviour
     }
 
     // "50" or, once lowered, "46（原50）".
-    static string Need(int now, int printed) => now >= 0 && now != printed ? now + "（原" + printed + "）" : printed.ToString();
+    static string Need(int now, int printed) => now >= 0 && now != printed ? L.T("cc.was", now, printed) : printed.ToString();
 
     public void Refresh()
     {
@@ -80,10 +80,10 @@ public class CombatCard : MonoBehaviour
             // No space after a label: Unity's text wraps at spaces, which would push Chinese text to the next line.
             var sb = new StringBuilder();
             if (!string.IsNullOrEmpty(data.description)) sb.Append(data.description).Append("\n\n");
-            sb.Append("<b>全胜(>=").Append(Need(liveGreat, data.greatSuccessThreshold)).Append("战斗值):</b>").Append(data.greatSuccessReward).Append("\n\n");
-            sb.Append("<b>胜利(>=").Append(Need(liveWin, data.successThreshold)).Append("战斗值):</b>").Append(data.successReward).Append("\n\n");
-            sb.Append("<b>失败：</b>").Append(data.failureResult);
-            if (!string.IsNullOrEmpty(data.special)) sb.Append("\n\n<b>特殊：</b>").Append(data.special);
+            sb.Append("<b>").Append(L.T("cc.great", Need(liveGreat, data.greatSuccessThreshold))).Append("</b>").Append(data.greatSuccessReward).Append("\n\n");
+            sb.Append("<b>").Append(L.T("cc.win", Need(liveWin, data.successThreshold))).Append("</b>").Append(data.successReward).Append("\n\n");
+            sb.Append("<b>").Append(L.T("cc.fail")).Append("</b>").Append(data.failureResult);
+            if (!string.IsNullOrEmpty(data.special)) sb.Append("\n\n<b>").Append(L.T("cc.special")).Append("</b>").Append(data.special);
             bodyText.text = sb.ToString();
         }
     }

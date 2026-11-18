@@ -269,8 +269,8 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             var sb = new System.Text.StringBuilder(L.T("card.equipped") + (Equipped ? Equipped.itemName : "—"));
             if (injuries.Count > 0)
             {
-                sb.Append("   负伤：");
-                for (int i = 0; i < injuries.Count; i++) sb.Append(i > 0 ? "、" : "").Append(CombatCard.ElementChar(injuries[i].element));
+                sb.Append("   " + L.T("card.injuries"));
+                for (int i = 0; i < injuries.Count; i++) sb.Append(i > 0 ? L.T("setup.listSep") : "").Append(L.ElementName(injuries[i].element));
             }
             equippedText.text = sb.ToString();
         }
