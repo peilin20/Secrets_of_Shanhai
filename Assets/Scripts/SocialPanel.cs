@@ -205,8 +205,8 @@ public class SocialPanel : MonoBehaviour
     {
         var injuries = InjuryDeck.Find();
         string block = injuries ? injuries.StageBlock(p, false, speakers.Count == 0) : null;
-        if (block != null) return block + "，请换人";
-        if (CombatPanel.TokensOf(p).Count == 0) return p.playerName + " 没有 token，不能下注，请换人";
+        if (block != null) return L.T("combat.hintBlocked", block);
+        if (CombatPanel.TokensOf(p).Count == 0) return L.T("social.noTokens", p.playerName);
         return null;
     }
 
@@ -247,19 +247,19 @@ public class SocialPanel : MonoBehaviour
         if (endRow) { CombatPanel.Clear(endRow); endRow.gameObject.SetActive(false); }
         speakButton.gameObject.SetActive(false);
         if (finished) { fieldHint.text = ""; RefreshInteractable(); return; }
-        if (!social) { fieldHint.text = "这个选项还没有关联社交卡。"; RefreshInteractable(); return; }
+        if (!social) { fieldHint.text = L.T("social.noCardOption"); RefreshInteractable(); return; }
 
         if (!spoke)
         {
-            if (!AnyoneCanSpeak()) { Lose("没有玩家还能下注（每轮至少下注 1 枚 token）"); return; }
-            if (!speaker) fieldHint.text = "① 选择本轮说话的玩家";
+            if (!AnyoneCanSpeak()) { Lose(L.T("social.nobodyCanBet")); return; }
+            if (!speaker) fieldHint.text = L.T("social.hintPick");
             else if (CanSpeak(speaker) != null) fieldHint.text = CanSpeak(speaker);
             else
             {
-                fieldHint.text = extraTurn ? "② " + speaker.playerName + " 再说一次（定身术）"
-                    : "② " + speaker.playerName + " 说话：选一个属性，下注至少 1 枚（说话前可以换人）";
+                fieldHint.text = extraTurn ? L.T("social.hintAgain", speaker.playerName)
+                    : L.T("social.hintSpeak", speaker.playerName);
                 speakButton.gameObject.SetActive(true);
-                speakButton.GetComponentInChildren<Text>().text = "② 选择属性并下注";
+                speakButton.GetComponentInChildren<Text>().text = L.T("social.speakButton");
             }
             // Affinity already enough for an outcome (e.g. after an item): the team may end here and take it,
             // or keep talking. Ending isn't automatic.
@@ -270,7 +270,7 @@ public class SocialPanel : MonoBehaviour
             {
                 if (favor < Need(outcome)) continue;
                 var o = outcome;
-                labels.Add("结束：" + o.label); colors.Add(Gold); actions.Add(() => EndWith(o));
+                labels.Add(L.T("social.endWith", o.label)); colors.Add(Gold); actions.Add(() => EndWith(o));
             }
             if (actions.Count > 0)
             {
@@ -278,12 +278,12 @@ public class SocialPanel : MonoBehaviour
                 if (speakButton.gameObject.activeSelf)
                 {
                     speakButton.gameObject.SetActive(false);
-                    labels.Insert(0, "② 选择属性并下注"); colors.Insert(0, Tan);
+                    labels.Insert(0, L.T("social.speakButton")); colors.Insert(0, Tan);
                     actions.Insert(0, () => { if (!spoke && speaker && CanSpeak(speaker) == null) StartCoroutine(Speak()); });
                 }
                 // Short, so it fits on one line.
-                if (!speaker) fieldHint.text = "① 选择说话的玩家，或者直接结束（好感度已够）";
-                else if (CanSpeak(speaker) == null) fieldHint.text = "② " + speaker.playerName + " 说话，或者直接结束（好感度已够）";
+                if (!speaker) fieldHint.text = L.T("social.hintPickOrEnd");
+                else if (CanSpeak(speaker) == null) fieldHint.text = L.T("social.hintSpeakOrEnd", speaker.playerName);
                 ShowEndRow(labels, colors, actions);
             }
         }
@@ -295,20 +295,20 @@ public class SocialPanel : MonoBehaviour
             var actions = new List<System.Action>();
             if (round < rounds && pool.Count > 0)
             {
-                labels.Add("⑤ 继续下一轮"); colors.Add(Tan); actions.Add(NextRound);
+                labels.Add(L.T("social.nextRound")); colors.Add(Tan); actions.Add(NextRound);
             }
             foreach (var outcome in social.outcomes)
             {
                 if (favor < Need(outcome)) continue;
                 var o = outcome;
-                labels.Add("结束：" + o.label); colors.Add(Gold); actions.Add(() => EndWith(o));
+                labels.Add(L.T("social.endWith", o.label)); colors.Add(Gold); actions.Add(() => EndWith(o));
             }
             if (actions.Count == 0)
             {
-                labels.Add("结束对抗（好感度不够，失败）"); colors.Add(new Color(0.86f, 0.55f, 0.45f));
-                actions.Add(() => Lose("3 轮结束，好感度没有达到任何选项"));
+                labels.Add(L.T("social.endFail")); colors.Add(new Color(0.86f, 0.55f, 0.45f));
+                actions.Add(() => Lose(L.T("social.outOfRounds")));
             }
-            fieldHint.text = "④ 还可以使用道具   ⑤ " + (round < rounds ? "继续下一轮，或在好感度够时结束对抗" : "最后一轮结束，选择结果");
+            fieldHint.text = L.T(round < rounds ? "social.hintAfter" : "social.hintAfterLast");
             ShowEndRow(labels, colors, actions);
         }
         RefreshInteractable();
@@ -342,20 +342,20 @@ public class SocialPanel : MonoBehaviour
         {
             if (CombatPanel.Count(p, e) == 0) continue;
             options.Add(e);
-            labels.Add(CombatCard.ElementChar(e) + " ×" + CombatPanel.Count(p, e));
+            labels.Add(L.ElementName(e) + " ×" + CombatPanel.Count(p, e));
             colors.Add(ElementToken.ColorFor(e));
         }
-        labels.Add("取消"); colors.Add(Tan);
-        yield return Choose(p.playerName + "：用哪个属性说话？", labels, colors);
+        labels.Add(L.T("common.cancel")); colors.Add(Tan);
+        yield return Choose(L.T("social.askElement", p.playerName), labels, colors);
         if (choice >= options.Count) { busy = false; ShowFieldButtons(); yield break; }
         var element = options[choice];
 
         int have = CombatPanel.Count(p, element);
         labels = new List<string>();
         colors = new List<Color>();
-        for (int i = 1; i <= have; i++) { labels.Add("下注 " + i); colors.Add(ElementToken.ColorFor(element)); }
-        labels.Add("取消"); colors.Add(Tan);
-        yield return Choose(p.playerName + "：下注几枚" + CombatCard.ElementChar(element) + "？（下得越多，输赢越大）", labels, colors);
+        for (int i = 1; i <= have; i++) { labels.Add(L.T("social.bet", i)); colors.Add(ElementToken.ColorFor(element)); }
+        labels.Add(L.T("common.cancel")); colors.Add(Tan);
+        yield return Choose(L.T("social.askBet", p.playerName, L.ElementName(element)), labels, colors);
         if (choice >= have) { busy = false; ShowFieldButtons(); yield break; }
         int bet = choice + 1;
         if (!speakers.Contains(p)) speakers.Add(p);
@@ -369,19 +369,19 @@ public class SocialPanel : MonoBehaviour
             onStageThisRound.Add(p);
             ApplyOnStage(p);
             UpdateTexts();
-            if (favor <= 0) { busy = false; Lose("好感度降到 0"); yield break; }
+            if (favor <= 0) { busy = false; Lose(L.T("social.zero")); yield break; }
         }
         for (int i = 0; i < bet; i++) CombatPanel.Spend(p, element);
 
         // The NPC draws from its pool, not putting it back.
-        drawText.text = "NPC 正在想……";
+        drawText.text = L.T("social.thinking");
         yield return new WaitForSeconds(0.6f);
         var npc = pool[Random.Range(0, pool.Count)];
         pool.Remove(npc);
         drawn.Add(npc);
 
         int counted = bet + FireBonus(p, element);
-        string ours = CombatCard.ElementChar(element), theirs = CombatCard.ElementChar(npc);
+        string ours = L.ElementName(element), theirs = L.ElementName(npc);
         string relation, result;
         int change;
         if (element == npc)
@@ -391,31 +391,32 @@ public class SocialPanel : MonoBehaviour
             bool foxTalent = p.species == Species.Fox && favorOnStage == 1 && m < 3;
             if (foxTalent) m = 3;
             change = counted * m;
-            relation = "<b>都是" + ours + "</b>";
-            result = "心有灵犀 ×" + m + (foxTalent ? "（九尾天赋）" : "");
+            relation = "<b>" + L.T("social.bothSame", ours) + "</b>";
+            result = L.T("social.inTune") + " ×" + m + (foxTalent ? L.T("social.foxTalent") : "");
         }
         else if (ElementRules.Generates(element, npc) || ElementRules.Generates(npc, element))
         {
             change = counted;
-            relation = "<b>" + (ElementRules.Generates(element, npc) ? ours + "生" + theirs : theirs + "生" + ours) + "</b>";
-            result = "相谈甚欢 ×1";
+            relation = "<b>" + (ElementRules.Generates(element, npc) ? L.T("social.generates", ours, theirs) : L.T("social.generates", theirs, ours)) + "</b>";
+            result = L.T("social.gettingAlong") + " ×1";
         }
         else
         {
             change = -counted;
-            relation = "<b>" + (ElementRules.Counters(element, npc) ? ours + "克" + theirs : theirs + "克" + ours) + "</b>";
-            result = "话不投机";
+            relation = "<b>" + (ElementRules.Counters(element, npc) ? L.T("combat.counters", ours, theirs) : L.T("combat.counters", theirs, ours)) + "</b>";
+            result = L.T("social.atOdds");
         }
         favor += change;
-        log.Add("第" + round + "轮 " + p.playerName + " 下注 " + bet + " 枚" + ours + (counted != bet ? "（负伤：算作 " + counted + " 枚）" : "")
-                + "，NPC 抽到" + theirs + "：" + relation + "，" + result + " → 好感度 " + (change >= 0 ? "+" : "") + change);
-        drawText.text = "NPC 抽到：" + theirs + "\n" + relation + "\n" + result + "，好感度 " + (change >= 0 ? "+" : "") + change;
+        string signed = (change >= 0 ? "+" : "") + change;
+        log.Add(L.T("social.logBet", round, p.playerName, bet, ours) + (counted != bet ? L.T("social.countedAs", counted) : "")
+                + L.T("social.logDraw", theirs, relation, result, signed));
+        drawText.text = L.T("social.drawn", theirs) + "\n" + relation + "\n" + L.T("social.drawResult", result, signed);
 
         spoke = true;
         extraTurn = false;
         busy = false;
         UpdateTexts();
-        if (favor <= 0) { Lose("好感度降到 0"); yield break; }
+        if (favor <= 0) { Lose(L.T("social.zero")); yield break; }
         BuildItemRow();
         ShowFieldButtons();
     }
@@ -430,7 +431,7 @@ public class SocialPanel : MonoBehaviour
             if (!m.Success) continue;
             int n = int.Parse(m.Groups[1].Value);
             favor -= n;
-            log.Add("  " + p.playerName + " 上场：" + CombatCard.ElementChar(injury.element) + "负伤，好感度 -" + n);
+            log.Add("  " + L.T("social.logInjury", p.playerName, L.ElementName(injury.element), n));
         }
     }
 
@@ -473,7 +474,7 @@ public class SocialPanel : MonoBehaviour
             if (CombatPanel.SpeciesName(p.species) != m.Groups[1].Value) continue;
             int got = 0;
             for (int i = 0; i < n; i++) got += AddToken(p, p.primaryElement, false);
-            notes.Add(p.playerName + "（" + m.Groups[1].Value + "）额外获得 " + got + " 枚" + CombatCard.ElementChar(p.primaryElement) + " token");
+            notes.Add(L.T("social.speciesToken", p.playerName, L.SpeciesName(p.species), got, L.ElementName(p.primaryElement)));
         }
     }
 
@@ -497,7 +498,7 @@ public class SocialPanel : MonoBehaviour
         useOwners.Clear();
         useItems.Clear();
         useIsEquipment.Clear();
-        if (itemDetailText) itemDetailText.text = "鼠标移到道具上查看效果，点击卡片放大";
+        if (itemDetailText) itemDetailText.text = L.T("items.hoverZoom");
         if (!viewed || !players.Contains(viewed)) viewed = speaker ? speaker : (players.Count > 0 ? players[0] : null);
         backpackSwitch = BackpackView.NameButtons(backpackSwitch, itemRow, pickButtonTemplate, players, viewed, ViewBackpack);
         var p = viewed;
@@ -518,7 +519,7 @@ public class SocialPanel : MonoBehaviour
                 card.draggable = false;
                 card.onClick = c => ShowCardZoom(c.item);
                 CombatPanel.Place(card.transform, itemCardScale);
-                entry.Find("Owner").GetComponent<Text>().text = equipment ? (i == p.equippedSlot ? "装备中" : "装备") : "消耗品";
+                entry.Find("Owner").GetComponent<Text>().text = L.T(equipment ? (i == p.equippedSlot ? "items.equipped" : "items.equipment") : "items.consumable");
                 var player = p;
                 int slot = i;
                 var hover = entry.gameObject.AddComponent<SetupHover>();
@@ -526,7 +527,7 @@ public class SocialPanel : MonoBehaviour
                 {
                     if (!itemDetailText) return;
                     string why = usable ? WhyNotUsable(player, item, equipment) : null;
-                    itemDetailText.text = item.itemName + "：" + CombatPanel.ItemSummary(item) + (why != null ? "   【现在不能用：" + why + "】" : "");
+                    itemDetailText.text = L.T("items.nameDetail", item.itemName, CombatPanel.ItemSummary(item)) + (why != null ? "   " + L.T("items.cantUse", why) : "");
                 };
                 var use = entry.Find("UseButton").GetComponent<Button>();
                 if (!usable) { use.gameObject.SetActive(false); continue; }
@@ -550,7 +551,7 @@ public class SocialPanel : MonoBehaviour
         {
             var entry = Instantiate(itemEntryTemplate, itemRow);
             entry.gameObject.SetActive(true);
-            entry.Find("Owner").GetComponent<Text>().text = "（背包是空的）";
+            entry.Find("Owner").GetComponent<Text>().text = L.T("items.emptyBackpack");
             entry.Find("UseButton").gameObject.SetActive(false);
         }
         RefreshInteractable();
@@ -561,11 +562,11 @@ public class SocialPanel : MonoBehaviour
     {
         if (equipment)
         {
-            if (player != speaker) return "装备只有本轮说话的玩家能用";
-            if (item.mechanic == ItemMechanic.Escape) return CombatPanel.TokensOf(player).Count >= 3 ? null : "需要 3 枚 token";
+            if (player != speaker) return L.T("why.speakerEquip");
+            if (item.mechanic == ItemMechanic.Escape) return CombatPanel.TokensOf(player).Count >= 3 ? null : L.T("why.need3");
             foreach (var injury in player.injuries)
                 if (injury && (injury.special ? CombatPanel.TokensOf(player).Count > 0 : CombatPanel.Count(player, injury.element) > 0)) return null;
-            return "没有能转移的负伤牌（需要负伤牌和同属性 token）";
+            return L.T("why.noTransfer");
         }
         switch (item.mechanic)
         {
@@ -574,19 +575,19 @@ public class SocialPanel : MonoBehaviour
             case ItemMechanic.Disguise:
             case ItemMechanic.Retreat:
                 return null;
-            case ItemMechanic.RainCharm: return CombatPanel.Count(player, Element.Metal) > 0 ? null : "没有金 token";
+            case ItemMechanic.RainCharm: return CombatPanel.Count(player, Element.Metal) > 0 ? null : L.T("why.noMetal");
             case ItemMechanic.SpiceTea: return null;
-            case ItemMechanic.Sugar: return player == speaker ? null : "只有本轮说话的玩家能用";
-            case ItemMechanic.Rattle: return "还没有设定哪些社交对象是孩子或调皮的精怪";
+            case ItemMechanic.Sugar: return player == speaker ? null : L.T("why.speakerOnly");
+            case ItemMechanic.Rattle: return L.T("why.rattle");
             case ItemMechanic.Salve:
-            case ItemMechanic.Panacea: return "在背包里点击这张卡使用";
-            case ItemMechanic.NoEffect: return "没有使用效果";
+            case ItemMechanic.Panacea: return L.T("why.useFromBackpack");
+            case ItemMechanic.NoEffect: return L.T("why.noEffect");
             case ItemMechanic.ExtraTurn:
-                if (player != speaker || !spoke) return "本轮说话的玩家说完后才能使用";
-                return pool.Count > rounds - round ? null : "NPC 的候选池不够再说一次";
-            case ItemMechanic.FailureGuard: return "社交失败时在结算画面使用";
+                if (player != speaker || !spoke) return L.T("why.afterSpeak");
+                return pool.Count > rounds - round ? null : L.T("why.poolTooSmall");
+            case ItemMechanic.FailureGuard: return L.T("why.socialGuard");
         }
-        return "只能在战斗中使用";
+        return L.T("why.combatOnly");
     }
 
     IEnumerator Use(CharacterCard player, int slot, bool equipment)
@@ -596,24 +597,24 @@ public class SocialPanel : MonoBehaviour
         busy = true;
         HideFieldButtons();
         used = true;
-        string src = "  道具 " + player.playerName + " 使用 " + item.itemName;
+        string src = L.T("combat.uses", "  " + L.T("combat.srcItem", player.playerName), item.itemName);
 
         switch (item.mechanic)
         {
             case ItemMechanic.SocialOnly:
                 favor += 5;
-                log.Add(src + "：好感度 +5");
+                log.Add(L.T("social.logPlus5", src));
                 break;
             case ItemMechanic.Sachet: yield return UseSachet(player, src); break;
             case ItemMechanic.Disguise: yield return UseDisguise(player, src); break;
             case ItemMechanic.RainCharm: yield return UseRainCharm(player, src); break;
             case ItemMechanic.SpiceTea: yield return UseSpiceTea(player, src); break;
             case ItemMechanic.Sugar: yield return UseSugar(player, src); break;
-            case ItemMechanic.Retreat: Retreat(src + "：全队安全撤离"); break;
+            case ItemMechanic.Retreat: Retreat(L.T("combat.logRetreatSafe", src)); break;
             case ItemMechanic.ExtraTurn:
                 spoke = false;
                 extraTurn = true;
-                log.Add(src + "：额外获得 1 回合，" + player.playerName + " 可以再说一次");
+                log.Add(L.T("social.logExtraTurn", src, player.playerName));
                 break;
             case ItemMechanic.InjuryTransfer: yield return UseInjuryTransfer(player, src); break;
             case ItemMechanic.Escape: yield return UseEscape(player, src); break;
@@ -640,7 +641,7 @@ public class SocialPanel : MonoBehaviour
         int r = 4;
         if (!same) yield return RollDie(4, x => r = x);
         needLess += r;
-        log.Add(src + "：所有选项所需好感度 -" + r + (same ? "（与目标种族相同，取最大值）" : "（1d4）"));
+        log.Add(L.T("social.logSachet", src, r) + L.T(same ? "combat.sachetSame" : "combat.sachetRoll"));
     }
 
     // Every die goes through 承天问卜 (the stick box in the middle of a dimmed screen; the player clicks it).
@@ -655,10 +656,10 @@ public class SocialPanel : MonoBehaviour
         var all = (Species[])System.Enum.GetValues(typeof(Species));
         var labels = new List<string>();
         var colors = new List<Color>();
-        foreach (var s in all) { labels.Add(CombatPanel.SpeciesName(s)); colors.Add(Tan); }
-        yield return Choose(player.playerName + "：让对方把你误认为哪个种族？", labels, colors);
+        foreach (var s in all) { labels.Add(L.SpeciesName(s)); colors.Add(Tan); }
+        yield return Choose(L.T("combat.askDisguise", player.playerName), labels, colors);
         disguises[player] = all[choice];
-        log.Add(src + "：本次事件中对方把 " + player.playerName + " 误认为" + CombatPanel.SpeciesName(all[choice]));
+        log.Add(L.T("combat.logDisguise", src, player.playerName, L.SpeciesName(all[choice])));
     }
 
     // 祈雨符: each 金 token spent gives 1d4 temporary 水 tokens (this event only).
@@ -667,8 +668,8 @@ public class SocialPanel : MonoBehaviour
         int have = CombatPanel.Count(player, Element.Metal);
         var labels = new List<string>();
         var colors = new List<Color>();
-        for (int i = 1; i <= have; i++) { labels.Add("消耗 " + i + " 枚金"); colors.Add(ElementToken.ColorFor(Element.Metal)); }
-        yield return Choose(player.playerName + "：消耗几枚金 token？（每枚换 1d4 枚临时水 token）", labels, colors);
+        for (int i = 1; i <= have; i++) { labels.Add(L.T("combat.spendMetal", i)); colors.Add(ElementToken.ColorFor(Element.Metal)); }
+        yield return Choose(L.T("combat.askMetal", player.playerName), labels, colors);
         int n = choice + 1;
         int gained = 0;
         var rolls = new List<string>();
@@ -680,7 +681,7 @@ public class SocialPanel : MonoBehaviour
             rolls.Add(r.ToString());
             for (int k = 0; k < r; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
         }
-        log.Add(src + "：消耗" + n + "枚金，获得" + gained + "枚临时水token（" + string.Join("+", rolls.ToArray()) + "）");
+        log.Add(L.T("combat.logRain", src, n, gained, string.Join("+", rolls.ToArray())));
     }
 
     // 香料茶: 2d4 temporary 水 tokens (this event only).
@@ -691,7 +692,7 @@ public class SocialPanel : MonoBehaviour
         yield return RollDie(4, x => b = x);
         int gained = 0;
         for (int k = 0; k < a + b; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
-        log.Add(src + "：获得" + gained + "枚临时水token（" + a + "+" + b + "）");
+        log.Add(L.T("combat.logTea", src, gained, a, b));
     }
 
     // 糖: counts as 1 token of an element the speaker picks (a temporary token, this event only).
@@ -700,11 +701,11 @@ public class SocialPanel : MonoBehaviour
         var all = (Element[])System.Enum.GetValues(typeof(Element));
         var labels = new List<string>();
         var colors = new List<Color>();
-        foreach (var e in all) { labels.Add(CombatCard.ElementChar(e)); colors.Add(ElementToken.ColorFor(e)); }
-        yield return Choose(player.playerName + "：把糖糕当作哪种属性的 token？", labels, colors);
+        foreach (var e in all) { labels.Add(L.ElementName(e)); colors.Add(ElementToken.ColorFor(e)); }
+        yield return Choose(L.T("social.askSugar", player.playerName), labels, colors);
         var element = all[choice];
         int gained = AddToken(player, element, true);
-        log.Add(src + "：当作 1 枚" + CombatCard.ElementChar(element) + " token" + (gained == 0 ? "（被负伤挡住了）" : ""));
+        log.Add(L.T("social.logSugar", src, L.ElementName(element)) + (gained == 0 ? L.T("social.blocked") : ""));
     }
 
     // 替伤符: per token spent, move one 负伤 card of that element to a teammate or the NPC
@@ -722,8 +723,8 @@ public class SocialPanel : MonoBehaviour
 
             var cards = new List<InjuryData>();
             foreach (var i in movable) cards.Add(player.injuries[i]);
-            yield return InjuryDeck.AskInjury(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token，特殊负伤消耗任意 1 枚）",
-                cards, moved > 0 ? "完成" : null, x => choice = x);
+            yield return InjuryDeck.AskInjury(L.T("combat.askTransfer", player.playerName),
+                cards, moved > 0 ? L.T("common.done") : null, x => choice = x);
             if (choice >= movable.Count) break;
             var injury = player.injuries[movable[choice]];
 
@@ -732,7 +733,7 @@ public class SocialPanel : MonoBehaviour
             var colors = new List<Color>();
             foreach (var p in players) if (p != player) { targets.Add(p); labels.Add(p.playerName); colors.Add(Tan); }
             labels.Add("NPC"); colors.Add(Blue);
-            yield return Choose("把" + injury.Title + "转移给谁？", labels, colors);
+            yield return Choose(L.T("combat.askTransferTo", injury.Title), labels, colors);
             int targetChoice = choice;
 
             if (injury.special)
@@ -742,8 +743,8 @@ public class SocialPanel : MonoBehaviour
                 foreach (Element e in System.Enum.GetValues(typeof(Element))) if (CombatPanel.Count(player, e) > 0) have.Add(e);
                 labels = new List<string>();
                 colors = new List<Color>();
-                foreach (var e in have) { labels.Add(CombatCard.ElementChar(e) + " ×" + CombatPanel.Count(player, e)); colors.Add(ElementToken.ColorFor(e)); }
-                yield return Choose(player.playerName + "：消耗哪一枚 token 转移" + injury.Title + "？", labels, colors);
+                foreach (var e in have) { labels.Add(L.ElementName(e) + " ×" + CombatPanel.Count(player, e)); colors.Add(ElementToken.ColorFor(e)); }
+                yield return Choose(L.T("combat.askTransferToken", player.playerName, injury.Title), labels, colors);
                 CombatPanel.Spend(player, have[choice]);
             }
             else CombatPanel.Spend(player, injury.element);
@@ -753,7 +754,7 @@ public class SocialPanel : MonoBehaviour
             if (choice < targets.Count)
             {
                 var target = targets[choice];
-                log.Add(src + "：把" + injury.Title + "转移给 " + target.playerName);
+                log.Add(L.T("combat.logTransfer", src, injury.Title, target.playerName));
                 var deck = InjuryDeck.Find();
                 if (deck) yield return deck.Give(target, injury, false, log);   // Their backpack may need room.
                 else { target.injuries.Add(injury); target.Refresh(); }
@@ -764,8 +765,7 @@ public class SocialPanel : MonoBehaviour
                 yield return RollDie(4, x => a = x);
                 yield return RollDie(4, x => b = x);
                 needLess += a + b;
-                log.Add(src + "：把" + injury.Title + "转移给 NPC，2d4 = " + a + "+" + b
-                        + "，所有选项所需好感度 -" + (a + b));
+                log.Add(L.T("social.logTransferNpc", src, injury.Title, a, b, a + b));
             }
             player.Refresh();
             UpdateTexts();
@@ -786,13 +786,13 @@ public class SocialPanel : MonoBehaviour
             {
                 if (CombatPanel.Count(player, e) == 0) continue;
                 options.Add(e);
-                labels.Add(CombatCard.ElementChar(e) + " ×" + CombatPanel.Count(player, e));
+                labels.Add(L.ElementName(e) + " ×" + CombatPanel.Count(player, e));
                 colors.Add(ElementToken.ColorFor(e));
             }
-            yield return Choose(player.playerName + "：选择要消耗的 token（" + (i + 1) + " / 3）", labels, colors);
+            yield return Choose(L.T("combat.askToken3", player.playerName, i + 1), labels, colors);
             CombatPanel.Spend(player, options[choice]);
         }
-        Retreat(src + "：全队安全撤退");
+        Retreat(L.T("combat.logEscape", src));
     }
 
     // The card's own bonus, e.g. a 九尾 lets 大妈 touch their tail: every outcome needs less.
@@ -801,7 +801,7 @@ public class SocialPanel : MonoBehaviour
         if (busy || finished || bonusUsed || !social) return;
         bonusUsed = true;
         needLess += social.bonusAmount;
-        log.Add("  特殊：" + social.bonusButton + "，所有选项所需好感度 -" + social.bonusAmount);
+        log.Add("  " + L.T("social.logBonus", social.bonusButton, social.bonusAmount));
         UpdateTexts();
         ShowFieldButtons();
     }
@@ -913,7 +913,7 @@ public class SocialPanel : MonoBehaviour
             text.color = Color.white;
             text.alignment = TextAnchor.MiddleCenter;
             text.raycastTarget = false;
-            text.text = "点击任意处关闭";
+            text.text = L.T("zoom.close");
         }
         CombatPanel.Clear(cardZoom.transform, cardZoom.transform.Find("Hint"));
         var card = Instantiate(itemCardPrefab, cardZoom.transform);
@@ -943,7 +943,7 @@ public class SocialPanel : MonoBehaviour
 
     IEnumerator EndWithRoutine(SocialOutcome outcome)
     {
-        log.Add("结束对抗：" + outcome.label);
+        log.Add(L.T("social.logEnd", outcome.label));
         UpdateTexts();
         // 负伤 like "上场并赢得一次社交事件后，可弃掉这张牌" settle now; the reward's tokens ("每人2木token"…) are
         // handed out when 继续 is pressed, after the players have seen the result.
@@ -963,8 +963,8 @@ public class SocialPanel : MonoBehaviour
     {
         var lines = new List<string>();
         foreach (var o in social.outcomes)
-            lines.Add(CombatPanel.OutcomeLine(o == reached, o.label + "（好感度≥" + Need(o) + "）", o.reward));
-        lines.Add(CombatPanel.OutcomeLine(reached == null, "失败", social.failureResult));
+            lines.Add(CombatPanel.OutcomeLine(o == reached, L.T("social.outcomeLine", o.label, Need(o)), o.reward));
+        lines.Add(CombatPanel.OutcomeLine(reached == null, L.T("combat.fail"), social.failureResult));
         return string.Join("\n\n", lines.ToArray());
     }
 
@@ -973,10 +973,10 @@ public class SocialPanel : MonoBehaviour
         if (finished) return;
         finished = true;
         failed = true;
-        log.Add(reason + "，对抗失败");
+        log.Add(L.T("social.logLost", reason));
         UpdateTexts();
-        string next = social && social.failureCombat ? "\n继续后进入战斗【" + social.failureCombat.title + "】" : "";
-        ShowResult("失败", social ? OutcomeList(null) : "", reason + next, social != null);
+        string next = social && social.failureCombat ? "\n" + L.T("social.thenCombat", social.failureCombat.title) : "";
+        ShowResult(L.T("combat.fail"), social ? OutcomeList(null) : "", reason + next, social != null);
     }
 
     void Retreat(string message)
@@ -986,7 +986,7 @@ public class SocialPanel : MonoBehaviour
         if (injuries) injuries.OnRetreat(players, log);   // "每次逃跑失去3主属性token"
         finished = true;
         UpdateTexts();
-        ShowResult("撤退", "全队安全撤离了对话。", "", false);
+        ShowResult(L.T("combat.retreatTitle"), L.T("social.retreatBody"), "", false);
     }
 
     // The result screen: outcome, 好感度, text, notes, and (on a loss) 失败保护 buttons.
@@ -996,7 +996,7 @@ public class SocialPanel : MonoBehaviour
         if (choiceRow) choiceRow.gameObject.SetActive(false);
         if (!resultView) return;
         resultTitle.text = title;
-        resultTotal.text = "好感度：" + favor;
+        resultTotal.text = L.T("social.affinity", favor);
         CombatPanel.LayoutResult(resultTotal, resultDescription, resultReward);
         resultDescription.text = description;
         resultReward.text = reward;
@@ -1022,14 +1022,14 @@ public class SocialPanel : MonoBehaviour
                     if (!p.items[i] || p.items[i].mechanic != ItemMechanic.FailureGuard) continue;
                     var player = p;
                     int slot = i;
-                    var b = MakeButton(rrt, p.playerName + " 使用失败保护", Gold, 330);
+                    var b = MakeButton(rrt, L.T("combat.useGuard", p.playerName), Gold, 330);
                     b.onClick.AddListener(() =>
                     {
                         if (continuing) return;
                         if (!protectedPlayers.Contains(player)) protectedPlayers.Add(player);
                         player.items[slot] = null;
                         player.Refresh();
-                        resultReward.text += (resultReward.text.Length > 0 ? "\n" : "") + player.playerName + " 用失败保护抵挡了失败效果";
+                        resultReward.text += (resultReward.text.Length > 0 ? "\n" : "") + L.T("combat.guarded", player.playerName);
                         Destroy(b.gameObject);
                     });
                 }
@@ -1096,16 +1096,16 @@ public class SocialPanel : MonoBehaviour
 
     void UpdateTexts()
     {
-        roundText.text = finished ? "对抗结束" : "第 " + round + " / " + rounds + " 轮";
-        favorText.text = "好感度：" + favor;
+        roundText.text = finished ? L.T("social.over") : L.T("combat.round", round, rounds);
+        favorText.text = L.T("social.affinity", favor);
 
         var sb = new StringBuilder();
         if (social)
             foreach (var outcome in social.outcomes)
-                sb.Append(outcome.label).Append("：需 ≥").Append(Need(outcome))
-                  .Append(favor >= Need(outcome) ? "【已达成】" : "").Append('\n');
-        if (needLess > 0) sb.Append("（所有选项已 -").Append(needLess).Append("）");
-        needText.text = social ? sb.ToString().TrimEnd('\n') : "还没有关联社交卡。";
+                sb.Append(L.T("social.needLine", outcome.label, Need(outcome)))
+                  .Append(favor >= Need(outcome) ? L.T("social.reached") : "").Append('\n');
+        if (needLess > 0) sb.Append(L.T("social.allLowered", needLess));
+        needText.text = social ? sb.ToString().TrimEnd('\n') : L.T("social.noCard");
 
         // The species bonus button sits under the needs.
         bool showBonus = !finished && !bonusUsed && TeamHasBonusSpecies();
@@ -1122,7 +1122,7 @@ public class SocialPanel : MonoBehaviour
         if (bonusButton)
         {
             bonusButton.gameObject.SetActive(showBonus);
-            if (showBonus) bonusButton.GetComponentInChildren<Text>().text = social.bonusButton + "（所有选项 -" + social.bonusAmount + "）";
+            if (showBonus) bonusButton.GetComponentInChildren<Text>().text = L.T("social.bonusLabel", social.bonusButton, social.bonusAmount);
         }
 
         // The NPC's pool: drawn tokens stay visible, faded.
@@ -1145,9 +1145,9 @@ public class SocialPanel : MonoBehaviour
                 }
             }
         }
-        if (poolLabel) poolLabel.text = "NPC 候选池（剩 " + pool.Count + " 枚，不放回）";
+        if (poolLabel) poolLabel.text = L.T("social.pool", pool.Count);
         if (drawText && !spoke && !busy && !finished)
-            drawText.text = "第 " + round + " 轮倍率\n心有灵犀（同属性）×" + SameElementRate(round) + "\n相谈甚欢（相生）×1\n话不投机：扣除下注";
+            drawText.text = L.T("social.rates", round, SameElementRate(round));
 
         var logSb = new StringBuilder();
         foreach (var line in log) logSb.AppendLine(line);
