@@ -205,7 +205,9 @@ public class GameSetup : MonoBehaviour
         {
             yield return Choose(() => L.T("setup.chooseElement", player.playerName), elementLabels,
                 i => i < elements.Length ? ElementToken.ColorFor(elements[i]) : PlainButton,
-                i => i == divineIndex ? L.T("setup.divineHint") : i == randomIndex ? L.T("setup.randomHint") : "");
+                i => i == divineIndex ? L.T("setup.divineHint") : i == randomIndex ? L.T("setup.randomHint")
+                     : i < elements.Length ? L.T("setup.trait" + elements[i]) : "",
+                defaultDetail: () => L.T("setup.elementIntro"));
             if (picked < elements.Length)
             {
                 primary = elements[picked];
@@ -389,6 +391,7 @@ public class GameSetup : MonoBehaviour
     void ShowCard(bool show)
     {
         cardHolder.gameObject.SetActive(show);
+        if (show) displayCard.gameObject.SetActive(true);   // Even if it was switched off in the scene.
         var next = show ? layoutWithCard : layoutNoCard;
         if (layout != next)
         {
@@ -512,11 +515,13 @@ public class GameSetup : MonoBehaviour
     // A null label leaves that grid cell empty. Each of `inputPlaceholders` adds a text box before the buttons;
     // their texts end up in `lastInputs`. The title, labels and placeholders are re-read when the language changes.
     IEnumerator Choose(System.Func<string> title, System.Func<List<string>> labels, System.Func<int, Color> color, System.Func<int, string> detail,
-        System.Func<string[]> inputPlaceholders = null, bool numbersOnly = true, System.Func<string> fixedDetail = null)
+        System.Func<string[]> inputPlaceholders = null, bool numbersOnly = true, System.Func<string> fixedDetail = null,
+        System.Func<string> defaultDetail = null)
     {
         picked = -1;
         stepText.text = title();
-        detailText.text = fixedDetail != null ? fixedDetail() : "";
+        // `defaultDetail`: shown until a button with its own detail is hovered (e.g. the element introduction).
+        detailText.text = fixedDetail != null ? fixedDetail() : defaultDetail != null ? defaultDetail() : "";
         // Hide the previous step's buttons right away (Destroy only happens at the end of the frame).
         Clear(choiceRow, choiceTemplate.transform);
 
@@ -544,7 +549,12 @@ public class GameSetup : MonoBehaviour
             int index = i;
             button.onClick.AddListener(() => picked = index);
             var hover = button.gameObject.AddComponent<SetupHover>();
-            hover.onHover = () => { if (fixedDetail == null) detailText.text = detail(index); };
+            hover.onHover = () =>
+            {
+                if (fixedDetail != null) return;
+                string d = detail(index);
+                detailText.text = string.IsNullOrEmpty(d) && defaultDetail != null ? defaultDetail() : d;
+            };
         }
         int seen = languageVersion;
         while (picked < 0)
@@ -554,7 +564,7 @@ public class GameSetup : MonoBehaviour
                 seen = languageVersion;
                 stepText.text = title();
                 if (fixedDetail != null) detailText.text = fixedDetail();
-                else detailText.text = "";
+                else detailText.text = defaultDetail != null ? defaultDetail() : "";
                 list = labels();
                 foreach (var kv in buttonTexts) kv.Value.text = list[kv.Key];
                 if (inputPlaceholders != null)
