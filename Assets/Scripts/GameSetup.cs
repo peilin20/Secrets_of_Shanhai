@@ -40,15 +40,16 @@ public class GameSetup : MonoBehaviour
     public GameObject screen;            // The setup screen.
     public CharacterCard displayCard;    // The card that shows the player being made (left side).
     public RectTransform cardHolder;     // Where the card sits.
-    public Text stepText;
-    public RectTransform choiceRow;
-    public Button choiceTemplate;        // Inactive; copied once per choice.
-    public Text detailText;
+    // The screen's layouts are objects in the scene (edit them in the Scene window); the game only fills them in.
+    public SetupLayout layoutNoCard;     // Name and age: centred, no character card.
+    public SetupLayout layoutWithCard;   // Element, background, class…: with the card on the left.
+    public SpeciesPage speciesPage;      // The species step.
+    public Button randomCharacterButton; // 随机角色, bottom right.
+    public Button choiceTemplate;        // Inactive; copied once per choice (the layout's grid sets the size).
     public RectTransform weaponRow;      // Shows the weapon cards a player just got (scale the row to size them).
     public ItemCard itemCardPrefab;
     public float cardScale = 0.9f;
     public float bigTokenSize = 130f;  // Size of the token shown with the 占卜 / 随机 result.
-    public float layoutShiftWithCard = 50f;   // The choices move right a little while the card is shown.
 
     static readonly Color PlainButton = new Color(0.93f, 0.89f, 0.8f);
     static readonly Color Ink = new Color(0.15f, 0.12f, 0.1f);
@@ -64,13 +65,23 @@ public class GameSetup : MonoBehaviour
     int currentPlayer;
     bool nameEntered;
     int currentAge = -1;   // -1: not entered (e.g. a random character).
-    GameObject speciesRow;
+    SetupLayout layout;   // The layout in use.
+    Text stepText => layout.stepText;
+    RectTransform choiceRow => layout.choiceRow;
+    Text detailText => layout.detailText;
     GameObject bigToken;
     Button randomButton;
 
     void OnEnable() { L.Changed += OnLanguageChanged; }
     void OnDisable() { L.Changed -= OnLanguageChanged; }
     void OnLanguageChanged() { languageVersion++; }
+
+    void Awake()
+    {
+        layout = layoutNoCard;
+        if (speciesPage) speciesPage.gameObject.SetActive(false);
+        if (randomCharacterButton) randomCharacterButton.gameObject.SetActive(false);
+    }
 
     void Start()
     {
@@ -132,7 +143,11 @@ public class GameSetup : MonoBehaviour
     // Removes whatever the interrupted step had on screen.
     void ClearStepUI()
     {
-        if (speciesRow) Destroy(speciesRow);
+        if (speciesPage && speciesPage.gameObject.activeSelf)
+        {
+            speciesPage.gameObject.SetActive(false);
+            layout.gameObject.SetActive(true);
+        }
         if (bigToken) Destroy(bigToken);
         ShowWeapons(null);
         Clear(choiceRow, choiceTemplate.transform);
@@ -350,195 +365,103 @@ public class GameSetup : MonoBehaviour
         return labels;
     }
 
-    // The 随机角色 button in the bottom right corner.
+    // The 随机角色 button in the bottom right corner (placed in the scene).
     void MakeRandomButton()
     {
-        var button = Instantiate(choiceTemplate, screen.transform);
-        button.name = "RandomCharacterButton";
+        var button = randomCharacterButton;
+        if (!button) return;
         button.gameObject.SetActive(true);
-        var rt = (RectTransform)button.transform;
-        rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(1f, 0f);
-        rt.anchoredPosition = new Vector2(-40f, 40f);
-        rt.sizeDelta = new Vector2(320f, 90f);
-        button.GetComponent<Image>().color = new Color(0.82f, 0.76f, 0.62f);
         var label = button.GetComponentInChildren<Text>();
-        label.text = L.T("setup.randomCharacter");
-        label.gameObject.AddComponent<LocalizedText>().key = "setup.randomCharacter";
+        if (label)
+        {
+            label.text = L.T("setup.randomCharacter");
+            var loc = label.GetComponent<LocalizedText>();
+            if (!loc) loc = label.gameObject.AddComponent<LocalizedText>();
+            loc.key = "setup.randomCharacter";
+        }
         button.onClick.RemoveAllListeners();
         button.onClick.AddListener(OnRandomClicked);
         randomButton = button;
     }
 
-    // The card is hidden for the name and species steps; the prompt and choices sit in the middle of the screen then.
-    Vector2[] normalPositions;
-    TextAnchor detailAlignment;
-    int detailFontSize;
-
+    // The card is hidden for the name and species steps, which use the centred layout; the rest use the layout
+    // with the card. Both layouts are in the scene.
     void ShowCard(bool show)
     {
         cardHolder.gameObject.SetActive(show);
-        var rts = new[] { (RectTransform)stepText.transform, choiceRow, (RectTransform)detailText.transform };
-        if (normalPositions == null)
+        var next = show ? layoutWithCard : layoutNoCard;
+        if (layout != next)
         {
-            normalPositions = new Vector2[rts.Length];
-            for (int i = 0; i < rts.Length; i++) normalPositions[i] = rts[i].anchoredPosition;
-            detailAlignment = detailText.alignment;
-            detailFontSize = detailText.fontSize;
-            stepText.alignment = TextAnchor.MiddleCenter;
-            var grid = choiceRow.GetComponent<GridLayoutGroup>();
-            if (grid) grid.childAlignment = TextAnchor.UpperCenter;
+            Clear(layout.choiceRow, choiceTemplate.transform);
+            layout.stepText.text = "";
+            layout.detailText.text = "";
         }
-        detailText.alignment = detailAlignment;
-        detailText.fontSize = detailFontSize;
-        for (int i = 0; i < rts.Length; i++)
-        {
-            var pos = normalPositions[i];
-            if (show) pos.x += layoutShiftWithCard;
-            else if (i < 2) pos.y -= 220f;   // Prompt and buttons lower, towards the middle of the screen.
-            rts[i].anchoredPosition = pos;
-        }
+        layoutNoCard.gameObject.SetActive(!show);
+        layoutWithCard.gameObject.SetActive(show);
+        layout = next;
     }
 
     // The four species as portraits: grey until the mouse is over one (its description shows under the row);
-    // clicking one picks it (it stays in colour) and shows a confirm button.
+    // clicking one picks it (it stays in colour) and shows a confirm button. The page is laid out in the scene.
     IEnumerator ChooseSpecies(CharacterCard player)
     {
         ShowCard(false);
         Clear(choiceRow, choiceTemplate.transform);
         detailText.text = "";
-        var font = stepText.font;
-        var stepRt = (RectTransform)stepText.transform;
-        var stepPos = stepRt.anchoredPosition;
-        stepRt.anchoredPosition = new Vector2(stepPos.x, 495f);   // Above the portraits.
+        layout.gameObject.SetActive(false);
+        var page = speciesPage;
+        page.gameObject.SetActive(true);
+        page.transform.SetAsLastSibling();
 
-        speciesRow = new GameObject("SpeciesStep", typeof(RectTransform));
-        var page = (RectTransform)speciesRow.transform;
-        page.SetParent(screen.transform, false);
-        page.anchorMin = Vector2.zero;
-        page.anchorMax = Vector2.one;
-        page.offsetMin = page.offsetMax = Vector2.zero;
-
-        var row = new GameObject("SpeciesRow", typeof(RectTransform), typeof(HorizontalLayoutGroup));
-        var rowRt = (RectTransform)row.transform;
-        rowRt.SetParent(page, false);
-        rowRt.anchoredPosition = new Vector2(0f, 110f);
-        rowRt.sizeDelta = new Vector2(1600f, 500f);
-        var layout = row.GetComponent<HorizontalLayoutGroup>();
-        layout.spacing = 40f;
-        layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.childControlWidth = layout.childControlHeight = true;
-        layout.childForceExpandWidth = layout.childForceExpandHeight = true;
-
-        // The description of the species under the mouse (or the one picked), under the portraits.
-        var descGo = new GameObject("Description", typeof(RectTransform), typeof(Text));
-        var descRt = (RectTransform)descGo.transform;
-        descRt.SetParent(page, false);
-        // A short note on what species means, under the title.
-        var subGo = new GameObject("Subtitle", typeof(RectTransform), typeof(Text));
-        var subRt = (RectTransform)subGo.transform;
-        subRt.SetParent(page, false);
-        subRt.anchoredPosition = new Vector2(0f, 405f);
-        subRt.sizeDelta = new Vector2(1800f, 90f);
-        var sub = subGo.GetComponent<Text>();
-        sub.font = font;
-        sub.fontSize = 20;
-        sub.lineSpacing = 1.1f;
-        sub.alignment = TextAnchor.MiddleCenter;
-        sub.color = Ink;
-        sub.raycastTarget = false;
-
-        // The general introduction until a species is under the mouse or picked; then that species' own text.
-        descRt.pivot = new Vector2(0.5f, 1f);
-        descRt.anchoredPosition = new Vector2(0f, -155f);
-        descRt.sizeDelta = new Vector2(1500f, 300f);
-        var desc = descGo.GetComponent<Text>();
-        desc.font = font;
-        desc.fontSize = 20;
-        desc.lineSpacing = 1.1f;
-        desc.supportRichText = true;
-        desc.horizontalOverflow = HorizontalWrapMode.Wrap;
-        desc.verticalOverflow = VerticalWrapMode.Overflow;
-        desc.alignment = TextAnchor.UpperLeft;
-        desc.color = Ink;
-        desc.raycastTarget = false;
-
-        // Confirm button, shown once a species is picked.
-        var confirm = Instantiate(choiceTemplate, page);
-        confirm.gameObject.SetActive(false);
-        var confirmRt = (RectTransform)confirm.transform;
-        confirmRt.anchorMin = confirmRt.anchorMax = confirmRt.pivot = new Vector2(0.5f, 0.5f);
-        confirmRt.anchoredPosition = new Vector2(0f, -490f);
-        confirmRt.sizeDelta = new Vector2(360f, 75f);
-        confirm.GetComponent<Image>().color = PlainButton;
-        var confirmText = confirm.GetComponentInChildren<Text>();
         bool confirmed = false;
-        confirm.onClick.RemoveAllListeners();
-        confirm.onClick.AddListener(() => confirmed = true);
+        page.confirmButton.onClick.RemoveAllListeners();
+        page.confirmButton.onClick.AddListener(() => confirmed = true);
 
         int selected = -1, hovered = -1;
-        var names = new List<Text>();
-        var tints = new List<HoverTint>();
-        for (int i = 0; i < speciesOptions.Count; i++)
+        int count = Mathf.Min(page.entries.Count, speciesOptions.Count);
+        for (int i = 0; i < page.entries.Count; i++)
         {
-            var option = speciesOptions[i];
-            var entry = new GameObject(option.displayName, typeof(RectTransform), typeof(Image), typeof(Button), typeof(HoverTint));
-            entry.transform.SetParent(rowRt, false);
-            entry.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);   // Clickable area only.
-            var art = new GameObject("Portrait", typeof(RectTransform), typeof(Image));
-            var artRt = (RectTransform)art.transform;
-            artRt.SetParent(entry.transform, false);
-            artRt.anchorMin = new Vector2(0f, 0.13f);
-            artRt.anchorMax = Vector2.one;
-            artRt.offsetMin = artRt.offsetMax = Vector2.zero;
-            var image = art.GetComponent<Image>();
-            image.sprite = option.portrait;
-            image.preserveAspect = true;
-            image.raycastTarget = false;
-            var tint = entry.GetComponent<HoverTint>();
-            tint.target = image;
-            image.color = tint.normal;
+            var entry = page.entries[i];
+            entry.button.gameObject.SetActive(i < count);
+            if (i >= count) continue;
             int index = i;
-            tint.onEnter = () => hovered = index;
-            tint.onExit = () => { if (hovered == index) hovered = -1; };
-            tints.Add(tint);
-            var label = new GameObject("Name", typeof(RectTransform), typeof(Text));
-            var labelRt = (RectTransform)label.transform;
-            labelRt.SetParent(entry.transform, false);
-            labelRt.anchorMin = Vector2.zero;
-            labelRt.anchorMax = new Vector2(1f, 0.11f);
-            labelRt.offsetMin = labelRt.offsetMax = Vector2.zero;
-            var text = label.GetComponent<Text>();
-            text.font = font;
-            text.fontSize = 40;
-            text.fontStyle = FontStyle.Bold;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.color = Ink;
-            text.raycastTarget = false;
-            names.Add(text);
-            entry.GetComponent<Button>().onClick.AddListener(() =>
+            if (entry.portrait) entry.portrait.sprite = speciesOptions[i].portrait;
+            if (entry.tint)
+            {
+                if (!entry.tint.target) entry.tint.target = entry.portrait;
+                entry.tint.Selected = false;
+                entry.tint.onEnter = () => hovered = index;
+                entry.tint.onExit = () => { if (hovered == index) hovered = -1; };
+            }
+            entry.button.onClick.RemoveAllListeners();
+            entry.button.onClick.AddListener(() =>
             {
                 selected = index;
-                for (int k = 0; k < tints.Count; k++) tints[k].Selected = k == index;
+                for (int k = 0; k < count; k++) if (page.entries[k].tint) page.entries[k].tint.Selected = k == index;
             });
         }
 
         // Refresh the texts every frame: they follow the mouse, the pick and the language.
         while (!confirmed)
         {
-            stepText.text = L.T("setup.chooseSpecies", player.playerName);
-            sub.text = L.T("setup.speciesSubtitle");
-            for (int i = 0; i < names.Count; i++) names[i].text = L.SpeciesName(speciesOptions[i].species);
+            if (page.title) page.title.text = L.T("setup.chooseSpecies", player.playerName);
+            if (page.subtitle) page.subtitle.text = L.T("setup.speciesSubtitle");
+            for (int i = 0; i < count; i++)
+                if (page.entries[i].nameText) page.entries[i].nameText.text = L.SpeciesName(speciesOptions[i].species);
             int shown = hovered >= 0 ? hovered : selected;
-            desc.text = shown >= 0 ? "<b>" + L.SpeciesName(speciesOptions[shown].species) + "</b>\n" + speciesOptions[shown].Description : L.T("setup.speciesIntro");
-            confirm.gameObject.SetActive(selected >= 0);
-            if (selected >= 0) confirmText.text = L.T("setup.pickSpecies", L.SpeciesName(speciesOptions[selected].species));
+            if (page.description)
+                page.description.text = shown >= 0
+                    ? "<b>" + L.SpeciesName(speciesOptions[shown].species) + "</b>\n" + speciesOptions[shown].Description
+                    : L.T("setup.speciesIntro");
+            page.confirmButton.gameObject.SetActive(selected >= 0);
+            if (selected >= 0 && page.confirmText)
+                page.confirmText.text = L.T("setup.pickSpecies", L.SpeciesName(speciesOptions[selected].species));
             yield return null;
         }
 
         var choice = speciesOptions[selected];
-        Destroy(speciesRow);
-        speciesRow = null;
-        stepRt.anchoredPosition = stepPos;
+        page.gameObject.SetActive(false);
+        layout.gameObject.SetActive(true);
         Clear(choiceRow, choiceTemplate.transform);
         detailText.text = "";
         player.species = choice.species;
