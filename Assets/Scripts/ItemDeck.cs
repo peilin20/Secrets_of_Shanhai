@@ -99,8 +99,7 @@ public class ItemDeck : MonoBehaviour
         if (promptText)
         {
             promptText.text = AnyoneCanTake(item) ? L.T("items.givePrompt")
-                : "没有玩家能拿这张牌（" + (item.exclusiveTo ? item.itemName + " 是" + item.exclusiveTo.className + "专属" : "大家的道具栏都满了")
-                  + "），点击道具牌堆弃掉";
+                : L.T("deck.nobody", item.exclusiveTo ? L.T("deck.exclusiveOf", item.itemName, item.exclusiveTo.className) : L.T("deck.allFull"));
             promptText.gameObject.SetActive(true);
             promptText.transform.SetAsLastSibling();
         }
@@ -132,13 +131,13 @@ public class ItemDeck : MonoBehaviour
         if (!character.CanHold(item) && item.exclusiveTo)
         {
             // 专属: only a player of that class may have it.
-            if (promptText) promptText.text = item.itemName + " 是" + item.exclusiveTo.className + "专属，只能给" + item.exclusiveTo.className;
+            if (promptText) promptText.text = L.T("deck.onlyFor", item.itemName, item.exclusiveTo.className);
             return;
         }
         if (!character.HasRoomFor(item))
         {
             // Full: the card stays out so it can go to someone else.
-            if (promptText) promptText.text = character.playerName + " 的背包满了（消耗品和负伤共 " + CharacterCard.ItemSlots + " 格），请选别的玩家";
+            if (promptText) promptText.text = L.T("deck.full", character.playerName, CharacterCard.ItemSlots);
             return;
         }
         StartCoroutine(FlyTo(character));

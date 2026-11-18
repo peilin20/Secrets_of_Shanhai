@@ -31,7 +31,7 @@ public static class BackpackView
             layout.childControlWidth = layout.childControlHeight = false;
             layout.childForceExpandWidth = layout.childForceExpandHeight = false;
         }
-        if (label) { var t = label.GetComponent<Text>(); if (t) t.text = "背包："; }
+        if (label) { var t = label.GetComponent<Text>(); if (t) t.text = L.T("bag.label"); }
         foreach (Transform child in row) Object.Destroy(child.gameObject);
         foreach (var p in players)
         {
@@ -59,7 +59,7 @@ public static class BackpackView
         card.SetInjury(injury);
         card.draggable = false;
         CombatPanel.Place(card.transform, scale);
-        entry.Find("Owner").GetComponent<Text>().text = "负伤";
+        entry.Find("Owner").GetComponent<Text>().text = L.T("bag.injury");
         entry.Find("UseButton").gameObject.SetActive(false);
         var hover = entry.gameObject.AddComponent<SetupHover>();
         hover.onHover = () => { if (detail) detail.text = injury.Title + "：" + injury.effect; };

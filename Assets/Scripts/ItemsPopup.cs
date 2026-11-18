@@ -53,7 +53,8 @@ public class ItemsPopup : MonoBehaviour
             t.fontStyle = FontStyle.Bold;
             t.color = titleText.color;
             t.alignment = TextAnchor.MiddleCenter;
-            t.text = "装\n备";
+            t.text = L.T("bag.gearLabel");
+            if (L.Current == Language.English) t.fontSize = 20;
             madeForEquipment.Add(label);
             for (int j = 0; j < gear; j++)
             {
@@ -128,7 +129,7 @@ public class ItemsPopup : MonoBehaviour
         t.fontSize = 18;
         t.color = Color.white;
         t.alignment = TextAnchor.MiddleCenter;
-        t.text = "背包";
+        t.text = L.T("bag.button");
         // The player's name moves left to make room.
         if (name) name.rectTransform.offsetMax = new Vector2(name.rectTransform.offsetMax.x - width, name.rectTransform.offsetMax.y);
         var who = player;
@@ -172,10 +173,9 @@ public class ItemsPopup : MonoBehaviour
 
     void UpdateTitle()
     {
-        string equipped = owner.Equipped ? owner.Equipped.itemName : "无";
-        string hint = (owner.equipmentLocked ? "战斗中不能更换装备" : "点击装备卡来装备") + "，点击负伤牌查看";
-        titleText.text = owner.playerName + " 的背包 (" + owner.UsedSlots + "/" + CharacterCard.ItemSlots + ")"
-            + "   装备中：" + equipped + "   （" + hint + "）";
+        string equipped = owner.Equipped ? owner.Equipped.itemName : L.T("bag.none");
+        string hint = L.T(owner.equipmentLocked ? "bag.lockedHint" : "bag.equipHint");
+        titleText.text = L.T("bag.title", owner.playerName, owner.UsedSlots, CharacterCard.ItemSlots, equipped, hint);
     }
 
     // Clicking a card equips it (or unequips it if it's already equipped).
@@ -192,13 +192,13 @@ public class ItemsPopup : MonoBehaviour
         }
         if (card.item && card.item.kind == ItemKind.Consumable)
         {
-            titleText.text = owner.playerName + " 的道具   （" + card.item.itemName + " 是消耗品，在战斗中使用，不能装备）";
+            titleText.text = L.T("bag.consumable", owner.playerName, card.item.itemName);
             return;
         }
         if (!owner.ToggleEquip(slot))
         {
-            titleText.text = owner.playerName + " 的道具   （" + (owner.equipmentLocked ? "战斗中不能更换装备"
-                : card.item.itemName + " 是" + (card.item.exclusiveTo ? card.item.exclusiveTo.className : "其他职业") + "专属，不能装备") + "）";
+            titleText.text = L.T("bag.cantEquip", owner.playerName, owner.equipmentLocked ? L.T("bag.locked")
+                : L.T("bag.exclusive", card.item.itemName, card.item.exclusiveTo ? card.item.exclusiveTo.className : L.T("bag.otherClass")));
             return;
         }
         UpdateEquippedLook();
