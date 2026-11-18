@@ -30,15 +30,21 @@ public class CardArtImporter : AssetPostprocessor
         return Folders.TryGetValue(dir, out var type) ? type : null;
     }
 
-    // Pictures in these folders come in as sprites.
+    // Species portraits (Assets/Art/Species/人.png, 九尾.png, 饕裔.png, 白泽.png): replace a file with a new
+    // picture of the same name and it shows up on the species page and the character card.
+    public const string SpeciesFolder = "Assets/Art/Species";
+
+    // Pictures in these folders come in as sprites, keeping their transparent background.
     void OnPreprocessTexture()
     {
-        if (TypeFor(assetPath) == null) return;
+        bool species = Path.GetDirectoryName(assetPath).Replace('\\', '/') == SpeciesFolder;
+        if (TypeFor(assetPath) == null && !species) return;
         var importer = (TextureImporter)assetImporter;
         importer.textureType = TextureImporterType.Sprite;
         importer.spriteImportMode = SpriteImportMode.Single;
         importer.mipmapEnabled = false;
         importer.maxTextureSize = 4096;
+        importer.alphaIsTransparency = true;
     }
 
     static void OnPostprocessAllAssets(string[] imported, string[] deleted, string[] moved, string[] movedFrom)

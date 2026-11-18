@@ -22,6 +22,7 @@ public class ItemDeck : MonoBehaviour
 
     readonly List<ItemData> pile = new List<ItemData>();
     ItemCard drawnCard;
+    public bool CardWaiting => drawnCard != null;   // A drawn item waits for a character card to be clicked.
     bool flying;
 
     void Awake()

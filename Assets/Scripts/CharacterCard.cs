@@ -73,6 +73,9 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         Refresh();
         if (backgroundButton) backgroundButton.onClick.AddListener(ShowBackground);
         if (itemsButton) itemsButton.onClick.AddListener(ShowItems);
+        // Click the portrait: full screen. Except while a drawn item waits: then the click gives it to this card.
+        var zoom = ImageZoom.Enable(portraitImage);
+        if (zoom) zoom.passClickToParent = () => { var deck = FindFirstObjectByType<ItemDeck>(); return deck && deck.CardWaiting; };
     }
 
     // Clicking the card gives it a freshly drawn item card, if one is waiting.

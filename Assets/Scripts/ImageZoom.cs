@@ -10,18 +10,28 @@ public class ImageZoom : MonoBehaviour, IPointerClickHandler
     static GameObject viewer;
     static Image viewerImage;
 
+    // While this says so, the click goes to the parent instead (e.g. a character card waiting to be given an item).
+    public System.Func<bool> passClickToParent;
+
     public void OnPointerClick(PointerEventData eventData)
     {
+        if (passClickToParent != null && passClickToParent() && transform.parent)
+        {
+            ExecuteEvents.ExecuteHierarchy(transform.parent.gameObject, eventData, ExecuteEvents.pointerClickHandler);
+            return;
+        }
         var image = GetComponent<Image>();
         if (image && image.sprite && image.enabled) Show(image.sprite);
     }
 
     // Makes this picture clickable (zooms on click).
-    public static void Enable(Image image)
+    public static ImageZoom Enable(Image image)
     {
-        if (!image) return;
+        if (!image) return null;
         image.raycastTarget = true;
-        if (!image.GetComponent<ImageZoom>()) image.gameObject.AddComponent<ImageZoom>();
+        var zoom = image.GetComponent<ImageZoom>();
+        if (!zoom) zoom = image.gameObject.AddComponent<ImageZoom>();
+        return zoom;
     }
 
     public static void Show(Sprite sprite)
