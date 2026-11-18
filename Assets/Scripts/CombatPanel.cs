@@ -131,6 +131,7 @@ public class CombatPanel : MonoBehaviour
         round = 1;
         total = 0;
         busy = fought = finished = retreated = drawItemAfter = lost = continuing = false;
+        pendingReward = null;
         fighter = null;
         viewed = null;
         lastRoll = null;
@@ -1070,15 +1071,15 @@ public class CombatPanel : MonoBehaviour
         }
         else if (total >= greatNeed)
         {
-            title = "全胜！"; description = combat.greatSuccessReward; won = true;
+            title = "全胜！"; description = OutcomeList(0); won = true; pendingReward = combat.greatSuccessReward;
         }
         else if (total >= winNeed)
         {
-            title = "胜利！"; description = combat.successReward; won = true;
+            title = "胜利！"; description = OutcomeList(1); won = true; pendingReward = combat.successReward;
         }
         else
         {
-            title = "失败"; description = combat.failureResult; won = false;
+            title = "失败"; description = OutcomeList(2); won = false;
         }
         string reward = "";
         if (won)
@@ -1096,7 +1097,34 @@ public class CombatPanel : MonoBehaviour
         }
         lost = !won && combat;
         ShowResult(title, description, reward, lost);
-        if (won) StartCoroutine(GiveCardRewards(description));
+    }
+
+    string pendingReward;   // The card's reward, handed out when 继续 is pressed (after the players have seen the result).
+
+    // Every outcome on the card, the one reached marked: what was avoided and what was missed are visible too.
+    string OutcomeList(int reached)
+    {
+        return OutcomeLine(reached == 0, "全胜（战斗值≥" + greatNeed + "）", combat.greatSuccessReward) + "\n\n"
+             + OutcomeLine(reached == 1, "胜利（战斗值≥" + winNeed + "）", combat.successReward) + "\n\n"
+             + OutcomeLine(reached == 2, "失败（战斗值<" + winNeed + "）", combat.failureResult);
+    }
+
+    // The result screen lists every outcome, so the text gets more room: under the total, above the notes.
+    public static void LayoutResult(Text total, Text description, Text reward)
+    {
+        if (!description) return;
+        var d = (RectTransform)description.transform;
+        d.anchoredPosition = new Vector2(0f, -10f);
+        d.sizeDelta = new Vector2(1300f, 250f);
+        description.fontSize = 26;
+        description.alignment = TextAnchor.MiddleCenter;
+        if (reward) ((RectTransform)reward.transform).anchoredPosition = new Vector2(0f, -175f);
+    }
+
+    public static string OutcomeLine(bool reached, string head, string text)
+    {
+        return reached ? "<b>【你们的结果】" + head + "：" + text + "</b>"
+                       : "<color=#8C8070>" + head + "：" + text + "</color>";
     }
 
     // Tokens the card's reward text promises ("获1土token"…) are handed out on the result screen.
@@ -1114,6 +1142,7 @@ public class CombatPanel : MonoBehaviour
         if (!resultView) return;
         resultTitle.text = title;
         resultTotal.text = "战斗总值：" + total;
+        LayoutResult(resultTotal, resultDescription, resultReward);
         resultDescription.text = description;
         resultReward.text = reward;
 
@@ -1176,6 +1205,9 @@ public class CombatPanel : MonoBehaviour
     IEnumerator ContinueRoutine()
     {
         continuing = true;
+        // The card's reward ("获1土token"…): the team decides who gets each token now.
+        if (!string.IsNullOrEmpty(pendingReward)) yield return GiveCardRewards(pendingReward);
+        pendingReward = null;
         var injuries = InjuryDeck.Find();
         if (injuries)
         {

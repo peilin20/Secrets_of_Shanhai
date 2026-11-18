@@ -77,10 +77,8 @@ public static class L
         { "tut.finishCombat", new[] {
             "战斗一共3轮。剩下两轮由你们自己来：选人上场→出战→结束本轮。",
             "A fight lasts 3 rounds. Play the other two yourselves: pick a player → attack → end the round." } },
-        { "tut.result", new[] {
-            "3轮结束后，用战斗总值和门槛比较：达到「胜利」或「全胜」就能拿到卡上的奖励，否则按失败结算。",
-            "After 3 rounds, the total is compared with the thresholds: reach success or great success to get the card's reward; otherwise the failure result applies." } },
-        { "tut.continue",           new[] { "点「继续」结束这场战斗。", "Click \"Continue\" to finish the fight." } },
+        { "tut.result", new[] { "战斗结束：用战斗总值和敌人战斗卡上的门槛比较。加粗的是你们拿到的结果，其他结果也列在这里，可以看到避开了什么失败后果，或者错过了什么奖励。", "The fight is over: the total is compared with the thresholds on the enemy's combat card. The outcome you reached is in bold; the others are listed too, so you can see which failure you avoided or which reward you missed." } },
+        { "tut.continue", new[] { "点「继续」领取奖励，结束这场战斗。", "Click \"Continue\" to collect the reward and finish the fight." } },
         { "tut.combatDone", new[] { "战斗教程结束！接下来是社交教程。", "That's the end of the combat tutorial! Next: the social tutorial." } },
         { "tut.socialStart", new[] { "桌上又出现了「大黄狗妖」。这次试试和它社交：点开这张事件卡。", "\"The Yellow Dog Demon\" is on the table again. This time, try talking to it: click the event card." } },
         { "tut.socialOption", new[] { "选择社交选项。", "Choose the social option." } },
@@ -95,8 +93,8 @@ public static class L
         { "tut.socialItems", new[] { "④这里是背包，和战斗时一样。每张道具牌上都写明了什么时候可以使用，把鼠标移到道具上可以看到效果，以及现在能不能用。", "④ This is the backpack, as in combat. Each item card says when it can be used; hover over an item to see what it does and whether it can be used right now." } },
         { "tut.socialEnd", new[] { "⑤选择继续下一轮，或者在好感度已经够的时候，选择以某个结果结束这次社交。", "⑤ Choose to go on to the next round or, once the affinity is high enough, end the talk with that outcome." } },
         { "tut.finishSocial", new[] { "社交最多3轮。剩下的由你们自己来：选人说话→下注→继续或结束。", "A talk lasts at most 3 rounds. Play the rest yourselves: pick who talks → bet → go on or end." } },
-        { "tut.socialResult", new[] { "结束时按达到的结果拿奖励；3轮结束时好感度还不够任何结果，就按失败结算。", "When the talk ends you get the reward of the outcome you reached; if after 3 rounds the affinity is not enough for any outcome, the failure result applies." } },
-        { "tut.socialContinue", new[] { "点「继续」结束这次社交。", "Click \"Continue\" to finish the talk." } },
+        { "tut.socialResult", new[] { "社交结束：加粗的是你们拿到的结果，其他结果也列在这里，可以看到避开了什么失败后果，或者错过了什么奖励。3轮结束时好感度还不够任何结果，就按失败结算。", "The talk is over: the outcome you reached is in bold; the others are listed too, so you can see which failure you avoided or which reward you missed. If after 3 rounds the affinity is not enough for any outcome, the failure result applies." } },
+        { "tut.socialContinue", new[] { "点「继续」领取奖励，结束这次社交。", "Click \"Continue\" to collect the reward and finish the talk." } },
         { "tut.socialDone", new[] { "社交教程结束！点「下一步」开始游戏。", "That's the end of the social tutorial! Click \"Next\" to start the game." } },
 
         // Character creation

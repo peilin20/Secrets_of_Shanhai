@@ -121,6 +121,7 @@ public class SocialPanel : MonoBehaviour
         busy = spoke = extraTurn = finished = failed = bonusUsed = false;
         speaker = null;
         viewed = null;
+        pendingReward = null;
         pool.Clear();
         if (data) pool.AddRange(data.pool);
         // Pool shapes like 3-1 / 1-1-1-1 where the card names fewer elements than the shape needs:
@@ -912,13 +913,27 @@ public class SocialPanel : MonoBehaviour
     {
         log.Add("结束对抗：" + outcome.label);
         UpdateTexts();
-        // Tokens the reward text promises ("每人2木token"…), then 负伤 like "上场并赢得一次社交事件后，可弃掉这张牌".
+        // 负伤 like "上场并赢得一次社交事件后，可弃掉这张牌" settle now; the reward's tokens ("每人2木token"…) are
+        // handed out when 继续 is pressed, after the players have seen the result.
         var notes = new List<string>();
         var injuries = InjuryDeck.Find();
-        yield return RewardRules.Give(outcome.reward, players, speakers, tokenPrefab, notes);
         SpeciesWinBonus(outcome, notes);
         if (injuries) notes.AddRange(injuries.OnWin(false));
-        ShowResult(outcome.label, outcome.reward, string.Join("\n", notes.ToArray()), false);
+        pendingReward = outcome.reward;
+        ShowResult(outcome.label, OutcomeList(outcome), string.Join("\n", notes.ToArray()), false);
+        yield break;
+    }
+
+    string pendingReward;
+
+    // Every outcome on the card, the one reached marked (null: the failure).
+    string OutcomeList(SocialOutcome reached)
+    {
+        var lines = new List<string>();
+        foreach (var o in social.outcomes)
+            lines.Add(CombatPanel.OutcomeLine(o == reached, o.label + "（好感度≥" + Need(o) + "）", o.reward));
+        lines.Add(CombatPanel.OutcomeLine(reached == null, "失败", social.failureResult));
+        return string.Join("\n\n", lines.ToArray());
     }
 
     void Lose(string reason)
@@ -929,7 +944,7 @@ public class SocialPanel : MonoBehaviour
         log.Add(reason + "，对抗失败");
         UpdateTexts();
         string next = social && social.failureCombat ? "\n继续后进入战斗【" + social.failureCombat.title + "】" : "";
-        ShowResult("失败", social ? social.failureResult : "", reason + next, social != null);
+        ShowResult("失败", social ? OutcomeList(null) : "", reason + next, social != null);
     }
 
     void Retreat(string message)
@@ -950,6 +965,7 @@ public class SocialPanel : MonoBehaviour
         if (!resultView) return;
         resultTitle.text = title;
         resultTotal.text = "好感度：" + favor;
+        CombatPanel.LayoutResult(resultTotal, resultDescription, resultReward);
         resultDescription.text = description;
         resultReward.text = reward;
 
@@ -1004,6 +1020,12 @@ public class SocialPanel : MonoBehaviour
     IEnumerator ContinueRoutine()
     {
         continuing = true;
+        if (!string.IsNullOrEmpty(pendingReward))
+        {
+            var notes = new List<string>();
+            yield return RewardRules.Give(pendingReward, players, speakers, tokenPrefab, notes);
+        }
+        pendingReward = null;
         bool toCombat = failed && social && social.failureCombat;
         var next = social ? social.failureCombat : null;
         var injuries = InjuryDeck.Find();
