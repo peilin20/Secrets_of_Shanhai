@@ -417,7 +417,7 @@ public class GameSetup : MonoBehaviour
         page.confirmButton.onClick.RemoveAllListeners();
         page.confirmButton.onClick.AddListener(() => confirmed = true);
 
-        int selected = -1, hovered = -1;
+        int selected = -1, hovered = -1, lastShown = -2;
         int count = Mathf.Min(page.entries.Count, speciesOptions.Count);
         for (int i = 0; i < page.entries.Count; i++)
         {
@@ -449,6 +449,9 @@ public class GameSetup : MonoBehaviour
             for (int i = 0; i < count; i++)
                 if (page.entries[i].nameText) page.entries[i].nameText.text = L.SpeciesName(speciesOptions[i].species);
             int shown = hovered >= 0 ? hovered : selected;
+            // A different text starts from the top.
+            if (shown != lastShown && page.descriptionScroll) page.descriptionScroll.verticalNormalizedPosition = 1f;
+            lastShown = shown;
             if (page.description)
                 page.description.text = shown >= 0
                     ? "<b>" + L.SpeciesName(speciesOptions[shown].species) + "</b>\n" + speciesOptions[shown].Description

@@ -19,6 +19,7 @@ public class SpeciesPage : MonoBehaviour
     public Text subtitle;           // The short note under the title.
     public List<Entry> entries = new List<Entry>();   // Same order as GameSetup's species list.
     public Text description;        // The introduction, or the species under the mouse.
+    public ScrollRect descriptionScroll;   // Scrolls the description when it's too long for its area.
     public Button confirmButton;    // Shown once a species is picked.
     public Text confirmText;
 }
