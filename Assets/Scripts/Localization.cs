@@ -64,8 +64,8 @@ public static class L
             "The five elements: if your attack's element counters the enemy's, its combat value is doubled; if the enemy's counters yours, it is halved (rounded down). Click the chart to enlarge it." } },
         { "tut.pick",               new[] { "① 每一轮选一名玩家上场。点一名玩家的名字。", "① Each round, one player goes on stage. Click a player's name." } },
         { "tut.weapon", new[] {
-            "上场玩家装备的武器会出现在这里。武器卡上写着要消耗什么 token、能打出多少战斗值。点卡片可以放大。",
-            "The player's equipped weapon appears here. The card says which tokens it costs and how much combat value it deals. Click it to enlarge." } },
+            "上场玩家装备的武器会出现在这里。武器卡上写着要消耗什么 token、能打出多少战斗值。点卡片可以放大。\n除非卡上特别说明，角色只有上场时才可以使用装备，每轮 1 次。上场的角色也可以选择不使用装备，只使用道具。",
+            "The player's equipped weapon appears here. The card says which tokens it costs and how much combat value it deals. Click it to enlarge.\nUnless a card says otherwise, a character can only use their equipment while on stage, once per round. The character on stage may also choose not to use their equipment and only use items." } },
         { "tut.fight", new[] {
             "② 点这个按钮，用武器出战。按提示选择要消耗的 token；需要掷骰时，会弹出签筒，点它抽签。",
             "② Click this button to attack with the weapon. Choose the tokens to spend when asked; if a roll is needed, the fortune-stick box pops up: click it to draw." } },

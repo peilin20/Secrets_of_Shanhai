@@ -193,7 +193,14 @@ public class CombatPanel : MonoBehaviour
 
     void EndRound()
     {
-        if (busy || !fought || round > rounds) return;
+        if (busy || round > rounds) return;
+        if (!fought)
+        {
+            // Ending the round without using the equipment: the player still went on stage.
+            if (!fighter || StageBlock(fighter) != null) return;
+            OnStage(fighter);
+            log.Add("第" + round + "轮 " + fighter.playerName + " 上场，没有使用装备");
+        }
         fought = false;
         lastRoll = null;
         stagePaid.Clear();
@@ -272,18 +279,27 @@ public class CombatPanel : MonoBehaviour
         if (choiceRow) choiceRow.gameObject.SetActive(false);
         bool hasWeapon = fighter && fighter.Equipped;
         string block = fighter && !fought ? StageBlock(fighter) : null;
-        fightButton.gameObject.SetActive(round <= rounds && fighter && !fought && hasWeapon && block == null);
+        bool canFight = round <= rounds && fighter && !fought && hasWeapon && block == null;
+        // The player on stage may also skip their equipment (and just use items): the round can end without attacking.
+        bool canSkip = round <= rounds && fighter && !fought && block == null;
+        fightButton.gameObject.SetActive(canFight);
         if (endRoundButton)
         {
-            endRoundButton.gameObject.SetActive(round <= rounds && fought);
-            endRoundButton.GetComponentInChildren<Text>().text = round < rounds ? "⑤ 结束本轮" : "⑤ 结束第 3 轮并结算";
+            endRoundButton.gameObject.SetActive(round <= rounds && (fought || canSkip));
+            var label = endRoundButton.GetComponentInChildren<Text>();
+            if (fought) label.text = round < rounds ? "⑤ 结束本轮" : "⑤ 结束第 3 轮并结算";
+            else label.text = round < rounds ? "不使用装备，结束本轮" : "不使用装备，结束并结算";
+            // Next to the fight button while both are shown; in its place otherwise.
+            var frt = (RectTransform)fightButton.transform;
+            var ert = (RectTransform)endRoundButton.transform;
+            ert.anchoredPosition = frt.anchoredPosition + (canFight ? new Vector2(frt.rect.width + 12f, 0f) : Vector2.zero);
         }
         if (round > rounds) fieldHint.text = "";
         else if (!fighter) fieldHint.text = "① 选择本轮上场的玩家";
         else if (fought) fieldHint.text = "④ 还可以使用道具，然后结束本轮";
         else if (block != null) fieldHint.text = block + "，请换人";
-        else if (hasWeapon) fieldHint.text = "② " + fighter.playerName + " 上场，用 " + fighter.Equipped.itemName + " 出战（出战前可以换人）";
-        else fieldHint.text = fighter.playerName + " 没有装备武器，本轮无法出战";
+        else if (hasWeapon) fieldHint.text = "② " + fighter.playerName + " 上场，用 " + fighter.Equipped.itemName + " 出战，或者不使用装备（出战前可以换人）";
+        else fieldHint.text = fighter.playerName + " 上场，没有装备武器：可以使用道具，然后结束本轮";
         RefreshInteractable();
     }
 
