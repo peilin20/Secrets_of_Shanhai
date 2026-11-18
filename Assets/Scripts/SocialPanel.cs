@@ -337,6 +337,7 @@ public class SocialPanel : MonoBehaviour
         var deck = InjuryDeck.Find();
         if (deck) deck.WentOnStage(p, round);
 
+        int favorOnStage = favor;   // For 九尾: "在好感度为1时上场".
         // 负伤 that change 好感度 when this character goes on stage are settled before the judgment.
         if (!onStageThisRound.Contains(p))
         {
@@ -361,9 +362,12 @@ public class SocialPanel : MonoBehaviour
         if (element == npc)
         {
             int m = SameElementRate(round);
+            // 九尾 (种族&职业): "在社交中，如果在好感度为1时上场，本轮心有灵犀加成倍率为3".
+            bool foxTalent = p.species == Species.Fox && favorOnStage == 1 && m < 3;
+            if (foxTalent) m = 3;
             change = counted * m;
             relation = "<b>都是" + ours + "</b>";
-            result = "心有灵犀 ×" + m;
+            result = "心有灵犀 ×" + m + (foxTalent ? "（九尾天赋）" : "");
         }
         else if (ElementRules.Generates(element, npc) || ElementRules.Generates(npc, element))
         {
