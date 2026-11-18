@@ -13,7 +13,7 @@ public class TutorialController : MonoBehaviour
     public Canvas tableCanvas;           // The game table the steps point at.
     public EventData combatEvent;        // 战斗教程: the practice event (大黄狗妖).
     public int combatBonusTokens = 0;    // Extra primary tokens for the practice fight (0: follow the real rules).
-    [Tooltip("For testing: 0 = from the start, 1 = jump to the combat part.")]
+    [Tooltip("For testing: 0 = from the start, 1 = jump to the combat part, 2 = jump to the social part.")]
     public int startPart = 0;
 
     class Step
@@ -68,7 +68,10 @@ public class TutorialController : MonoBehaviour
         if (startPart <= 0)
             foreach (var step in Steps())
                 yield return Run(step);
-        foreach (var step in CombatSteps())
+        if (startPart <= 1)
+            foreach (var step in CombatSteps())
+                yield return Run(step);
+        foreach (var step in SocialSteps())
             yield return Run(step);
         Finish();
     }
@@ -159,6 +162,78 @@ public class TutorialController : MonoBehaviour
             new Step { key = "tut.continue", target = () => combat ? Rt(combat.continueButton) : null, free = true, doneWhen = () => !CombatOpen() },
             new Step { key = "tut.combatDone" },
         };
+    }
+
+    // --- 社交教程: the same event again, this time talking (its social option) ---
+
+    List<Step> SocialSteps()
+    {
+        var eventDeck = FindFirstObjectByType<EventDeck>();
+        var popup = FindFirstObjectByType<EventPopup>(FindObjectsInactive.Include);
+        var social = FindFirstObjectByType<SocialPanel>(FindObjectsInactive.Include);
+        var story = FindFirstObjectByType<StoryCard>();
+        RectTransform Rt(Component c) => c ? (RectTransform)c.transform : null;
+        bool SocialOpen() => social && social.gameObject.activeInHierarchy;
+
+        RectTransform FirstEventCard()
+        {
+            if (!eventDeck) return null;
+            foreach (var slot in eventDeck.slots) if (slot.childCount > 0) return (RectTransform)slot.GetChild(0);
+            return null;
+        }
+
+        return new List<Step>
+        {
+            new Step
+            {
+                key = "tut.socialStart",
+                onStart = () => PrepareSocial(eventDeck, story),
+                target = FirstEventCard,
+                doneWhen = () => (popup && popup.gameObject.activeInHierarchy) || SocialOpen(),
+            },
+            new Step { key = "tut.socialOption", target = () => OptionButton(popup, OptionKind.Social), doneWhen = SocialOpen },
+            new Step { key = "tut.npc", target = () => social ? Rt(social.cardView) : null },
+            new Step { key = "tut.pool", target = () => social ? social.poolRow : null },
+            new Step { key = "tut.favor", targets = () => social ? new List<RectTransform> { Rt(social.favorText), Rt(social.needText) } : new List<RectTransform>() },
+            new Step { key = "tut.socialChart", target = () => social && social.elementChartButton ? Rt(social.elementChartButton) : null },
+            new Step { key = "tut.socialPick", target = () => social ? social.pickRow : null, doneWhen = () => social && social.Speaker },
+            new Step { key = "tut.speak", target = () => social ? Rt(social.speakButton) : null, free = true, doneWhen = () => social && (social.Spoke || social.Finished) },
+            new Step { key = "tut.draw", target = () => social ? Rt(social.drawText) : null },
+            new Step { key = "tut.socialItems", target = () => social ? social.itemRow : null },
+            new Step { key = "tut.socialEnd", target = () => social ? social.EndRow : null, free = true, doneWhen = () => social && (social.Round >= 2 || social.Finished) },
+            new Step { key = "tut.finishSocial", free = true, doneWhen = () => social && social.Finished && social.resultView && social.resultView.activeInHierarchy },
+            new Step { key = "tut.socialResult", target = () => social && social.resultView ? (RectTransform)social.resultView.transform : null },
+            new Step { key = "tut.socialContinue", target = () => social ? Rt(social.continueButton) : null, free = true, doneWhen = () => !SocialOpen() },
+            new Step { key = "tut.socialDone" },
+        };
+    }
+
+    // The popup has one button per option, in order: the event's first option of this kind.
+    RectTransform OptionButton(EventPopup popup, OptionKind kind)
+    {
+        if (!popup || !combatEvent) return null;
+        int index = combatEvent.options.FindIndex(o => o.kind == kind);
+        int n = 0;
+        foreach (Transform child in popup.optionRow)
+        {
+            if (!child.gameObject.activeSelf || child == popup.optionButtonTemplate.transform) continue;
+            if (n++ == index) return (RectTransform)child;
+        }
+        return null;
+    }
+
+    // The practice talk: the same event goes on the table again. Talking needs at least 1 token; only if nobody
+    // has any left (spent in the fight) does everyone get 1 primary token, so the practice can go on.
+    void PrepareSocial(EventDeck eventDeck, StoryCard story)
+    {
+        if (story) story.holdStory = true;
+        var cards = FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude);
+        bool anyTokens = false;
+        foreach (var p in cards) if (CombatPanel.TokensOf(p).Count > 0) anyTokens = true;
+        var injuries = InjuryDeck.Find();
+        if (!anyTokens && injuries && injuries.tokenPrefab)
+            foreach (var p in cards) StartCoroutine(TokenFlight.Give(p, p.primaryElement, injuries.tokenPrefab));
+        if (eventDeck && combatEvent) eventDeck.DrawSpecific(new List<EventData> { combatEvent });
     }
 
     // The practice fight: the event goes on the table, everyone equips a weapon if they have one

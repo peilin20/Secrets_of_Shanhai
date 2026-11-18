@@ -64,6 +64,13 @@ public class SocialPanel : MonoBehaviour
     bool bonusUsed;
     CharacterCard speaker;
 
+    // Read by the tutorial to follow the encounter.
+    public CharacterCard Speaker => speaker;
+    public bool Spoke => spoke;
+    public bool Finished => finished;
+    public int Round => round;
+    public RectTransform EndRow => endRow;
+
     readonly List<Element> pool = new List<Element>();
     readonly List<Element> drawn = new List<Element>();
     readonly List<Element> fullPool = new List<Element>();   // This encounter's whole pool (drawn ones included), for the display.
