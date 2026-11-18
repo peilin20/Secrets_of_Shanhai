@@ -53,8 +53,8 @@ public static class L
 
         // Tutorial: 战斗
         { "tut.combatStart", new[] {
-            "桌上出现了一张事件卡「大黄狗妖」。点开这张事件卡。",
-            "An event card, \"The Yellow Dog Demon\", is on the table. Click it to open it." } },
+            "桌上出现了一张事件卡，它是背面朝上的。点一下把它翻开，看到内容后再点一次打开它。",
+            "An event card is on the table, face down. Click it to turn it over, then click it again to open it." } },
         { "tut.combatOption",       new[] { "每张事件卡都可以选择不同的解决方式，比如战斗或社交。这次选择战斗。", "Each event card can be resolved in different ways, such as combat or social. This time, choose combat." } },
         { "tut.enemy", new[] {
             "这是敌人的战斗卡。右上角是敌人的属性，下面写着「全胜」和「胜利」需要的战斗值，以及失败会怎样。",
@@ -80,7 +80,7 @@ public static class L
         { "tut.result", new[] { "战斗结束：用战斗总值和敌人战斗卡上的门槛比较。加粗的是你们拿到的结果，其他结果也列在这里，可以看到避开了什么失败后果，或者错过了什么奖励。", "The fight is over: the total is compared with the thresholds on the enemy's combat card. The outcome you reached is in bold; the others are listed too, so you can see which failure you avoided or which reward you missed." } },
         { "tut.continue", new[] { "点「继续」领取奖励，结束这场战斗。", "Click \"Continue\" to collect the reward and finish the fight." } },
         { "tut.combatDone", new[] { "战斗教程结束！接下来是社交教程。", "That's the end of the combat tutorial! Next: the social tutorial." } },
-        { "tut.socialStart", new[] { "桌上又出现了「大黄狗妖」。这次试试和它社交：点开这张事件卡。", "\"The Yellow Dog Demon\" is on the table again. This time, try talking to it: click the event card." } },
+        { "tut.socialStart", new[] { "桌上又出现了一张事件卡。这次试试和它社交：先点一下翻开，再点一次打开。", "Another event card is on the table. This time, try talking: click it to turn it over, then click again to open it." } },
         { "tut.socialOption", new[] { "选择社交选项。", "Choose the social option." } },
         { "tut.socialGoal", new[] { "社交的目的是把对方聊高兴，从对方那里套出信息、拿到奖励，所以要想办法提升对方的好感度。对方喜欢听什么，和对方的属性有关：根据对方的属性，猜猜用什么属性说话能让对方高兴。", "The goal of a social encounter is to put the opponent in a good mood, so you can get information and rewards out of them: raise their affinity. What they like to hear depends on their elements: guess from their elements which element to talk with to please them." } },
         { "tut.npc", new[] { "这是对方的社交卡：上面写着初始好感度、每个结果需要多少好感度，以及失败会怎样。", "This is the opponent's social card: it shows the starting affinity, how much affinity each outcome needs, and what happens if you fail." } },
@@ -143,6 +143,7 @@ public static class L
         // Piles
         { "pile.items",             new[] { "道具牌堆", "Item Card Pile" } },
         { "pile.events",            new[] { "事件牌堆", "Event Card Pile" } },
+        { "card.eventBack",         new[] { "事件", "Event" } },
         { "pile.left",              new[] { "剩余 {0} 张", "{0} left" } },
         { "pile.empty",             new[] { "已空", "Empty" } },
         { "items.givePrompt",       new[] { "点击一名玩家的角色卡，把这张道具交给该玩家", "Click a player's card to give them this item" } },

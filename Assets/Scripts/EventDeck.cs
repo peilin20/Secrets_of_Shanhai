@@ -70,6 +70,7 @@ public class EventDeck : MonoBehaviour
             // The card belongs to its slot right away, so the slot counts as taken while it flies.
             var card = Instantiate(eventCardPrefab, slot);
             card.SetEvent(data);
+            card.SetFaceDown(true);   // Turned over with a click.
             StartCoroutine(FlyIn(card.transform, drawn * delayBetweenCards));
             drawn++;
         }
@@ -92,6 +93,7 @@ public class EventDeck : MonoBehaviour
             totalDrawn++;
             var card = Instantiate(eventCardPrefab, slot);
             card.SetEvent(data);
+            card.SetFaceDown(true);   // Turned over with a click.
             StartCoroutine(FlyIn(card.transform, drawn * delayBetweenCards));
             drawn++;
         }
