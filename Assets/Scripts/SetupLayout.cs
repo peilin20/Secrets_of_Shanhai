@@ -9,4 +9,5 @@ public class SetupLayout : MonoBehaviour
     public Text stepText;           // The prompt ("输入你的名字" …).
     public RectTransform choiceRow; // The buttons go here (its Grid Layout Group sets their size and spacing).
     public Text detailText;         // The text under the buttons.
+    public Text introText;          // Optional: a step's introduction above the buttons (e.g. what the main element is).
 }

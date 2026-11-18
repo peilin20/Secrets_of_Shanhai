@@ -205,9 +205,8 @@ public class GameSetup : MonoBehaviour
         {
             yield return Choose(() => L.T("setup.chooseElement", player.playerName), elementLabels,
                 i => i < elements.Length ? ElementToken.ColorFor(elements[i]) : PlainButton,
-                i => i == divineIndex ? L.T("setup.divineHint") : i == randomIndex ? L.T("setup.randomHint")
-                     : i < elements.Length ? L.T("setup.trait" + elements[i]) : "",
-                defaultDetail: () => L.T("setup.elementIntro"));
+                i => i == divineIndex ? L.T("setup.divineHint") : i == randomIndex ? L.T("setup.randomHint") : "",
+                intro: () => L.T("setup.elementIntro"));
             if (picked < elements.Length)
             {
                 primary = elements[picked];
@@ -516,10 +515,12 @@ public class GameSetup : MonoBehaviour
     // their texts end up in `lastInputs`. The title, labels and placeholders are re-read when the language changes.
     IEnumerator Choose(System.Func<string> title, System.Func<List<string>> labels, System.Func<int, Color> color, System.Func<int, string> detail,
         System.Func<string[]> inputPlaceholders = null, bool numbersOnly = true, System.Func<string> fixedDetail = null,
-        System.Func<string> defaultDetail = null)
+        System.Func<string> defaultDetail = null, System.Func<string> intro = null)
     {
         picked = -1;
         stepText.text = title();
+        // A step's introduction sits above the buttons (only the steps that have one show it).
+        if (layout.introText) layout.introText.text = intro != null ? intro() : "";
         // `defaultDetail`: shown until a button with its own detail is hovered (e.g. the element introduction).
         detailText.text = fixedDetail != null ? fixedDetail() : defaultDetail != null ? defaultDetail() : "";
         // Hide the previous step's buttons right away (Destroy only happens at the end of the frame).
@@ -563,6 +564,7 @@ public class GameSetup : MonoBehaviour
             {
                 seen = languageVersion;
                 stepText.text = title();
+                if (layout.introText) layout.introText.text = intro != null ? intro() : "";
                 if (fixedDetail != null) detailText.text = fixedDetail();
                 else detailText.text = defaultDetail != null ? defaultDetail() : "";
                 list = labels();
