@@ -261,6 +261,31 @@ public class SocialPanel : MonoBehaviour
                 speakButton.gameObject.SetActive(true);
                 speakButton.GetComponentInChildren<Text>().text = "② 选择属性并下注";
             }
+            // Affinity already enough for an outcome (e.g. after an item): the team may end here and take it,
+            // or keep talking. Ending isn't automatic.
+            var labels = new List<string>();
+            var colors = new List<Color>();
+            var actions = new List<System.Action>();
+            foreach (var outcome in social.outcomes)
+            {
+                if (favor < Need(outcome)) continue;
+                var o = outcome;
+                labels.Add("结束：" + o.label); colors.Add(Gold); actions.Add(() => EndWith(o));
+            }
+            if (actions.Count > 0)
+            {
+                // The speak button joins the row, so both choices sit side by side.
+                if (speakButton.gameObject.activeSelf)
+                {
+                    speakButton.gameObject.SetActive(false);
+                    labels.Insert(0, "② 选择属性并下注"); colors.Insert(0, Tan);
+                    actions.Insert(0, () => { if (!spoke && speaker && CanSpeak(speaker) == null) StartCoroutine(Speak()); });
+                }
+                // Short, so it fits on one line.
+                if (!speaker) fieldHint.text = "① 选择说话的玩家，或者直接结束（好感度已够）";
+                else if (CanSpeak(speaker) == null) fieldHint.text = "② " + speaker.playerName + " 说话，或者直接结束（好感度已够）";
+                ShowEndRow(labels, colors, actions);
+            }
         }
         else
         {
@@ -1122,7 +1147,7 @@ public class SocialPanel : MonoBehaviour
         }
         if (poolLabel) poolLabel.text = "NPC 候选池（剩 " + pool.Count + " 枚，不放回）";
         if (drawText && !spoke && !busy && !finished)
-            drawText.text = "第 " + round + " 轮倍率\n心有灵犀（同属性）×" + SameElementRate(round) + "　相谈甚欢（相生）×1\n话不投机：扣除下注";
+            drawText.text = "第 " + round + " 轮倍率\n心有灵犀（同属性）×" + SameElementRate(round) + "\n相谈甚欢（相生）×1\n话不投机：扣除下注";
 
         var logSb = new StringBuilder();
         foreach (var line in log) logSb.AppendLine(line);
