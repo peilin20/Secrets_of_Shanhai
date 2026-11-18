@@ -678,13 +678,17 @@ public class CombatPanel : MonoBehaviour
         yield return Hit(player, src + "（抽到" + CombatCard.ElementChar(injury.element) + "负伤）", 5, injury.element, "5", null);
     }
 
-    // 迷魂香: draw an injury card; next round the enemy's element becomes its element.
+    // 迷魂香: the player picks an element and draws an injury card of it (not a random one): +2 of that element,
+    // and next round the enemy's element becomes it.
     IEnumerator UseBewitching(CharacterCard player, string src)
     {
+        var all = new List<Element>((Element[])System.Enum.GetValues(typeof(Element)));
+        yield return ChooseElement(player.playerName + "：迷魂香——选择要抽哪种属性的负伤牌（+2 该属性战斗值，下回合敌人变为该属性）", all, false);
+        var chosen = (Element)choice;
         InjuryData injury = null;
-        yield return DrawInjury(player, x => injury = x);
+        yield return DrawInjury(player, x => injury = x, chosen);
         if (!injury) { Fail(src + "：没有负伤牌可抽"); yield break; }
-        yield return Hit(player, src + "（抽到" + CombatCard.ElementChar(injury.element) + "负伤）", 2, injury.element, "2", null);
+        yield return Hit(player, src + "（抽" + CombatCard.ElementChar(injury.element) + "负伤）", 2, injury.element, "2", null);
         enemyElementNextRound = injury.element;
         log.Add("  下回合敌方属性变为" + CombatCard.ElementChar(injury.element));
     }
@@ -944,10 +948,10 @@ public class CombatPanel : MonoBehaviour
     }
 
     // Draws a 负伤 card for the player (its "抽到时" effect and a full backpack are handled by the deck).
-    IEnumerator DrawInjury(CharacterCard player, System.Action<InjuryData> result)
+    IEnumerator DrawInjury(CharacterCard player, System.Action<InjuryData> result, Element? element = null)
     {
         var deck = InjuryDeck.Find();
-        var injury = deck ? deck.Draw() : null;
+        var injury = deck ? deck.Draw(element) : null;
         if (injury) yield return deck.Give(player, injury, true, log);
         result(injury);
     }
