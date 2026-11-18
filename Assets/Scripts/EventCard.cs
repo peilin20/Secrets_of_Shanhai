@@ -64,6 +64,34 @@ public class EventCard : MonoBehaviour, IPointerClickHandler
         }
     }
 
+    bool EarlierCardFaceDown()
+    {
+        var deck = FindFirstObjectByType<EventDeck>();
+        if (!deck) return false;
+        foreach (var slot in deck.slots)
+        {
+            if (slot == transform.parent) return false;
+            if (slot.childCount == 0) continue;
+            var other = slot.GetChild(0).GetComponent<EventCard>();
+            if (other && other != this && other.FaceDown) return true;
+        }
+        return false;
+    }
+
+    System.Collections.IEnumerator Shake()
+    {
+        flipping = true;
+        var rt = (RectTransform)transform;
+        var home = rt.anchoredPosition;
+        for (float e = 0f; e < 0.3f; e += Time.deltaTime)
+        {
+            rt.anchoredPosition = home + new Vector2(Mathf.Sin(e * 60f) * 8f * (1f - e / 0.3f), 0f);
+            yield return null;
+        }
+        rt.anchoredPosition = home;
+        flipping = false;
+    }
+
     // The card turns over: it narrows to nothing, shows its other side, and widens again.
     System.Collections.IEnumerator Flip()
     {
@@ -88,7 +116,13 @@ public class EventCard : MonoBehaviour, IPointerClickHandler
     public void OnPointerClick(PointerEventData eventData)
     {
         if (flipping) return;
-        if (FaceDown) { StartCoroutine(Flip()); return; }   // First click: turn it over.
+        if (FaceDown)
+        {
+            // Cards are turned over in order: not while an earlier one is still face down (it shakes instead).
+            if (EarlierCardFaceDown()) StartCoroutine(Shake());
+            else StartCoroutine(Flip());   // First click: turn it over.
+            return;
+        }
         if (!openOnClick || !data) return;
         var popup = FindFirstObjectByType<EventPopup>(FindObjectsInactive.Include);
         if (popup) popup.Show(this);
