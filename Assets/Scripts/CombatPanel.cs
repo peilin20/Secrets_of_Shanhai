@@ -132,6 +132,7 @@ public class CombatPanel : MonoBehaviour
         total = 0;
         busy = fought = finished = retreated = drawItemAfter = lost = continuing = false;
         fighter = null;
+        viewed = null;
         lastRoll = null;
         log.Clear();
         lastCalc = null;
@@ -222,7 +223,6 @@ public class CombatPanel : MonoBehaviour
             button.gameObject.SetActive(true);
             button.GetComponentInChildren<Text>().text = p.playerName;
             var player = p;
-            ItemsPopup.AddBackpackTab(button, p);
             button.onClick.AddListener(() => { if (!busy && !fought && round <= rounds) ShowFighter(player); });
             pickButtons.Add(button);
         }
@@ -232,6 +232,7 @@ public class CombatPanel : MonoBehaviour
     void ShowFighter(CharacterCard player)
     {
         fighter = player;
+        if (player && player != viewed) ViewBackpack(player);   // The backpack row follows who's picked.
         Clear(fieldCardHolder);
         Clear(weaponHolder);
 
@@ -288,6 +289,17 @@ public class CombatPanel : MonoBehaviour
 
     // --- One-time items, usable by anyone at any time ---
 
+    CharacterCard viewed;      // Whose backpack the bottom row shows.
+    RectTransform backpackSwitch;
+
+    void ViewBackpack(CharacterCard p)
+    {
+        viewed = p;
+        BuildItemRow();
+    }
+
+    // The bottom row: one player's backpack. Consumables have a 使用 button (anyone can use them at any time, as
+    // before); equipment and 负伤 cards are shown so the players can see them.
     void BuildItemRow()
     {
         Clear(itemRow, itemEntryTemplate.transform);
@@ -295,20 +307,26 @@ public class CombatPanel : MonoBehaviour
         useOwners.Clear();
         useItems.Clear();
         if (itemDetailText) itemDetailText.text = "鼠标移到道具上查看效果";
-        foreach (var p in players)
+        if (!viewed || !players.Contains(viewed)) viewed = fighter ? fighter : (players.Count > 0 ? players[0] : null);
+        backpackSwitch = BackpackView.NameButtons(backpackSwitch, itemRow, pickButtonTemplate, players, viewed, ViewBackpack);
+        var p = viewed;
+        int shown = 0;
+        if (p)
         {
             for (int i = 0; i < p.items.Count; i++)
             {
                 var item = p.items[i];
-                if (!item || item.kind != ItemKind.Consumable) continue;
+                if (!item) continue;
+                bool equipment = item.kind != ItemKind.Consumable;
                 var entry = Instantiate(itemEntryTemplate, itemRow);
                 entry.gameObject.SetActive(true);
+                shown++;
                 var card = Instantiate(itemCardPrefab, entry.Find("CardHolder"));
                 card.SetItem(item);
                 card.draggable = false;
                 card.onClick = c => ShowCardZoom(c.item);
                 Place(card.transform, itemCardScale);
-                entry.Find("Owner").GetComponent<Text>().text = p.playerName;
+                entry.Find("Owner").GetComponent<Text>().text = equipment ? (i == p.equippedSlot ? "装备中" : "装备") : "消耗品";
                 var player = p;
                 int slot = i;
                 // Hovering an item shows what it does, and why it can't be used right now.
@@ -316,21 +334,28 @@ public class CombatPanel : MonoBehaviour
                 hover.onHover = () =>
                 {
                     if (!itemDetailText) return;
-                    string why = WhyNotUsable(player, item);
+                    string why = equipment ? null : WhyNotUsable(player, item);
                     itemDetailText.text = item.itemName + "：" + ItemSummary(item) + (why != null ? "   【现在不能用：" + why + "】" : "");
                 };
                 var use = entry.Find("UseButton").GetComponent<Button>();
+                if (equipment) { use.gameObject.SetActive(false); continue; }   // Equipment is used with the fight button.
                 use.onClick.AddListener(() => { if (!busy && round <= rounds && WhyNotUsable(player, item) == null) StartCoroutine(Use(player, slot, false)); });
                 useButtons.Add(use);
                 useOwners.Add(p);
                 useItems.Add(item);
             }
+            foreach (var injury in p.injuries)
+            {
+                if (!injury) continue;
+                BackpackView.AddInjury(itemRow, itemEntryTemplate, itemCardPrefab, itemCardScale, injury, itemDetailText);
+                shown++;
+            }
         }
-        if (useButtons.Count == 0)
+        if (shown == 0)
         {
             var entry = Instantiate(itemEntryTemplate, itemRow);
             entry.gameObject.SetActive(true);
-            entry.Find("Owner").GetComponent<Text>().text = "（没有道具）";
+            entry.Find("Owner").GetComponent<Text>().text = "（背包是空的）";
             entry.Find("UseButton").gameObject.SetActive(false);
         }
         RefreshInteractable();

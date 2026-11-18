@@ -71,8 +71,8 @@ public static class L
             "② Click this button to attack with the weapon. Choose the tokens to spend when asked; if a roll is needed, the fortune-stick box pops up: click it to draw." } },
         { "tut.total",              new[] { "③ 打出的战斗值按克制换算后，加进这场战斗的总值。", "③ The combat value, after counters, is added to the fight's total." } },
         { "tut.items", new[] {
-            "④ 任何玩家都可以随时使用自己的消耗品，比如土块、小树枝。把鼠标移到道具上可以看到它的效果。",
-            "④ Any player can use their own consumables at any time. Hover over an item to see what it does." } },
+            "④ 这里是背包：道具、装备和负伤牌都在这里。点上面的名字可以看别人的背包。任何玩家都可以随时使用自己的消耗品，把鼠标移到道具上可以看到效果。",
+            "④ This is the backpack: items, equipment and injury cards. Click a name above it to see another player's backpack. Any player can use their own consumables at any time; hover over an item to see what it does." } },
         { "tut.endRound",           new[] { "⑤ 点「结束本轮」进入下一轮。", "⑤ Click \"End round\" to move to the next round." } },
         { "tut.finishCombat", new[] {
             "战斗一共 3 轮。剩下两轮由你们自己来：选人上场 → 出战 → 结束本轮。",

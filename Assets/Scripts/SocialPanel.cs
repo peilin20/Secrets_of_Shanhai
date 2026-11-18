@@ -113,6 +113,7 @@ public class SocialPanel : MonoBehaviour
         needLess = 0;
         busy = spoke = extraTurn = finished = failed = bonusUsed = false;
         speaker = null;
+        viewed = null;
         pool.Clear();
         if (data) pool.AddRange(data.pool);
         // Pool shapes like 3-1 / 1-1-1-1 where the card names fewer elements than the shape needs:
@@ -185,7 +186,6 @@ public class SocialPanel : MonoBehaviour
             button.gameObject.SetActive(true);
             button.GetComponentInChildren<Text>().text = p.playerName;
             var player = p;
-            ItemsPopup.AddBackpackTab(button, p);
             button.onClick.AddListener(() => { if (!busy && !spoke && !extraTurn && !finished) ShowSpeaker(player); });
             pickButtons.Add(button);
         }
@@ -211,6 +211,7 @@ public class SocialPanel : MonoBehaviour
     void ShowSpeaker(CharacterCard player)
     {
         speaker = player;
+        if (player && player != viewed) ViewBackpack(player);   // The backpack row follows who's picked.
         CombatPanel.Clear(fieldCardHolder);
         if (player)
         {
@@ -438,6 +439,17 @@ public class SocialPanel : MonoBehaviour
 
     // --- ④ Items ---
 
+    CharacterCard viewed;      // Whose backpack the bottom row shows.
+    RectTransform backpackSwitch;
+
+    void ViewBackpack(CharacterCard p)
+    {
+        viewed = p;
+        BuildItemRow();
+    }
+
+    // The bottom row: one player's backpack. Consumables have a 使用 button; an equipped 替伤符 / 脚底抹油 too
+    // (for whoever is talking, as before). Other equipment and 负伤 cards are shown so the players can see them.
     void BuildItemRow()
     {
         CombatPanel.Clear(itemRow, itemEntryTemplate.transform);
@@ -446,34 +458,38 @@ public class SocialPanel : MonoBehaviour
         useItems.Clear();
         useIsEquipment.Clear();
         if (itemDetailText) itemDetailText.text = "鼠标移到道具上查看效果，点击卡片放大";
-        foreach (var p in players)
+        if (!viewed || !players.Contains(viewed)) viewed = speaker ? speaker : (players.Count > 0 ? players[0] : null);
+        backpackSwitch = BackpackView.NameButtons(backpackSwitch, itemRow, pickButtonTemplate, players, viewed, ViewBackpack);
+        var p = viewed;
+        int shown = 0;
+        if (p)
         {
             for (int i = 0; i < p.items.Count; i++)
             {
                 var item = p.items[i];
                 if (!item) continue;
-                // Equipped 替伤符 / 脚底抹油 also work in social, for whoever is talking.
                 bool equipment = item.kind != ItemKind.Consumable;
-                if (equipment && (i != p.equippedSlot || (item.mechanic != ItemMechanic.InjuryTransfer && item.mechanic != ItemMechanic.Escape)))
-                    continue;
+                bool usable = !equipment || (i == p.equippedSlot && (item.mechanic == ItemMechanic.InjuryTransfer || item.mechanic == ItemMechanic.Escape));
                 var entry = Instantiate(itemEntryTemplate, itemRow);
                 entry.gameObject.SetActive(true);
+                shown++;
                 var card = Instantiate(itemCardPrefab, entry.Find("CardHolder"));
                 card.SetItem(item);
                 card.draggable = false;
                 card.onClick = c => ShowCardZoom(c.item);
                 CombatPanel.Place(card.transform, itemCardScale);
-                entry.Find("Owner").GetComponent<Text>().text = p.playerName + (equipment ? "（装备）" : "");
+                entry.Find("Owner").GetComponent<Text>().text = equipment ? (i == p.equippedSlot ? "装备中" : "装备") : "消耗品";
                 var player = p;
                 int slot = i;
                 var hover = entry.gameObject.AddComponent<SetupHover>();
                 hover.onHover = () =>
                 {
                     if (!itemDetailText) return;
-                    string why = WhyNotUsable(player, item, equipment);
+                    string why = usable ? WhyNotUsable(player, item, equipment) : null;
                     itemDetailText.text = item.itemName + "：" + CombatPanel.ItemSummary(item) + (why != null ? "   【现在不能用：" + why + "】" : "");
                 };
                 var use = entry.Find("UseButton").GetComponent<Button>();
+                if (!usable) { use.gameObject.SetActive(false); continue; }
                 use.onClick.AddListener(() =>
                 {
                     if (!busy && !finished && WhyNotUsable(player, item, equipment) == null) StartCoroutine(Use(player, slot, equipment));
@@ -483,12 +499,18 @@ public class SocialPanel : MonoBehaviour
                 useItems.Add(item);
                 useIsEquipment.Add(equipment);
             }
+            foreach (var injury in p.injuries)
+            {
+                if (!injury) continue;
+                BackpackView.AddInjury(itemRow, itemEntryTemplate, itemCardPrefab, itemCardScale, injury, itemDetailText);
+                shown++;
+            }
         }
-        if (useButtons.Count == 0)
+        if (shown == 0)
         {
             var entry = Instantiate(itemEntryTemplate, itemRow);
             entry.gameObject.SetActive(true);
-            entry.Find("Owner").GetComponent<Text>().text = "（没有道具）";
+            entry.Find("Owner").GetComponent<Text>().text = "（背包是空的）";
             entry.Find("UseButton").gameObject.SetActive(false);
         }
         RefreshInteractable();
