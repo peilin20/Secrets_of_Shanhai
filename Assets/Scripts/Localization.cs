@@ -34,9 +34,9 @@ public static class L
         { "tut.card",               new[] { "角色卡上有你的名字、立绘、物种、职业、背景和正在装备的道具。", "A character card shows your name, portrait, species, class, background and equipped item." } },
         { "tut.element",            new[] { "右上角的圆形是你的主属性。", "The circle in the top right is your main element." } },
         { "tut.tokens", new[] {
-            "这里放着你的 token。战斗和社交时会消耗它们。\n每翻开一张新的主线卡，每位玩家获得 1 枚自己主属性的 token。",
-            "Your tokens live here. You spend them in combat and social encounters.\nEach time a new main story card is turned, every player gets 1 token of their main element." } },
-        { "tut.backpack",           new[] { "点这里打开背包。道具和负伤牌共用 6 个格子。", "Click here to open your backpack. Items and injury cards share its 6 slots." } },
+            "这里放着你的 token。战斗和社交时会消耗它们。\n主属性 token 是游戏中唯一会随着剧情推进自动恢复的 token。主线卡会写明每位玩家获得多少主属性 token：主线卡大部分是休息站点，角色们活着抵达这些节点时，通常能够获得资源补充。",
+            "Your tokens live here. You spend them in combat and social encounters.\nPrimary-element tokens are the only tokens that come back on their own as the story moves on. Each main story card says how many primary tokens every player gets: most main story cards are resting points, and characters who reach them alive usually get to restock." } },
+        { "tut.backpack",           new[] { "点这里打开背包。消耗品和负伤牌共用 6 个格子；装备不占格子，另外放着。", "Click here to open your backpack. Consumables and injury cards share its 6 slots; equipment doesn't take a slot and is kept apart." } },
         { "tut.story", new[] {
             "这是主线卡，讲述当前的故事。\n点卡片底部的按钮抽取事件卡；事件都结束后，会自动翻到下一张主线卡。",
             "This is the main story card. It tells the current part of the story.\nUse the button at the bottom of the card to draw event cards; once the events are done, the next main story card turns over by itself." } },

@@ -58,7 +58,11 @@ public class TutorialController : MonoBehaviour
         if (injuries && injuries.tokenPrefab)
         {
             Canvas.ForceUpdateCanvases();
-            yield return TokenFlight.GiveEach(FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude), p => p.primaryElement, injuries.tokenPrefab);
+            // As many as the first main story card gives (主线牌 sheet: 每位玩家主属性token获取数量).
+            var firstStory = FindFirstObjectByType<StoryCard>();
+            int n = firstStory && firstStory.story ? firstStory.story.primaryTokens : 1;
+            for (int i = 0; i < n; i++)
+                yield return TokenFlight.GiveEach(FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude), p => p.primaryElement, injuries.tokenPrefab);
         }
         BuildOverlay();
         if (startPart <= 0)

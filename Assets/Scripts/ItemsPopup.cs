@@ -1,8 +1,8 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-// Window that shows one character's 6 item slots. Item cards sit in the slots and can be
-// dragged from one slot to another (dropping on a filled slot swaps the two cards).
+// Window that shows one character's backpack: the 6 slots (消耗品 and 负伤), then the equipment, which doesn't
+// take a slot. Backpack cards can be dragged from one slot to another (dropping on a filled slot swaps them).
 // Only the close button closes it.
 public class ItemsPopup : MonoBehaviour
 {
@@ -17,6 +17,9 @@ public class ItemsPopup : MonoBehaviour
 
     CharacterCard owner;
     ItemCard[] cardsInSlots;
+    // The 6 backpack slots from the scene, then one slot per piece of equipment (made each time it opens).
+    readonly System.Collections.Generic.List<RectTransform> allSlots = new System.Collections.Generic.List<RectTransform>();
+    readonly System.Collections.Generic.List<GameObject> madeForEquipment = new System.Collections.Generic.List<GameObject>();
     readonly System.Collections.Generic.List<ItemCard> injuryCards = new System.Collections.Generic.List<ItemCard>();
     int dragFrom = -1;
 
@@ -29,12 +32,43 @@ public class ItemsPopup : MonoBehaviour
     {
         owner = character;
         owner.EnsureSlots();
-        cardsInSlots = new ItemCard[slots.Length];
 
+        foreach (var go in madeForEquipment) if (go) Destroy(go);
+        madeForEquipment.Clear();
         foreach (var slot in slots)
             foreach (Transform child in slot) Destroy(child.gameObject);
 
-        for (int i = 0; i < slots.Length && i < owner.items.Count; i++)
+        // Equipment slots after the backpack, behind a small "装备" label.
+        allSlots.Clear();
+        allSlots.AddRange(slots);
+        int gear = Mathf.Max(0, owner.items.Count - CharacterCard.ItemSlots);
+        if (gear > 0 && slots.Length > 0)
+        {
+            var label = new GameObject("EquipmentLabel", typeof(RectTransform), typeof(Text));
+            label.transform.SetParent(row, false);
+            ((RectTransform)label.transform).sizeDelta = new Vector2(60f, slots[0].rect.height);
+            var t = label.GetComponent<Text>();
+            t.font = titleText.font;
+            t.fontSize = 44;
+            t.fontStyle = FontStyle.Bold;
+            t.color = titleText.color;
+            t.alignment = TextAnchor.MiddleCenter;
+            t.text = "装\n备";
+            madeForEquipment.Add(label);
+            for (int j = 0; j < gear; j++)
+            {
+                var slot = Instantiate(slots[0], row);
+                slot.name = "EquipmentSlot";
+                foreach (Transform child in slot) Destroy(child.gameObject);
+                var image = slot.GetComponent<Image>();
+                if (image) image.color = Color.Lerp(image.color, new Color(0.95f, 0.75f, 0.35f), 0.35f);
+                madeForEquipment.Add(slot.gameObject);
+                allSlots.Add(slot);
+            }
+        }
+        cardsInSlots = new ItemCard[allSlots.Count];
+
+        for (int i = 0; i < allSlots.Count && i < owner.items.Count; i++)
         {
             var item = owner.items[i];
             if (!item) continue;
@@ -63,7 +97,7 @@ public class ItemsPopup : MonoBehaviour
         if (emptyText) emptyText.gameObject.SetActive(false);
         UpdateEquippedLook();
         UpdateTitle();
-        FitRow(slots.Length);
+        FitRow(allSlots.Count + (gear > 0 ? 0.5f : 0f));
 
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
@@ -140,7 +174,7 @@ public class ItemsPopup : MonoBehaviour
     {
         string equipped = owner.Equipped ? owner.Equipped.itemName : "无";
         string hint = (owner.equipmentLocked ? "战斗中不能更换装备" : "点击装备卡来装备") + "，点击负伤牌查看";
-        titleText.text = owner.playerName + " 的道具 (" + owner.UsedSlots + "/" + CharacterCard.ItemSlots + ")"
+        titleText.text = owner.playerName + " 的背包 (" + owner.UsedSlots + "/" + CharacterCard.ItemSlots + ")"
             + "   装备中：" + equipped + "   （" + hint + "）";
     }
 
@@ -192,7 +226,7 @@ public class ItemsPopup : MonoBehaviour
         foreach (var card in injuryCards)
         {
             while (next < slots.Length && cardsInSlots[next]) next++;
-            if (next >= slots.Length) { Destroy(card.gameObject); continue; }   // More cards than slots (shouldn't happen).
+            if (next >= slots.Length) { Destroy(card.gameObject); continue; }   // More cards than backpack slots (shouldn't happen).
             var rt = (RectTransform)card.transform;
             rt.SetParent(slots[next], false);
             rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
@@ -205,7 +239,7 @@ public class ItemsPopup : MonoBehaviour
     void PlaceCard(ItemCard card, int slot)
     {
         var rt = (RectTransform)card.transform;
-        rt.SetParent(slots[slot], false);
+        rt.SetParent(allSlots[slot], false);
         rt.anchorMin = rt.anchorMax = rt.pivot = new Vector2(0.5f, 0.5f);
         rt.anchoredPosition = Vector2.zero;
         rt.localScale = Vector3.one;
@@ -224,6 +258,7 @@ public class ItemsPopup : MonoBehaviour
     public void BeginCardDrag(ItemCard card)
     {
         dragFrom = System.Array.IndexOf(cardsInSlots, card);
+        if (dragFrom < 0 || dragFrom >= slots.Length) { dragFrom = -1; return; }   // Equipment stays put.
         var group = card.GetComponent<CanvasGroup>();
         if (!group) group = card.gameObject.AddComponent<CanvasGroup>();
         group.blocksRaycasts = false;  // So we can see which slot is under the pointer.
@@ -233,15 +268,16 @@ public class ItemsPopup : MonoBehaviour
 
     public void DragCard(ItemCard card, Vector2 screenDelta)
     {
+        if (dragFrom < 0) return;
         var parent = card.transform.parent;
         card.transform.localPosition += (Vector3)(screenDelta / parent.lossyScale.x);
     }
 
     public void EndCardDrag(ItemCard card, GameObject dropTarget)
     {
+        if (dragFrom < 0) return;
         card.GetComponent<CanvasGroup>().blocksRaycasts = true;
         int target = SlotUnder(dropTarget);
-        if (dragFrom < 0) return;
         if (target < 0 || target == dragFrom)
         {
             PlaceCard(card, dragFrom);
@@ -265,7 +301,7 @@ public class ItemsPopup : MonoBehaviour
     }
 
     // Shrinks the slot row so all slots fit side by side in the window.
-    void FitRow(int count)
+    void FitRow(float count)
     {
         var window = (RectTransform)row.parent;
         Vector2 area = window.rect.size - new Vector2(rowMargin * 2f, rowMargin + rowTopSpace);

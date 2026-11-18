@@ -87,19 +87,20 @@ public class InjuryDeck : MonoBehaviour
             Note(log, "  " + p.playerName + " 的" + injury.Title + "：失去 1 件道具后弃掉");
             yield break;
         }
-        if (!p.HasFreeItemSlot && p.ItemCount > 0)
-            yield return LoseItem(p, p.playerName + " 的背包满了（道具和负伤共 " + CharacterCard.ItemSlots + " 格）。\n要放下" + injury.Title + "，先丢掉一件道具", log);
+        if (!p.HasFreeItemSlot && p.BackpackItemCount > 0)
+            yield return LoseItem(p, p.playerName + " 的背包满了（消耗品和负伤共 " + CharacterCard.ItemSlots + " 格）。\n要放下" + injury.Title + "，先丢掉一件消耗品", log, true);
         p.injuries.Add(injury);
         if (injury.effect.Contains("无法在下一次事件中上场")) p.sitOutEvent = eventNumber + 1;
         p.Refresh();
     }
 
-    IEnumerator LoseItem(CharacterCard p, string question, List<string> log)
+    // `backpackOnly`: only 消耗品 (to free a backpack slot; equipment doesn't take one).
+    IEnumerator LoseItem(CharacterCard p, string question, List<string> log, bool backpackOnly = false)
     {
         var slots = new List<int>();
         var labels = new List<string>();
         for (int i = 0; i < p.items.Count; i++)
-            if (p.items[i]) { slots.Add(i); labels.Add(p.items[i].itemName); }
+            if (p.items[i] && (!backpackOnly || !CharacterCard.IsEquipment(p.items[i]))) { slots.Add(i); labels.Add(p.items[i].itemName); }
         if (slots.Count == 0) yield break;
         int pick = 0;
         yield return ChoicePrompt.Ask(question, labels, x => pick = x);

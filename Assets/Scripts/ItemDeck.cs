@@ -111,7 +111,7 @@ public class ItemDeck : MonoBehaviour
     {
         if (drawnCard || flying || pile.Count == 0) return false;
         Draw();
-        if (drawnCard && character.CanHold(drawnCard.item) && character.HasFreeItemSlot) StartCoroutine(FlyTo(character));
+        if (drawnCard && character.CanHold(drawnCard.item) && character.HasRoomFor(drawnCard.item)) StartCoroutine(FlyTo(character));
         return true;
     }
 
@@ -119,7 +119,7 @@ public class ItemDeck : MonoBehaviour
     static bool AnyoneCanTake(ItemData item)
     {
         foreach (var c in FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude))
-            if (c.HasFreeItemSlot && c.CanHold(item)) return true;
+            if (c.HasRoomFor(item) && c.CanHold(item)) return true;
         return false;
     }
 
@@ -134,10 +134,10 @@ public class ItemDeck : MonoBehaviour
             if (promptText) promptText.text = item.itemName + " 是" + item.exclusiveTo.className + "专属，只能给" + item.exclusiveTo.className;
             return;
         }
-        if (!character.HasFreeItemSlot)
+        if (!character.HasRoomFor(item))
         {
             // Full: the card stays out so it can go to someone else.
-            if (promptText) promptText.text = character.playerName + " 的背包满了（道具和负伤共 " + CharacterCard.ItemSlots + " 格），请选别的玩家";
+            if (promptText) promptText.text = character.playerName + " 的背包满了（消耗品和负伤共 " + CharacterCard.ItemSlots + " 格），请选别的玩家";
             return;
         }
         StartCoroutine(FlyTo(character));

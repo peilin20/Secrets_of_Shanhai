@@ -32,7 +32,8 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     // False during setup until the player picks their primary element; the element badge stays hidden until then.
     [System.NonSerialized] public bool elementChosen = true;
 
-    // One entry per item slot; an empty slot is null.
+    // items[0..5] are the 6 backpack slots (消耗品; an empty slot is null). Equipment (装备) doesn't take a
+    // backpack slot: it's kept after them, items[6], items[7]…  (EnsureSlots keeps it that way).
     public const int ItemSlots = 6;
     public List<ItemData> items = new List<ItemData>();
 
@@ -87,12 +88,37 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         if (popup) popup.Show(this);
     }
 
-    // Keeps the item list at exactly one entry per slot.
+    public static bool IsEquipment(ItemData item) => item && item.kind != ItemKind.Consumable;
+
+    // Keeps the 6 backpack slots first (消耗品 only) and the equipment after them; the equipped item stays equipped.
     public void EnsureSlots()
     {
         if (items == null) items = new List<ItemData>();
-        while (items.Count < ItemSlots) items.Add(null);
-        if (items.Count > ItemSlots) items.RemoveRange(ItemSlots, items.Count - ItemSlots);
+        var bag = new ItemData[ItemSlots];
+        var gear = new List<ItemData>();
+        var extra = new List<ItemData>();
+        int newEquipped = -1;
+        for (int i = 0; i < items.Count; i++)
+        {
+            var item = items[i];
+            if (!item) continue;
+            if (IsEquipment(item))
+            {
+                if (i == equippedSlot) newEquipped = ItemSlots + gear.Count;
+                gear.Add(item);
+            }
+            else if (i < ItemSlots && !bag[i]) bag[i] = item;
+            else extra.Add(item);
+        }
+        foreach (var item in extra)
+        {
+            int free = System.Array.IndexOf(bag, null);
+            if (free >= 0) bag[free] = item;
+            else gear.Add(item);   // Shouldn't happen: the backpack was over full.
+        }
+        items = new List<ItemData>(bag);
+        items.AddRange(gear);
+        equippedSlot = newEquipped;
     }
 
     public int ItemCount
@@ -105,17 +131,36 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    // Items and 负伤 cards share the backpack.
-    public int UsedSlots => ItemCount + injuries.Count;
+    // 消耗品 and 负伤 cards share the 6 backpack slots; equipment doesn't count.
+    public int BackpackItemCount
+    {
+        get
+        {
+            int count = 0;
+            foreach (var item in items) if (item && !IsEquipment(item)) count++;
+            return count;
+        }
+    }
+
+    public int UsedSlots => BackpackItemCount + injuries.Count;
 
     public bool HasFreeItemSlot => UsedSlots < ItemSlots;
+
+    // Equipment always fits; anything else needs a free backpack slot.
+    public bool HasRoomFor(ItemData item) => IsEquipment(item) || HasFreeItemSlot;
 
     // Puts the item in the first empty slot. Returns false when the backpack is full
     // or the item is 专属 to another class.
     public bool TryAddItem(ItemData item)
     {
         EnsureSlots();
-        if (!CanHold(item) || !HasFreeItemSlot) return false;
+        if (!CanHold(item) || !HasRoomFor(item)) return false;
+        if (IsEquipment(item))
+        {
+            items.Add(item);
+            Refresh();
+            return true;
+        }
         for (int i = 0; i < ItemSlots; i++)
         {
             if (items[i]) continue;

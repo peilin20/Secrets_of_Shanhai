@@ -11,6 +11,7 @@ public class StoryData : ScriptableObject
     [TextArea(8, 30)] public string body;
     [TextArea(2, 5)] public string nextStep;
     public int eventCardsToDraw = 1;
+    public int primaryTokens = 1;   // 每位玩家主属性token获取数量: each player gets this many when the card turns up.
     public System.Collections.Generic.List<EventData> fixedEvents = new System.Collections.Generic.List<EventData>();   // If set, these cards are drawn instead of random ones.
     public StoryData nextStory;   // The main story card that comes after this one.
 }

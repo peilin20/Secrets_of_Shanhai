@@ -188,7 +188,7 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         yield return OnNewStory(true);
     }
 
-    // A main story card has been turned: every player gets 1 token of their primary element (负伤 may change that).
+    // A main story card has been turned: every player gets its number of primary-element tokens (负伤 may change that).
     // On later cards, the 负伤 that heal on reaching the next main story card are settled too.
     System.Collections.IEnumerator OnNewStory(bool reachedNext)
     {
@@ -200,7 +200,9 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             Canvas.ForceUpdateCanvases();
             var cards = new System.Collections.Generic.List<CharacterCard>(FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude));
             cards.Sort((a, b) => string.Compare(a.name, b.name, System.StringComparison.Ordinal));
-            yield return TokenFlight.GiveEach(cards, p => p.primaryElement, prefab);
+            // How many depends on the card (主线牌 sheet: 每位玩家主属性token获取数量).
+            int n = story ? story.primaryTokens : 1;
+            for (int i = 0; i < n; i++) yield return TokenFlight.GiveEach(cards, p => p.primaryElement, prefab);
         }
         if (injuries && reachedNext) yield return injuries.OnNewStory();
     }

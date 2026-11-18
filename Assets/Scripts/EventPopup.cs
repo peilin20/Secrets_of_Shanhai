@@ -132,7 +132,7 @@ public class EventPopup : MonoBehaviour
         foreach (var item in option.rewardItems)
         {
             if (!item) continue;
-            var takers = players.FindAll(p => p.HasFreeItemSlot && p.CanHold(item));
+            var takers = players.FindAll(p => p.HasRoomFor(item) && p.CanHold(item));
             if (takers.Count == 0)
             {
                 yield return ChoicePrompt.Ask("没有人的背包放得下" + item.itemName + "，只能放弃", new System.Collections.Generic.List<string> { "确定" }, null);
