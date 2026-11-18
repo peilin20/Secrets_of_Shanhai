@@ -26,6 +26,8 @@ public class EventCard : MonoBehaviour, IPointerClickHandler
     void Start()
     {
         Refresh();
+        // In the event window (the full-size copy), clicking the picture shows it full screen.
+        if (Application.isPlaying && !openOnClick) ImageZoom.Enable(eventImage);
     }
 
     // Covers the card with its back (made the first time).

@@ -44,6 +44,7 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     void Start()
     {
         Refresh();
+        ImageZoom.Enable(storyImage);   // Click the picture: full screen.
         if (drawButton) drawButton.onClick.AddListener(DrawEvents);
         if (dealOnStart) StartCoroutine(DealIn());
     }

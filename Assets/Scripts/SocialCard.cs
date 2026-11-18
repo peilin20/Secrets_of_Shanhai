@@ -18,6 +18,7 @@ public class SocialCard : MonoBehaviour
     void Start()
     {
         Refresh();
+        if (Application.isPlaying) ImageZoom.Enable(socialImage);   // Click the picture: full screen.
     }
 
     public void SetSocial(SocialData social)

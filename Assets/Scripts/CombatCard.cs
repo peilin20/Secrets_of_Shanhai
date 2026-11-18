@@ -30,6 +30,7 @@ public class CombatCard : MonoBehaviour
     void Start()
     {
         Refresh();
+        if (Application.isPlaying) ImageZoom.Enable(combatImage);   // Click the picture: full screen.
     }
 
     void OnValidate()
