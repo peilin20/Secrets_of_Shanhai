@@ -166,6 +166,16 @@ public static class L
         { "fortune.result",         new[] { "抽到 {0}", "You drew {0}" } },
         { "story.eventsDrawn",      new[] { "已抽取事件卡", "Event Cards Drawn" } },
         { "story.noEventsLeft",     new[] { "事件卡已抽完", "No event cards left" } },
+        // Event popup
+        { "event.needSpecies",      new[] { "队里没有{0}，不能选这一项", "There's no {0} in the team, so this option can't be chosen" } },
+        { "event.noRoom",           new[] { "没有人的背包放得下{0}，只能放弃", "Nobody's backpack has room for {0}, so it has to be left behind" } },
+        { "event.giveTo",           new[] { "获得{0}：给谁？", "You get {0}: who takes it?" } },
+        // Fixed labels in the game scene (see sceneLabels below)
+        { "zoom.hint",              new[] { "点击放大", "Click to enlarge" } },
+        { "common.use",             new[] { "使用", "Use" } },
+        { "common.continue",        new[] { "继续", "Continue" } },
+        { "combat.itemsLabel",      new[] { "道具（任何玩家随时可用）", "Items (any player can use them at any time)" } },
+        { "social.itemsLabel",      new[] { "道具（装备只有说话的玩家能用）", "Items (only the speaker can use equipment)" } },
         { "story.slotsFull",        new[] { "事件栏已满", "Event slots are full" } },
         // Backpack, item popup, giving out items, injury card face
         { "bag.label",              new[] { "背包：", "Backpack: " } },
@@ -432,7 +442,8 @@ public static class L
 
     // Fixed labels already in the scene. When the game starts, any Text showing one of these (in either
     // language) gets a LocalizedText added, so it switches with the setting. Text set from code isn't listed here.
-    static readonly string[] sceneLabels = { "pile.items", "pile.events", "items.none" };
+    static readonly string[] sceneLabels = { "pile.items", "pile.events", "items.none", "zoom.close", "zoom.hint",
+        "common.use", "common.continue", "combat.itemsLabel", "social.itemsLabel" };
 
     public static string SceneLabelKey(string text)
     {
