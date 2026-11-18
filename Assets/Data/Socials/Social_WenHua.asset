@@ -17,7 +17,7 @@ MonoBehaviour:
   description: 
   pool: 020000000200000002000000i
   randomOthers: 1
-  startingFavor: 3
+  startingFavor: 2
   hasSpecies: 0
   species: 3
   outcomes:

@@ -10,7 +10,8 @@ using UnityEngine.UI;
 // ① pick who talks (负伤 that change 好感度 when they go on stage are settled before the judgment)
 // ② they pick an element and bet any number (at least 1) of its tokens; bet tokens are spent
 // ③ the NPC draws one element from its candidate pool (not put back) and the two are compared:
-//    same element = 大成功 (bet ×5 in round 1, ×2 later), 相生 = 成功 (bet ×1, ×½ in round 3), otherwise 失败 (lose the bet)
+//    (社交对抗规则说明) same element = 心有灵犀 (bet ×3 in round 1, ×2 in rounds 2–3), 相生 either way = 相谈甚欢 (bet ×1),
+//    anything else (相克) = 话不投机 (lose the bet)
 // ④ anyone can use items ⑤ once 好感度 reaches an outcome the team may end there, or keep talking.
 // 好感度 dropping to 0 is an immediate failure; after round 3 the team must have reached an outcome.
 public class SocialPanel : MonoBehaviour
@@ -298,6 +299,9 @@ public class SocialPanel : MonoBehaviour
         UpdateTexts();
     }
 
+    // 心有灵犀's rate: ×3 in round 1, ×2 in rounds 2 and 3 (收益系数).
+    static int SameElementRate(int round) => round == 1 ? 3 : 2;
+
     // --- ②③ Talking: bet tokens, the NPC draws ---
 
     IEnumerator Speak()
@@ -356,23 +360,22 @@ public class SocialPanel : MonoBehaviour
         int change;
         if (element == npc)
         {
-            int m = round == 1 ? 5 : 2;
+            int m = SameElementRate(round);
             change = counted * m;
-            relation = "<b>心有灵犀（都是" + ours + "）</b>";
-            result = "大成功 ×" + m;
+            relation = "<b>都是" + ours + "</b>";
+            result = "心有灵犀 ×" + m;
         }
         else if (ElementRules.Generates(element, npc) || ElementRules.Generates(npc, element))
         {
-            bool half = round >= rounds;
-            change = half ? counted / 2 : counted;
+            change = counted;
             relation = "<b>" + (ElementRules.Generates(element, npc) ? ours + "生" + theirs : theirs + "生" + ours) + "</b>";
-            result = half ? "成功 ×½" : "成功 ×1";
+            result = "相谈甚欢 ×1";
         }
         else
         {
             change = -counted;
             relation = "<b>" + (ElementRules.Counters(element, npc) ? ours + "克" + theirs : theirs + "克" + ours) + "</b>";
-            result = "失败";
+            result = "话不投机";
         }
         favor += change;
         log.Add("第" + round + "轮 " + p.playerName + " 下注 " + bet + " 枚" + ours + (counted != bet ? "（负伤：算作 " + counted + " 枚）" : "")
@@ -1115,7 +1118,7 @@ public class SocialPanel : MonoBehaviour
         }
         if (poolLabel) poolLabel.text = "NPC 候选池（剩 " + pool.Count + " 枚，不放回）";
         if (drawText && !spoke && !busy && !finished)
-            drawText.text = "第 " + round + " 轮倍率\n同属性 ×" + (round == 1 ? 5 : 2) + "　相生 ×" + (round >= rounds ? "½" : "1") + "\n其他：扣除下注";
+            drawText.text = "第 " + round + " 轮倍率\n心有灵犀（同属性）×" + SameElementRate(round) + "　相谈甚欢（相生）×1\n话不投机：扣除下注";
 
         var logSb = new StringBuilder();
         foreach (var line in log) logSb.AppendLine(line);

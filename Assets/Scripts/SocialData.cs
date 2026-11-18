@@ -20,7 +20,7 @@ public class SocialData : ScriptableObject
     [TextArea(3, 10)] public string description;
     public List<Element> pool = new List<Element>();   // The NPC's candidate tokens; drawn without putting back.
     public int randomOthers;                           // Plus this many random other elements (different ones), picked each encounter.
-    public int startingFavor = 3;                      // 初始好感度 (shared by the team)
+    public int startingFavor = 2;                      // 初始好感度 (shared by the team)
     public bool hasSpecies;                            // For items that care about the NPC's species (香囊).
     public Species species;
 
