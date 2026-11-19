@@ -89,9 +89,18 @@ public class CombatPanel : MonoBehaviour
     static readonly Color Tan = new Color(0.88f, 0.82f, 0.68f);
     static readonly Color Gold = new Color(0.95f, 0.75f, 0.35f);
 
+    // Read by the tutorial to know where the fight is.
+    public CharacterCard Fighter => fighter;
+    public bool Fought => fought;
+    public bool Finished => finished;
+    public int Round => round;
+
     void Awake()
     {
-        if (closeButton) closeButton.onClick.AddListener(Close);
+        // Once a combat / social is chosen it has to be played out (leaving early would not give spent tokens back).
+        if (closeButton) closeButton.gameObject.SetActive(false);
+        // The calculation box: plain ink, bold only where it matters.
+        if (resultText) { resultText.fontStyle = FontStyle.Normal; resultText.color = new Color(0.2f, 0.16f, 0.12f); resultText.supportRichText = true; }
         if (continueButton) continueButton.onClick.AddListener(Continue);
         if (fightButton) fightButton.onClick.AddListener(() =>
         {
@@ -122,9 +131,12 @@ public class CombatPanel : MonoBehaviour
         round = 1;
         total = 0;
         busy = fought = finished = retreated = drawItemAfter = lost = continuing = false;
+        pendingReward = null;
         fighter = null;
+        viewed = null;
         lastRoll = null;
         log.Clear();
+        lastCalc = null;
         disguises.Clear();
         fighters.Clear();
         stagePaid.Clear();
@@ -182,7 +194,14 @@ public class CombatPanel : MonoBehaviour
 
     void EndRound()
     {
-        if (busy || !fought || round > rounds) return;
+        if (busy || round > rounds) return;
+        if (!fought)
+        {
+            // Ending the round without using the equipment: the player still went on stage.
+            if (!fighter || StageBlock(fighter) != null) return;
+            OnStage(fighter);
+            log.Add(L.T("combat.logNoEquip", round, fighter.playerName));
+        }
         fought = false;
         lastRoll = null;
         stagePaid.Clear();
@@ -193,7 +212,7 @@ public class CombatPanel : MonoBehaviour
         {
             enemyElement = enemyElementNextRound.Value;
             enemyElementNextRound = null;
-            log.Add("  本轮敌方属性变为" + CombatCard.ElementChar(enemyElement) + "（迷魂香）");
+            log.Add("  " + L.T("combat.enemyNowBewitched", L.ElementName(enemyElement)));
         }
         if (round > rounds) Finish();
         ShowFighter(null);
@@ -221,6 +240,7 @@ public class CombatPanel : MonoBehaviour
     void ShowFighter(CharacterCard player)
     {
         fighter = player;
+        if (player && player != viewed) ViewBackpack(player);   // The backpack row follows who's picked.
         Clear(fieldCardHolder);
         Clear(weaponHolder);
 
@@ -238,6 +258,7 @@ public class CombatPanel : MonoBehaviour
             crt.anchorMin = crt.anchorMax = crt.pivot = new Vector2(0.5f, 0.5f);
             crt.anchoredPosition = Vector2.zero;
             crt.localScale = Vector3.one * fieldCardScale;
+            ItemsPopup.HookCopiedItemsButton(copy, player);
 
             var weapon = player.Equipped;
             if (weapon)
@@ -247,7 +268,7 @@ public class CombatPanel : MonoBehaviour
                 card.draggable = false;
                 card.onClick = c => ShowCardZoom(c.item);
                 Place(card.transform, weaponCardScale);
-                fightButton.GetComponentInChildren<Text>().text = "用 " + weapon.itemName + " 出战（" + Summary(weapon) + "）";
+                fightButton.GetComponentInChildren<Text>().text = L.T("combat.fightWith", weapon.itemName, Summary(weapon));
             }
         }
         ShowFieldButtons();
@@ -259,44 +280,70 @@ public class CombatPanel : MonoBehaviour
         if (choiceRow) choiceRow.gameObject.SetActive(false);
         bool hasWeapon = fighter && fighter.Equipped;
         string block = fighter && !fought ? StageBlock(fighter) : null;
-        fightButton.gameObject.SetActive(round <= rounds && fighter && !fought && hasWeapon && block == null);
+        bool canFight = round <= rounds && fighter && !fought && hasWeapon && block == null;
+        // The player on stage may also skip their equipment (and just use items): the round can end without attacking.
+        bool canSkip = round <= rounds && fighter && !fought && block == null;
+        fightButton.gameObject.SetActive(canFight);
         if (endRoundButton)
         {
-            endRoundButton.gameObject.SetActive(round <= rounds && fought);
-            endRoundButton.GetComponentInChildren<Text>().text = round < rounds ? "⑤ 结束本轮" : "⑤ 结束第 3 轮并结算";
+            endRoundButton.gameObject.SetActive(round <= rounds && (fought || canSkip));
+            var label = endRoundButton.GetComponentInChildren<Text>();
+            if (fought) label.text = L.T(round < rounds ? "combat.endRound" : "combat.endLastRound");
+            else label.text = L.T(round < rounds ? "combat.skipEndRound" : "combat.skipEndLast");
+            // Next to the fight button while both are shown; in its place otherwise.
+            var frt = (RectTransform)fightButton.transform;
+            var ert = (RectTransform)endRoundButton.transform;
+            ert.anchoredPosition = frt.anchoredPosition + (canFight ? new Vector2(frt.rect.width + 12f, 0f) : Vector2.zero);
         }
         if (round > rounds) fieldHint.text = "";
-        else if (!fighter) fieldHint.text = "① 选择本轮上场的玩家";
-        else if (fought) fieldHint.text = "④ 还可以使用道具，然后结束本轮";
-        else if (block != null) fieldHint.text = block + "，请换人";
-        else if (hasWeapon) fieldHint.text = "② " + fighter.playerName + " 上场，用 " + fighter.Equipped.itemName + " 出战（出战前可以换人）";
-        else fieldHint.text = fighter.playerName + " 没有装备武器，本轮无法出战";
+        else if (!fighter) fieldHint.text = L.T("combat.hintPick");
+        else if (fought) fieldHint.text = L.T("combat.hintAfter");
+        else if (block != null) fieldHint.text = L.T("combat.hintBlocked", block);
+        else if (hasWeapon) fieldHint.text = L.T("combat.hintFight", fighter.playerName, fighter.Equipped.itemName);
+        else fieldHint.text = L.T("combat.hintNoWeapon", fighter.playerName);
         RefreshInteractable();
     }
 
     // --- One-time items, usable by anyone at any time ---
 
+    CharacterCard viewed;      // Whose backpack the bottom row shows.
+    RectTransform backpackSwitch;
+
+    void ViewBackpack(CharacterCard p)
+    {
+        viewed = p;
+        BuildItemRow();
+    }
+
+    // The bottom row: one player's backpack. Consumables have a 使用 button (anyone can use them at any time, as
+    // before); equipment and 负伤 cards are shown so the players can see them.
     void BuildItemRow()
     {
         Clear(itemRow, itemEntryTemplate.transform);
         useButtons.Clear();
         useOwners.Clear();
         useItems.Clear();
-        if (itemDetailText) itemDetailText.text = "鼠标移到道具上查看效果";
-        foreach (var p in players)
+        if (itemDetailText) itemDetailText.text = L.T("items.hover");
+        if (!viewed || !players.Contains(viewed)) viewed = fighter ? fighter : (players.Count > 0 ? players[0] : null);
+        backpackSwitch = BackpackView.NameButtons(backpackSwitch, itemRow, pickButtonTemplate, players, viewed, ViewBackpack);
+        var p = viewed;
+        int shown = 0;
+        if (p)
         {
             for (int i = 0; i < p.items.Count; i++)
             {
                 var item = p.items[i];
-                if (!item || item.kind != ItemKind.Consumable) continue;
+                if (!item) continue;
+                bool equipment = item.kind != ItemKind.Consumable;
                 var entry = Instantiate(itemEntryTemplate, itemRow);
                 entry.gameObject.SetActive(true);
+                shown++;
                 var card = Instantiate(itemCardPrefab, entry.Find("CardHolder"));
                 card.SetItem(item);
                 card.draggable = false;
                 card.onClick = c => ShowCardZoom(c.item);
                 Place(card.transform, itemCardScale);
-                entry.Find("Owner").GetComponent<Text>().text = p.playerName;
+                entry.Find("Owner").GetComponent<Text>().text = L.T(equipment ? (i == p.equippedSlot ? "items.equipped" : "items.equipment") : "items.consumable");
                 var player = p;
                 int slot = i;
                 // Hovering an item shows what it does, and why it can't be used right now.
@@ -304,21 +351,28 @@ public class CombatPanel : MonoBehaviour
                 hover.onHover = () =>
                 {
                     if (!itemDetailText) return;
-                    string why = WhyNotUsable(player, item);
-                    itemDetailText.text = item.itemName + "：" + ItemSummary(item) + (why != null ? "   【现在不能用：" + why + "】" : "");
+                    string why = equipment ? null : WhyNotUsable(player, item);
+                    itemDetailText.text = L.T("items.nameDetail", item.itemName, ItemSummary(item)) + (why != null ? "   " + L.T("items.cantUse", why) : "");
                 };
                 var use = entry.Find("UseButton").GetComponent<Button>();
+                if (equipment) { use.gameObject.SetActive(false); continue; }   // Equipment is used with the fight button.
                 use.onClick.AddListener(() => { if (!busy && round <= rounds && WhyNotUsable(player, item) == null) StartCoroutine(Use(player, slot, false)); });
                 useButtons.Add(use);
                 useOwners.Add(p);
                 useItems.Add(item);
             }
+            foreach (var injury in p.injuries)
+            {
+                if (!injury) continue;
+                BackpackView.AddInjury(itemRow, itemEntryTemplate, itemCardPrefab, itemCardScale, injury, itemDetailText);
+                shown++;
+            }
         }
-        if (useButtons.Count == 0)
+        if (shown == 0)
         {
             var entry = Instantiate(itemEntryTemplate, itemRow);
             entry.gameObject.SetActive(true);
-            entry.Find("Owner").GetComponent<Text>().text = "（没有道具）";
+            entry.Find("Owner").GetComponent<Text>().text = L.T("items.emptyBackpack");
             entry.Find("UseButton").gameObject.SetActive(false);
         }
         RefreshInteractable();
@@ -353,7 +407,7 @@ public class CombatPanel : MonoBehaviour
             text.color = Color.white;
             text.alignment = TextAnchor.MiddleCenter;
             text.raycastTarget = false;
-            text.text = "点击任意处关闭";
+            text.text = L.T("zoom.close");
         }
         Clear(cardZoom.transform, cardZoom.transform.Find("Hint"));
         var card = Instantiate(itemCardPrefab, cardZoom.transform);
@@ -394,18 +448,19 @@ public class CombatPanel : MonoBehaviour
         {
             case ItemMechanic.SocialOnly:
             case ItemMechanic.Sugar:
-            case ItemMechanic.Rattle: return "只能在社交中使用";
+            case ItemMechanic.Rattle: return L.T("why.socialOnly");
             case ItemMechanic.Salve:
-            case ItemMechanic.Panacea: return "在背包里点击这张卡使用";
-            case ItemMechanic.NoEffect: return "没有使用效果";
-            case ItemMechanic.FailureGuard: return "战斗失败时在结算画面使用";
-            case ItemMechanic.ExtraTurn: return player == fighter && fought ? null : "本轮上场的玩家出战后才能使用";
+            case ItemMechanic.Pouch:
+            case ItemMechanic.Panacea: return L.T("why.useFromBackpack");
+            case ItemMechanic.NoEffect: return L.T("why.noEffect");
+            case ItemMechanic.FailureGuard: return L.T("why.failureGuard");
+            case ItemMechanic.ExtraTurn: return player == fighter && fought ? null : L.T("why.afterAttack");
             case ItemMechanic.Reroll:
-                if (player == fighter) return "只能由未上场的玩家使用";
-                return lastRoll != null ? null : "要在一次掷骰后立刻使用";
-            case ItemMechanic.RainCharm: return Count(player, Element.Metal) > 0 ? null : "没有金 token";
+                if (player == fighter) return L.T("why.offStage");
+                return lastRoll != null ? null : L.T("why.afterRoll");
+            case ItemMechanic.RainCharm: return Count(player, Element.Metal) > 0 ? null : L.T("why.noMetal");
             case ItemMechanic.Burst:
-                foreach (Element e in System.Enum.GetValues(typeof(Element))) if (Count(player, e) == 0) return "需要五种属性的 token 各一枚";
+                foreach (Element e in System.Enum.GetValues(typeof(Element))) if (Count(player, e) == 0) return L.T("why.fiveTokens");
                 return null;
         }
         return null;
@@ -423,8 +478,8 @@ public class CombatPanel : MonoBehaviour
         HideFieldButtons();
         if (item.mechanic != ItemMechanic.Reroll) lastRoll = null;
 
-        string who = isRoundFight ? "第" + round + "轮 " + player.playerName : "  道具 " + player.playerName;
-        string src = who + " 使用 " + item.itemName;
+        string who = isRoundFight ? L.T("combat.srcRound", round, player.playerName) : "  " + L.T("combat.srcItem", player.playerName);
+        string src = L.T("combat.uses", who, item.itemName);
         used = true;
 
         switch (item.mechanic)
@@ -432,7 +487,7 @@ public class CombatPanel : MonoBehaviour
             case ItemMechanic.TokensTimesThree: yield return UseTokensTimesThree(player, src); break;
             case ItemMechanic.FiveElementCharm: yield return UseFiveElementCharm(player, src); break;
             case ItemMechanic.Escape: yield return UseEscape(player, src); break;
-            case ItemMechanic.Retreat: Retreat(src + "：全队安全撤离", false); break;
+            case ItemMechanic.Retreat: Retreat(L.T("combat.logRetreatSafe", src), false); break;
             case ItemMechanic.IncenseBurner: yield return UseIncenseBurner(player, src); break;
             case ItemMechanic.BloodMist: yield return UseBloodMist(player, src); break;
             case ItemMechanic.Bewitching: yield return UseBewitching(player, src); break;
@@ -440,13 +495,14 @@ public class CombatPanel : MonoBehaviour
             case ItemMechanic.Sachet: yield return UseSachet(player, src); break;
             case ItemMechanic.ExtraTurn:
                 fought = false;
-                log.Add(src + "：获得额外回合，可以再出战一次");
+                log.Add(L.T("combat.logExtraTurn", src));
                 break;
             case ItemMechanic.RainCharm: yield return UseRainCharm(player, src); break;
             case ItemMechanic.SpiceTea: yield return UseSpiceTea(player, src); break;
             case ItemMechanic.Reroll: yield return UseReroll(src); break;
             case ItemMechanic.Disguise: yield return UseDisguise(player, src); break;
             case ItemMechanic.Burst: yield return UseBurst(player, src); break;
+            case ItemMechanic.WaterPerToken: yield return UseWaterPerToken(player, src); break;
             case ItemMechanic.SocialOnly:
             case ItemMechanic.FailureGuard: used = false; break;
             default: yield return UseAuto(player, item, src); break;   // Auto, Pursuit (its own attack is plain)
@@ -484,21 +540,23 @@ public class CombatPanel : MonoBehaviour
     IEnumerator UseAuto(CharacterCard player, ItemData item, string src)
     {
         var plan = ParsePlan(item);
-        if (plan.manual) { log.Add(src + "：效果请按卡面结算"); yield break; }
+        if (plan.manual) { log.Add(L.T("combat.logManual", src)); yield break; }
 
         int primaryHave = Count(player, player.primaryElement);
         if (primaryHave < plan.costPrimary || TokensOf(player).Count < plan.costPrimary + plan.costAny)
         {
-            Fail(src + "：token 不足，无法使用");
+            Fail(L.T("combat.logNotEnough", src));
             yield break;
         }
         Element? spent = null;
-        for (int i = 0; i < plan.costPrimary; i++) { Spend(player, player.primaryElement); spent = player.primaryElement; }
+        var spentList = new Dictionary<Element, int>();
+        for (int i = 0; i < plan.costPrimary; i++) { Spend(player, player.primaryElement); spent = player.primaryElement; Count1(spentList, player.primaryElement); }
         for (int i = 0; i < plan.costAny; i++)
         {
-            yield return ChooseToken(player, player.playerName + "：选择要消耗的 token", false);
+            yield return ChooseToken(player, L.T("combat.askToken", player.playerName), false);
             Spend(player, (Element)choice);
             spent = (Element)choice;
+            Count1(spentList, spent.Value);
         }
 
         var roll = new LastRoll { player = player, itemName = item.itemName };
@@ -516,11 +574,11 @@ public class CombatPanel : MonoBehaviour
             foreach (Match m in Regex.Matches(plan.rolledText, @"(\d)\s*=\s*([^，,。\s]+)"))
                 if (int.Parse(m.Groups[1].Value) == r)
                     attribute = m.Groups[2].Value.Contains("主") ? player.primaryElement : ParseElement(m.Groups[2].Value);
-            note = "（属性掷出 " + r + "）";
+            note = L.T("combat.rolledElement", r);
         }
         else attribute = ParseElement(plan.attr);
 
-        string paid = plan.costPrimary + plan.costAny > 0 ? "（消耗" + (plan.costPrimary + plan.costAny) + "枚token）" : "";
+        string paid = spentList.Count > 0 ? L.T("combat.paren", TokenWords(spentList)) : "";
         roll.attribute = attribute;
         yield return Hit(player, src + paid, roll.value, attribute, string.Join(" + ", parts.ToArray()) + note, roll);
     }
@@ -528,12 +586,12 @@ public class CombatPanel : MonoBehaviour
     // 破阵刀: every token spent is +3; the attribute is the element spent most (ties: random).
     IEnumerator UseTokensTimesThree(CharacterCard player, string src)
     {
-        if (TokensOf(player).Count == 0) { Fail(src + "：没有 token，无法使用"); yield break; }
+        if (TokensOf(player).Count == 0) { Fail(L.T("combat.logNoTokens", src)); yield break; }
         var spent = new Dictionary<Element, int>();
         int n = 0;
         while (TokensOf(player).Count > 0)
         {
-            yield return ChooseToken(player, player.playerName + "：选择要消耗的 token（已消耗 " + n + " 枚，每枚 +3）", n > 0);
+            yield return ChooseToken(player, L.T("combat.askTokenX3", player.playerName, n), n > 0);
             if (choice < 0) break;
             var e = (Element)choice;
             Spend(player, e);
@@ -548,13 +606,13 @@ public class CombatPanel : MonoBehaviour
             if (pair.Value == best) top.Add(pair.Key);
         }
         var attr = top[Random.Range(0, top.Count)];
-        yield return Hit(player, src + "（消耗" + n + "枚token）", 3 * n, attr, n + "×3", null);
+        yield return Hit(player, src + L.T("combat.paren", TokenWords(spent)), 3 * n, attr, n + "×3", null);
     }
 
     // 五行符: each token (at most one per element) is a separate +2 of that element.
     IEnumerator UseFiveElementCharm(CharacterCard player, string src)
     {
-        if (TokensOf(player).Count == 0) { Fail(src + "：没有 token，无法使用"); yield break; }
+        if (TokensOf(player).Count == 0) { Fail(L.T("combat.logNoTokens", src)); yield break; }
         var usedElements = new List<Element>();
         while (true)
         {
@@ -562,29 +620,29 @@ public class CombatPanel : MonoBehaviour
             foreach (Element e in System.Enum.GetValues(typeof(Element)))
                 if (!usedElements.Contains(e) && Count(player, e) > 0) options.Add(e);
             if (options.Count == 0) break;
-            yield return ChooseElement(player.playerName + "：选择要消耗的 token（每种属性最多 1 枚，每枚 +2）", options, usedElements.Count > 0);
+            yield return ChooseElement(L.T("combat.askTokenCharm", player.playerName), options, usedElements.Count > 0);
             if (choice < 0) break;
             var el = (Element)choice;
             Spend(player, el);
             usedElements.Add(el);
-            yield return Hit(player, src + "（" + CombatCard.ElementChar(el) + " token）", 2, el, "2", null);
+            yield return Hit(player, src + L.T("combat.paren", Tokens(el, 1)), 2, el, "2", null);
         }
     }
 
     // 脚底抹油: spend any 3 tokens, the team retreats; if 2+ of them counter the enemy, draw an item card.
     IEnumerator UseEscape(CharacterCard player, string src)
     {
-        if (TokensOf(player).Count < 3) { Fail(src + "：需要 3 枚 token"); yield break; }
+        if (TokensOf(player).Count < 3) { Fail(L.T("combat.logNeed3", src)); yield break; }
         int countering = 0;
         for (int i = 0; i < 3; i++)
         {
-            yield return ChooseToken(player, player.playerName + "：选择要消耗的 token（" + (i + 1) + " / 3）", false);
+            yield return ChooseToken(player, L.T("combat.askToken3", player.playerName, i + 1), false);
             var e = (Element)choice;
             Spend(player, e);
             if (ElementRules.Counters(e, enemyElement)) countering++;
         }
         bool draw = countering >= 2;
-        Retreat(src + "：全队安全撤退" + (draw ? "（" + countering + " 枚克制敌方，抽取 1 张道具）" : ""), draw);
+        Retreat(L.T("combat.logEscape", src) + (draw ? L.T("combat.escapeDraw", countering) : ""), draw);
     }
 
     void Retreat(string message, bool drawItem)
@@ -595,7 +653,7 @@ public class CombatPanel : MonoBehaviour
         retreated = true;
         drawItemAfter = drawItem;
         finished = true;
-        ShowResult("撤退", "全队安全撤离了战斗。", drawItem ? "关闭后抽取 1 张道具卡" : "", false);
+        ShowResult(L.T("combat.retreatTitle"), L.T("combat.retreatBody"), drawItem ? L.T("combat.retreatDraw") : "", false);
     }
 
     // 合香炉: spend 3 tokens of one element for +6 of it; if that element counters the enemy,
@@ -604,13 +662,13 @@ public class CombatPanel : MonoBehaviour
     {
         var options = new List<Element>();
         foreach (Element e in System.Enum.GetValues(typeof(Element))) if (Count(player, e) >= 3) options.Add(e);
-        if (options.Count == 0) { Fail(src + "：需要 3 枚相同属性的 token"); yield break; }
-        yield return ChooseElement(player.playerName + "：选择要消耗 3 枚的属性", options, false);
+        if (options.Count == 0) { Fail(L.T("combat.logNeed3Same", src)); yield break; }
+        yield return ChooseElement(L.T("combat.askElement3", player.playerName), options, false);
         var el = (Element)choice;
         for (int i = 0; i < 3; i++) Spend(player, el);
-        yield return Hit(player, src + "（消耗3枚" + CombatCard.ElementChar(el) + "）", 6, el, "6", null);
+        yield return Hit(player, src + L.T("combat.paren", Tokens(el, 3)), 6, el, "6", null);
         if (ElementRules.Counters(el, enemyElement))
-            yield return Hit(player, src + "（克制敌方，额外伤害）", 5, el, "5", null, false);
+            yield return Hit(player, src + L.T("combat.counterBonus"), 5, el, "5", null, false);
     }
 
     // 血雾: draw an injury card, +5 of its element.
@@ -618,19 +676,23 @@ public class CombatPanel : MonoBehaviour
     {
         InjuryData injury = null;
         yield return DrawInjury(player, x => injury = x);
-        if (!injury) { Fail(src + "：没有负伤牌可抽"); yield break; }
-        yield return Hit(player, src + "（抽到" + CombatCard.ElementChar(injury.element) + "负伤）", 5, injury.element, "5", null);
+        if (!injury) { Fail(L.T("combat.logNoInjury", src)); yield break; }
+        yield return Hit(player, src + L.T("combat.drewInjury", L.ElementName(injury.element)), 5, injury.element, "5", null);
     }
 
-    // 迷魂香: draw an injury card; next round the enemy's element becomes its element.
+    // 迷魂香: the player picks an element and draws an injury card of it (not a random one): +2 of that element,
+    // and next round the enemy's element becomes it.
     IEnumerator UseBewitching(CharacterCard player, string src)
     {
+        var all = new List<Element>((Element[])System.Enum.GetValues(typeof(Element)));
+        yield return ChooseElement(L.T("combat.askBewitch", player.playerName), all, false);
+        var chosen = (Element)choice;
         InjuryData injury = null;
-        yield return DrawInjury(player, x => injury = x);
-        if (!injury) { Fail(src + "：没有负伤牌可抽"); yield break; }
-        yield return Hit(player, src + "（抽到" + CombatCard.ElementChar(injury.element) + "负伤）", 2, injury.element, "2", null);
+        yield return DrawInjury(player, x => injury = x, chosen);
+        if (!injury) { Fail(L.T("combat.logNoInjury", src)); yield break; }
+        yield return Hit(player, src + L.T("combat.drawInjury", L.ElementName(injury.element)), 2, injury.element, "2", null);
         enemyElementNextRound = injury.element;
-        log.Add("  下回合敌方属性变为" + CombatCard.ElementChar(injury.element));
+        log.Add("  " + L.T("combat.enemyNext", L.ElementName(injury.element)));
     }
 
     // 替伤符: per token spent, move one injury card of that element to a teammate or the enemy
@@ -645,29 +707,24 @@ public class CombatPanel : MonoBehaviour
                 if (player.injuries[i].special ? TokensOf(player).Count > 0 : Count(player, player.injuries[i].element) > 0) movable.Add(i);
             if (movable.Count == 0) break;
 
-            var labels = new List<string>();
-            var colors = new List<Color>();
-            foreach (var i in movable)
-            {
-                labels.Add("转移" + player.injuries[i].Title);
-                colors.Add(player.injuries[i].special ? Tan : ElementToken.ColorFor(player.injuries[i].element));
-            }
-            if (moved > 0) { labels.Add("完成"); colors.Add(Tan); }
-            yield return Choose(player.playerName + "：选择要转移的负伤牌（每张消耗 1 枚同属性 token，特殊负伤消耗任意 1 枚）", labels, colors);
+            var cards = new List<InjuryData>();
+            foreach (var i in movable) cards.Add(player.injuries[i]);
+            yield return InjuryDeck.AskInjury(L.T("combat.askTransfer", player.playerName),
+                cards, moved > 0 ? L.T("common.done") : null, x => choice = x);
             if (choice >= movable.Count) break;
             var injury = player.injuries[movable[choice]];
 
             var targets = new List<CharacterCard>();
-            labels = new List<string>();
-            colors = new List<Color>();
+            var labels = new List<string>();
+            var colors = new List<Color>();
             foreach (var p in players) if (p != player) { targets.Add(p); labels.Add(p.playerName); colors.Add(Tan); }
-            labels.Add("敌人"); colors.Add(new Color(0.86f, 0.55f, 0.45f));
-            yield return Choose("把" + injury.Title + "转移给谁？", labels, colors);
+            labels.Add(L.T("combat.enemy")); colors.Add(new Color(0.86f, 0.55f, 0.45f));
+            yield return Choose(L.T("combat.askTransferTo", injury.Title), labels, colors);
             int targetChoice = choice;
 
             if (injury.special)
             {
-                yield return ChooseToken(player, player.playerName + "：消耗哪一枚 token 转移" + injury.Title + "？", false, null);
+                yield return ChooseToken(player, L.T("combat.askTransferToken", player.playerName, injury.Title), false, null);
                 Spend(player, (Element)choice);
             }
             else Spend(player, injury.element);
@@ -677,7 +734,7 @@ public class CombatPanel : MonoBehaviour
             if (choice < targets.Count)
             {
                 var target = targets[choice];
-                log.Add(src + "：把" + injury.Title + "转移给 " + target.playerName);
+                log.Add(L.T("combat.logTransfer", src, injury.Title, target.playerName));
                 var deck = InjuryDeck.Find();
                 if (deck) yield return deck.Give(target, injury, false, log);   // Their backpack may need room.
                 else { target.injuries.Add(injury); target.Refresh(); }
@@ -688,12 +745,11 @@ public class CombatPanel : MonoBehaviour
                 yield return RollDie(4, x => a = x);
                 yield return RollDie(4, x => b = x);
                 LowerThresholds(a + b);
-                log.Add(src + "：把" + injury.Title + "转移给敌人，2d4 = " + a + "+" + b
-                        + "，全胜 / 胜利条件各 -" + (a + b));
+                log.Add(L.T("combat.logTransferEnemy", src, injury.Title, a, b, a + b));
             }
             player.Refresh();
         }
-        if (moved == 0) Fail(src + "：没有能转移的负伤牌（需要负伤牌和同属性 token）");
+        if (moved == 0) Fail(L.T("combat.logNoTransfer", src));
     }
 
     // 香囊: 全胜 / 胜利 need 1d4 less; if the user (or their disguise) is the enemy's species, the full 4.
@@ -704,7 +760,7 @@ public class CombatPanel : MonoBehaviour
         int r = 4;
         if (!same) yield return RollDie(4, x => r = x);
         LowerThresholds(r);
-        log.Add(src + "：胜利和全胜条件 -" + r + (same ? "（与目标种族相同，取最大值）" : "（1d4）"));
+        log.Add(L.T("combat.logSachet", src, r) + L.T(same ? "combat.sachetSame" : "combat.sachetRoll"));
     }
 
     // 祈雨符: each 金 token spent gives 1d4 temporary 水 tokens (this event only).
@@ -713,8 +769,8 @@ public class CombatPanel : MonoBehaviour
         int have = Count(player, Element.Metal);
         var labels = new List<string>();
         var colors = new List<Color>();
-        for (int i = 1; i <= have; i++) { labels.Add("消耗 " + i + " 枚金"); colors.Add(ElementToken.ColorFor(Element.Metal)); }
-        yield return Choose(player.playerName + "：消耗几枚金 token？（每枚换 1d4 枚临时水 token）", labels, colors);
+        for (int i = 1; i <= have; i++) { labels.Add(L.T("combat.spendMetal", i)); colors.Add(ElementToken.ColorFor(Element.Metal)); }
+        yield return Choose(L.T("combat.askMetal", player.playerName), labels, colors);
         int n = choice + 1;
         int gained = 0;
         var rolls = new List<string>();
@@ -726,7 +782,7 @@ public class CombatPanel : MonoBehaviour
             rolls.Add(r.ToString());
             for (int k = 0; k < r; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
         }
-        log.Add(src + "：消耗" + n + "枚金，获得" + gained + "枚临时水token（" + string.Join("+", rolls.ToArray()) + "）");
+        log.Add(L.T("combat.logRain", src, n, gained, string.Join("+", rolls.ToArray())));
     }
 
     // 香料茶: 2d4 temporary 水 tokens (this event only).
@@ -737,14 +793,14 @@ public class CombatPanel : MonoBehaviour
         yield return RollDie(4, x => b = x);
         int gained = 0;
         for (int k = 0; k < a + b; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
-        log.Add(src + "：获得" + gained + "枚临时水token（" + a + "+" + b + "）");
+        log.Add(L.T("combat.logTea", src, gained, a, b));
     }
 
     // 贡品: roll the last roll's dice again.
     IEnumerator UseReroll(string src)
     {
         var last = lastRoll;
-        if (last == null) { Fail(src + "：没有可以重掷的骰子"); yield break; }
+        if (last == null) { Fail(L.T("combat.logNoReroll", src)); yield break; }
         int value = last.flat;
         var parts = new List<string>();
         foreach (var sides in last.sides)
@@ -756,8 +812,7 @@ public class CombatPanel : MonoBehaviour
         }
         int final = ApplyCounter(value, last.attribute, out string counterNote);
         total += final - last.final;
-        log.Add(src + "：重掷 " + last.player.playerName + " 的 " + last.itemName + "，" + string.Join(" + ", parts.ToArray())
-                + " = " + value + "，" + counterNote + " → " + last.final + " 改为 " + final);
+        log.Add(L.T("combat.logReroll", src, last.player.playerName, last.itemName, string.Join(" + ", parts.ToArray()), value, counterNote, last.final, final));
         last.value = value;
         last.final = final;
         lastRoll = last;   // Another 贡品 can reroll again.
@@ -769,17 +824,31 @@ public class CombatPanel : MonoBehaviour
         var all = (Species[])System.Enum.GetValues(typeof(Species));
         var labels = new List<string>();
         var colors = new List<Color>();
-        foreach (var s in all) { labels.Add(SpeciesName(s)); colors.Add(Tan); }
-        yield return Choose(player.playerName + "：让对方把你误认为哪个种族？", labels, colors);
+        foreach (var s in all) { labels.Add(L.SpeciesName(s)); colors.Add(Tan); }
+        yield return Choose(L.T("combat.askDisguise", player.playerName), labels, colors);
         disguises[player] = all[choice];
-        log.Add(src + "：本次事件中对方把 " + player.playerName + " 误认为" + SpeciesName(all[choice]));
+        log.Add(L.T("combat.logDisguise", src, player.playerName, L.SpeciesName(all[choice])));
+    }
+
+    // 赤鱬: spend any number of 水 tokens, +1 水 combat value for each.
+    IEnumerator UseWaterPerToken(CharacterCard player, string src)
+    {
+        int have = Count(player, Element.Water);
+        if (have == 0) { Fail(L.T("combat.logNoWater", src)); yield break; }
+        var labels = new List<string>();
+        var colors = new List<Color>();
+        for (int i = 1; i <= have; i++) { labels.Add(L.T("combat.spendWater", i)); colors.Add(ElementToken.ColorFor(Element.Water)); }
+        yield return Choose(L.T("combat.askWater", player.playerName), labels, colors);
+        int n = choice + 1;
+        for (int i = 0; i < n; i++) Spend(player, Element.Water);
+        yield return Hit(player, src + L.T("combat.paren", Tokens(Element.Water, n)), n, Element.Water, n + "×1", null);
     }
 
     // 单次高强度输出: one token of each element, 10 of your primary element.
     IEnumerator UseBurst(CharacterCard player, string src)
     {
         foreach (Element e in System.Enum.GetValues(typeof(Element))) Spend(player, e);
-        yield return Hit(player, src + "（消耗五种属性token各一枚）", 10, player.primaryElement, "10", null);
+        yield return Hit(player, src + L.T("combat.fiveTokens"), 10, player.primaryElement, "10", null);
     }
 
     // --- Settling a hit ---
@@ -788,11 +857,12 @@ public class CombatPanel : MonoBehaviour
     // logs it, and lets 追击刃 holders follow up when the hit was countered.
     IEnumerator Hit(CharacterCard player, string source, int value, Element? attribute, string detail, LastRoll roll, bool counter = true)
     {
-        string counterNote = "不计克制";
+        string counterNote = L.T("combat.noCounter");
         int final = counter ? ApplyCounter(value, attribute, out counterNote) : value;
         total += final;
-        log.Add(source + "：" + detail + " = " + value + "，" + (attribute.HasValue ? CombatCard.ElementChar(attribute.Value) + "属性" : "无属性")
-                + "，" + counterNote + " → +" + final);
+        lastCalc = "<b>" + source.Trim() + "</b>"+"\n" + L.T("combat.valueLine", value) + CounterWords(attribute, counter, value, final);
+        log.Add(L.T("combat.logHit", source, detail, value,
+                attribute.HasValue ? L.T("combat.elementAttr", L.ElementName(attribute.Value)) : L.T("combat.noElement"), counterNote, final));
         if (roll != null && roll.sides.Count > 0) { roll.final = final; lastRoll = roll; }
         UpdateTexts();
 
@@ -800,14 +870,47 @@ public class CombatPanel : MonoBehaviour
             yield return OfferPursuit(player);
     }
 
+    // The calculation box only mentions 克制, the one thing that changes the value: "，土克水 ×2 = 8".
+    string CounterWords(Element? attribute, bool counter, int value, int final)
+    {
+        if (!counter || !attribute.HasValue || !combat) return "";
+        string ours = L.ElementName(attribute.Value), theirs = L.ElementName(enemyElement);
+        if (ElementRules.Counters(attribute.Value, enemyElement)) return L.T("sep.comma") + "<b>" + L.T("combat.counters", ours, theirs) + " ×2 = " + final + "</b>";
+        if (ElementRules.Counters(enemyElement, attribute.Value)) return L.T("sep.comma") + L.T("combat.counters", theirs, ours) + " ×½ = " + final;
+        return "";
+    }
+
+    static void Count1(Dictionary<Element, int> counts, Element e) => counts[e] = counts.TryGetValue(e, out int c) ? c + 1 : 1;
+
+    // "土token一枚", "土token两枚、火token一枚".
+    static string TokenWords(Dictionary<Element, int> counts)
+    {
+        var parts = new List<string>();
+        foreach (var pair in counts) parts.Add(Tokens(pair.Key, pair.Value));
+        return string.Join(L.T("setup.listSep"), parts.ToArray());
+    }
+
+    // "土token一枚" / "1 Earth token".
+    static string Tokens(Element e, int n)
+    {
+        return L.Current == Language.Chinese ? CombatCard.ElementChar(e) + "token" + ChineseCount(n) + "枚"
+                                             : n + " " + L.ElementName(e) + (n == 1 ? " token" : " tokens");
+    }
+
+    static string ChineseCount(int n)
+    {
+        string[] words = { "零", "一", "两", "三", "四", "五", "六", "七", "八", "九", "十" };
+        return n >= 0 && n < words.Length ? words[n] : n.ToString();
+    }
+
     // The 克制 relationship is bold in the log when the attack counters the enemy.
     int ApplyCounter(int value, Element? attribute, out string note)
     {
         note = "×1";
         if (!attribute.HasValue || !combat) return value;
-        string ours = CombatCard.ElementChar(attribute.Value), theirs = CombatCard.ElementChar(enemyElement);
-        if (ElementRules.Counters(attribute.Value, enemyElement)) { note = "<b>×2（" + ours + "克" + theirs + "）</b>"; return value * 2; }
-        if (ElementRules.Counters(enemyElement, attribute.Value)) { note = "×½（" + theirs + "克" + ours + "）"; return Mathf.FloorToInt(value / 2f); }
+        string ours = L.ElementName(attribute.Value), theirs = L.ElementName(enemyElement);
+        if (ElementRules.Counters(attribute.Value, enemyElement)) { note = "<b>×2" + L.T("combat.paren", L.T("combat.counters", ours, theirs)) + "</b>"; return value * 2; }
+        if (ElementRules.Counters(enemyElement, attribute.Value)) { note = "×½" + L.T("combat.paren", L.T("combat.counters", theirs, ours)); return Mathf.FloorToInt(value / 2f); }
         return value;
     }
 
@@ -818,11 +921,11 @@ public class CombatPanel : MonoBehaviour
         foreach (var q in players)
         {
             if (q == hitter || !q.Equipped || q.Equipped.mechanic != ItemMechanic.Pursuit || TokensOf(q).Count == 0) continue;
-            yield return ChooseToken(q, q.playerName + " 的追击刃：队友的攻击被克制了，消耗 1 枚 token 追击？", true, "不追击");
+            yield return ChooseToken(q, L.T("combat.askPursuit", q.playerName), true, L.T("combat.noPursue"));
             if (choice < 0) continue;
             var e = (Element)choice;
             Spend(q, e);
-            yield return Hit(q, "  追击 " + q.playerName + " 追击刃（消耗1枚" + CombatCard.ElementChar(e) + "）", 2, e, "2", null);
+            yield return Hit(q, "  " + L.T("combat.srcPursuit", q.playerName, Tokens(e, 1)), 2, e, "2", null);
         }
     }
 
@@ -853,17 +956,10 @@ public class CombatPanel : MonoBehaviour
         }
     }
 
+    // Every die goes through 承天问卜 (the stick box in the middle of a dimmed screen; the player clicks it).
     IEnumerator RollDie(int sides, System.Action<int> result)
     {
-        var sticks = FindFirstObjectByType<FortuneSticks>();
-        if (sides == 6 && sticks)
-        {
-            while (sticks.IsRolling) yield return null;
-            bool done = false;
-            sticks.Roll(r => { result(r); done = true; });
-            while (!done) yield return null;
-        }
-        else result(Random.Range(1, sides + 1));
+        yield return FortuneSticks.Ask(sides, result);
     }
 
     void LowerThresholds(int amount)
@@ -873,10 +969,10 @@ public class CombatPanel : MonoBehaviour
     }
 
     // Draws a 负伤 card for the player (its "抽到时" effect and a full backpack are handled by the deck).
-    IEnumerator DrawInjury(CharacterCard player, System.Action<InjuryData> result)
+    IEnumerator DrawInjury(CharacterCard player, System.Action<InjuryData> result, Element? element = null)
     {
         var deck = InjuryDeck.Find();
-        var injury = deck ? deck.Draw() : null;
+        var injury = deck ? deck.Draw(element) : null;
         if (injury) yield return deck.Give(player, injury, true, log);
         result(injury);
     }
@@ -923,14 +1019,14 @@ public class CombatPanel : MonoBehaviour
     }
 
     // Pick one of the player's tokens. `choice` ends up as the Element, or -1 for the extra "done/skip" button.
-    IEnumerator ChooseToken(CharacterCard player, string hint, bool allowDone, string doneLabel = "完成")
+    IEnumerator ChooseToken(CharacterCard player, string hint, bool allowDone, string doneLabel = null)
     {
         var options = new List<Element>();
         foreach (Element e in System.Enum.GetValues(typeof(Element))) if (Count(player, e) > 0) options.Add(e);
         var labels = new List<string>();
         var colors = new List<Color>();
-        foreach (var e in options) { labels.Add(CombatCard.ElementChar(e) + " ×" + Count(player, e)); colors.Add(ElementToken.ColorFor(e)); }
-        if (allowDone) { labels.Add(doneLabel); colors.Add(Tan); }
+        foreach (var e in options) { labels.Add(L.ElementName(e) + " ×" + Count(player, e)); colors.Add(ElementToken.ColorFor(e)); }
+        if (allowDone) { labels.Add(doneLabel ?? L.T("common.done")); colors.Add(Tan); }
         yield return Choose(hint, labels, colors);
         choice = choice < options.Count ? (int)options[choice] : -1;
     }
@@ -940,8 +1036,8 @@ public class CombatPanel : MonoBehaviour
     {
         var labels = new List<string>();
         var colors = new List<Color>();
-        foreach (var e in options) { labels.Add(CombatCard.ElementChar(e)); colors.Add(ElementToken.ColorFor(e)); }
-        if (allowDone) { labels.Add("完成"); colors.Add(Tan); }
+        foreach (var e in options) { labels.Add(L.ElementName(e)); colors.Add(ElementToken.ColorFor(e)); }
+        if (allowDone) { labels.Add(L.T("common.done")); colors.Add(Tan); }
         yield return Choose(hint, labels, colors);
         choice = choice < options.Count ? (int)options[choice] : -1;
     }
@@ -996,32 +1092,64 @@ public class CombatPanel : MonoBehaviour
         bool won;
         if (!combat || (combat.greatSuccessThreshold <= 0 && combat.successThreshold <= 0))
         {
-            title = "战斗结束"; description = "这张战斗卡还没有设置门槛。"; won = false;
+            title = L.T("combat.over"); description = L.T("combat.noThresholds"); won = false;
         }
         else if (total >= greatNeed)
         {
-            title = "全胜！"; description = combat.greatSuccessReward; won = true;
+            title = L.T("combat.great"); description = OutcomeList(0); won = true; pendingReward = combat.greatSuccessReward;
         }
         else if (total >= winNeed)
         {
-            title = "胜利！"; description = combat.successReward; won = true;
+            title = L.T("combat.win"); description = OutcomeList(1); won = true; pendingReward = combat.successReward;
         }
         else
         {
-            title = "失败"; description = combat.failureResult; won = false;
+            title = L.T("combat.fail"); description = OutcomeList(2); won = false;
         }
         string reward = "";
         if (won)
         {
-            GiveEveryonePrimaryToken();
-            reward = "每位玩家获得一枚自己主属性的 token";
-            // 负伤 that heal after winning a fight.
+            // 武士: "当你参与的战斗胜利时，获得1主属性token" — every 武士 who went on stage in this combat.
+            foreach (var p in fighters)
+            {
+                if (!p || !p.characterClass || p.characterClass.className != "武士") continue;
+                int got = AddToken(p, p.primaryElement, false);
+                reward += (reward.Length > 0 ? "\n" : "") + L.T("combat.classToken", p.playerName, p.characterClass.className, got, L.ElementName(p.primaryElement));
+            }
+            // 负伤 that heal after winning a fight. (Primary-element tokens come with each new main story card, not here.)
             var injuries = InjuryDeck.Find();
-            if (injuries) foreach (var line in injuries.OnWin(true)) reward += "\n" + line;
+            if (injuries) foreach (var line in injuries.OnWin(true)) reward += (reward.Length > 0 ? "\n" : "") + line;
         }
         lost = !won && combat;
         ShowResult(title, description, reward, lost);
-        if (won) StartCoroutine(GiveCardRewards(description));
+    }
+
+    string pendingReward;   // The card's reward, handed out when 继续 is pressed (after the players have seen the result).
+
+    // Every outcome on the card, the one reached marked: what was avoided and what was missed are visible too.
+    string OutcomeList(int reached)
+    {
+        return OutcomeLine(reached == 0, L.T("combat.greatLine", greatNeed), combat.greatSuccessReward) + "\n\n"
+             + OutcomeLine(reached == 1, L.T("combat.winLine", winNeed), combat.successReward) + "\n\n"
+             + OutcomeLine(reached == 2, L.T("combat.failLine", winNeed), combat.failureResult);
+    }
+
+    // The result screen lists every outcome, so the text gets more room: under the total, above the notes.
+    public static void LayoutResult(Text total, Text description, Text reward)
+    {
+        if (!description) return;
+        var d = (RectTransform)description.transform;
+        d.anchoredPosition = new Vector2(0f, -10f);
+        d.sizeDelta = new Vector2(1300f, 250f);
+        description.fontSize = 26;
+        description.alignment = TextAnchor.MiddleCenter;
+        if (reward) ((RectTransform)reward.transform).anchoredPosition = new Vector2(0f, -175f);
+    }
+
+    public static string OutcomeLine(bool reached, string head, string text)
+    {
+        return reached ? "<b>" + L.T("result.yours") + head + L.T("sep.colon") + text + "</b>"
+                       : "<color=#8C8070>" + head + L.T("sep.colon") + text + "</color>";
     }
 
     // Tokens the card's reward text promises ("获1土token"…) are handed out on the result screen.
@@ -1038,7 +1166,8 @@ public class CombatPanel : MonoBehaviour
     {
         if (!resultView) return;
         resultTitle.text = title;
-        resultTotal.text = "战斗总值：" + total;
+        resultTotal.text = L.T("combat.total", total);
+        LayoutResult(resultTotal, resultDescription, resultReward);
         resultDescription.text = description;
         resultReward.text = reward;
 
@@ -1066,7 +1195,7 @@ public class CombatPanel : MonoBehaviour
                     b.interactable = true;
                     ((RectTransform)b.transform).sizeDelta = new Vector2(330, 56);
                     b.GetComponent<Image>().color = Gold;
-                    b.GetComponentInChildren<Text>().text = p.playerName + " 使用失败保护";
+                    b.GetComponentInChildren<Text>().text = L.T("combat.useGuard", p.playerName);
                     var player = p;
                     int slot = i;
                     b.onClick.AddListener(() =>
@@ -1075,7 +1204,7 @@ public class CombatPanel : MonoBehaviour
                         player.items[slot] = null;
                         player.Refresh();
                         if (!protectedPlayers.Contains(player)) protectedPlayers.Add(player);
-                        resultReward.text += (resultReward.text.Length > 0 ? "\n" : "") + player.playerName + " 用失败保护抵挡了失败效果";
+                        resultReward.text += (resultReward.text.Length > 0 ? "\n" : "") + L.T("combat.guarded", player.playerName);
                         Destroy(b.gameObject);
                     });
                 }
@@ -1101,10 +1230,13 @@ public class CombatPanel : MonoBehaviour
     IEnumerator ContinueRoutine()
     {
         continuing = true;
+        // The card's reward ("获1土token"…): the team decides who gets each token now.
+        if (!string.IsNullOrEmpty(pendingReward)) yield return GiveCardRewards(pendingReward);
+        pendingReward = null;
         var injuries = InjuryDeck.Find();
         if (injuries)
         {
-            if (lost) yield return injuries.ApplyFailure(combat.failureResult, players, protectedPlayers);
+            if (lost) yield return injuries.ApplyFailure(combat.failureResult, players, protectedPlayers, combat.special);
             yield return injuries.EndEvent(players);
         }
         bool draw = drawItemAfter;
@@ -1136,18 +1268,26 @@ public class CombatPanel : MonoBehaviour
 
     void UpdateTexts()
     {
-        roundText.text = round <= rounds ? "第 " + round + " / " + rounds + " 轮" : "战斗结束";
-        totalText.text = "战斗总值：" + total;
-        if (combat && !finished)
-            resultText.text = "敌方属性：" + CombatCard.ElementChar(enemyElement)
-                + (enemyElement != combat.element ? "（本轮被改变）" : "")
-                + (enemyElementNextRound.HasValue ? "，下回合变为" + CombatCard.ElementChar(enemyElementNextRound.Value) : "")
-                + "\n全胜需 ≥" + greatNeed + "   胜利需 ≥" + winNeed;
-        else if (!combat) resultText.text = "还没有关联战斗卡。";
+        roundText.text = round <= rounds ? L.T("combat.round", round, rounds) : L.T("combat.over");
+        totalText.text = L.T("combat.total", total);
+        // Left: the enemy card shows the current element and what's needed now.
+        if (combat && cardView) cardView.ShowLive(enemyElement, greatNeed, winNeed);
+        // Right: how the latest combat value was worked out, then the whole log (newest lines kept in view).
+        if (!combat) resultText.text = L.T("combat.noCard");
+        else
+        {
+            string calc = string.IsNullOrEmpty(lastCalc) ? L.T("combat.calcHint") : lastCalc;
+            if (enemyElementNextRound.HasValue) calc += "\n" + L.T("combat.enemyNext", L.ElementName(enemyElementNextRound.Value));
+            resultText.text = calc;
+        }
+        int from = Mathf.Max(0, log.Count - logLinesShown);
         var sb = new StringBuilder();
-        foreach (var line in log) sb.AppendLine(line);
+        for (int i = from; i < log.Count; i++) sb.AppendLine(log[i]);
         logText.text = sb.ToString();
     }
+
+    public int logLinesShown = 14;
+    string lastCalc;   // The latest hit, step by step.
 
     // --- Reading simple effects from the card text ---
 
@@ -1210,21 +1350,23 @@ public class CombatPanel : MonoBehaviour
     {
         switch (item.mechanic)
         {
-            case ItemMechanic.TokensTimesThree: return "每消耗1枚token +3";
-            case ItemMechanic.FiveElementCharm: return "每种属性token +2";
-            case ItemMechanic.Escape: return "消耗3枚token撤退";
-            case ItemMechanic.IncenseBurner: return "消耗3枚同属性token +6";
-            case ItemMechanic.BloodMist: return "抽负伤牌 +5";
-            case ItemMechanic.Bewitching: return "抽负伤牌，下回合改敌方属性";
-            case ItemMechanic.InjuryTransfer: return "转移负伤牌";
-            case ItemMechanic.Disguise: return "选择伪装的种族";
+            case ItemMechanic.TokensTimesThree: return L.T("sum.timesThree");
+            case ItemMechanic.FiveElementCharm: return L.T("sum.charm");
+            case ItemMechanic.Escape: return L.T("sum.escape");
+            case ItemMechanic.IncenseBurner: return L.T("sum.incense");
+            case ItemMechanic.BloodMist: return L.T("sum.bloodMist");
+            case ItemMechanic.Bewitching: return L.T("sum.bewitch");
+            case ItemMechanic.InjuryTransfer: return L.T("sum.transfer");
+            case ItemMechanic.Disguise: return L.T("sum.disguise");
+            case ItemMechanic.WaterPerToken: return L.T("sum.waterPerToken");
         }
         var plan = ParsePlan(item);
-        if (plan.manual) return "按卡面结算";
-        string attr = plan.attr == "主" ? "主属性" : plan.attr == "token" ? "token属性" : plan.attr == "rolled" ? "掷骰定属性"
-            : plan.attr == "" ? "无属性" : plan.attr + "属性";
-        string cost = (plan.costPrimary > 0 ? "，耗" + plan.costPrimary + "主属性token" : "")
-            + (plan.costAny > 0 ? "，耗" + plan.costAny + "任意token" : "");
+        if (plan.manual) return L.T("sum.manual");
+        var planElement = ParseElement(plan.attr);
+        string attr = plan.attr == "主" ? L.T("sum.primary") : plan.attr == "token" ? L.T("sum.tokenElement") : plan.attr == "rolled" ? L.T("sum.rolled")
+            : !planElement.HasValue ? L.T("combat.noElement") : L.T("combat.elementAttr", L.ElementName(planElement.Value));
+        string cost = (plan.costPrimary > 0 ? L.T("sum.costPrimary", plan.costPrimary) : "")
+            + (plan.costAny > 0 ? L.T("sum.costAny", plan.costAny) : "");
         return plan.dice.Replace("+", "").Trim() + " " + attr + cost;
     }
 

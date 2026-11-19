@@ -22,8 +22,8 @@ public class ElementToken : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
         {
             case Element.Wood: return new Color(0.2f, 0.65f, 0.3f);
             case Element.Fire: return new Color(0.85f, 0.2f, 0.15f);
-            case Element.Earth: return new Color(0.85f, 0.65f, 0.15f);
-            case Element.Metal: return new Color(0.7f, 0.72f, 0.75f);
+            case Element.Earth: return new Color(0.55f, 0.36f, 0.2f);    // Brown
+            case Element.Metal: return new Color(0.9f, 0.72f, 0.2f);     // Gold
             case Element.Water: return new Color(0.15f, 0.4f, 0.85f);
         }
         return Color.white;
@@ -36,6 +36,12 @@ public class ElementToken : MonoBehaviour, IBeginDragHandler, IDragHandler, IEnd
     }
 
     void OnValidate()
+    {
+        Refresh();
+    }
+
+    // Tokens placed in a scene (the token library) pick up the current element colours.
+    void Start()
     {
         Refresh();
     }

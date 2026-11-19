@@ -10,18 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4ef7b434babc9e54e8da89bb78b5fd6c, type: 3}
-  m_Name: DingShenShu
+  m_Name: JinNang
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: "\u5B9A\u8EAB\u672F"
+  itemName: "\u9526\u56ca"
   kind: 1
-  mechanic: 10
+  mechanic: 25
   value: 0
   hasElement: 0
   element: 0
   image: {fileID: 0}
-  description: "\u4E0A\u573A\u65F6\u53EF\u7528\u3002\u5F53\u524D\u73A9\u5BB6\u83B7\u5F97\u989D\u5916\u56DE\u5408"
+  description: 
   effects:
-  - label: "\u6548\u679C"
-    value: "\u5728\u6218\u6597\u548C\u793E\u4EA4\u4E2D\u989D\u5916\u83B7\u5F971\u56DE\u5408"
-  copiesInPile: 3
+  - label: "\u6548\u679c"
+    value: "\u6253\u5f00\u65f6\u83b7\u5f97\u9053\u5177\u201c\u5355\u6b21\u9ad8\u5f3a\u5ea6\u8f93\u51fa\u201d\u548c\u201c\u5931\u8d25\u4fdd\u62a4\u201d\u5404\u4e00\u4efd"
+  copiesInPile: 0
   exclusiveTo: {fileID: 0}
+  speciesOnly: 0
+  exclusiveSpecies: 0
+  backpackSlots: 0
+  contents:
+  - {fileID: 11400000, guid: c6c39ab958ced0041a5d57963a4e8529, type: 2}
+  - {fileID: 11400000, guid: 151f8c4fe66ebfd4b98489b8fe022224, type: 2}

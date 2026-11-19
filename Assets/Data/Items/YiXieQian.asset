@@ -14,14 +14,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: "\u4E00\u4E9B\u94B1"
   kind: 1
-  mechanic: 23
+  mechanic: 26
   value: 0
   hasElement: 0
   element: 0
   image: {fileID: 0}
-  description: 
+  description: "3\u4e32\u94dc\u94b1\u3002\u53ef\u4ee5\u5728\u793e\u4ea4\u4e2d\u9001\u51fa\u589e\u8fdb\u60c5\u8c0a\uff0c\u6216\u8005\u62c6\u6563\u4e86\u5f53\u4f5c\u91d1\u5c5e\u7247\u7838\u4eba"
   effects:
-  - label: "\u6548\u679C"
-    value: "\u4E00\u4E9B\u94B1\uFF0C\u4EE5\u5907\u4E0D\u65F6\u4E4B\u9700"
+  - label: "\u6548\u679c"
+    value: "\u6218\u6597 - +1d4\u91d1\u5c5e\u6027\u6218\u6597\u503c\n\u793e\u4ea4 - \u597d\u611f\u5ea6\u8fbe\u5230\u6210\u529f\u6240\u9700\u503c"
   copiesInPile: 3
   exclusiveTo: {fileID: 0}

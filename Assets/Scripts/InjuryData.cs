@@ -14,7 +14,7 @@ public class InjuryData : ScriptableObject
     public bool special;               // e.g. 寻药者's 特殊负伤: no element, can't be removed by anything.
     public string customTitle;
 
-    public string Title => !string.IsNullOrEmpty(customTitle) ? customTitle : CombatCard.ElementChar(element) + "负伤";
+    public string Title => !string.IsNullOrEmpty(customTitle) ? customTitle : L.T("injury.title", L.ElementName(element));
 
     // 难度 1–3 (the 负伤 sheet says Low / Medium / High).
     public int Level => difficulty == "Medium" ? 2 : difficulty == "High" ? 3 : 1;
@@ -24,11 +24,11 @@ public class InjuryData : ScriptableObject
     {
         switch (e)
         {
-            case Element.Metal: return "锐器造成的划伤、穿刺";
-            case Element.Wood: return "慢性感染、毒性，延迟发作或有传染性的病症";
-            case Element.Water: return "精神、心灵上的打击";
-            case Element.Fire: return "烧伤、上火";
-            case Element.Earth: return "砸伤，骨头类伤害（压扁，骨折）";
+            case Element.Metal: return L.T("injury.typeMetal");
+            case Element.Wood: return L.T("injury.typeWood");
+            case Element.Water: return L.T("injury.typeWater");
+            case Element.Fire: return L.T("injury.typeFire");
+            case Element.Earth: return L.T("injury.typeEarth");
         }
         return "";
     }

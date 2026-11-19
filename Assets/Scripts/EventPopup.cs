@@ -107,8 +107,8 @@ public class EventPopup : MonoBehaviour
                 if (p.species == option.species) found = true;
             if (!found)
             {
-                yield return ChoicePrompt.Ask("队里没有" + CombatPanel.SpeciesName(option.species) + "，不能选这一项",
-                    new System.Collections.Generic.List<string> { "确定" }, null);
+                yield return ChoicePrompt.Ask(L.T("event.needSpecies", L.SpeciesName(option.species)),
+                    new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
                 yield break;
             }
         }
@@ -116,7 +116,7 @@ public class EventPopup : MonoBehaviour
         yield return ChoicePrompt.Ask(string.IsNullOrEmpty(option.choiceText) ? option.text : option.choiceText,new System.Collections.Generic.List<string> { option.acceptButton, option.refuseButton }, x => answer = x);
         if (answer != 0) yield break;   // Refused: back to the event card.
         if (!string.IsNullOrEmpty(option.acceptResult))
-            yield return ChoicePrompt.Ask(option.acceptResult, new System.Collections.Generic.List<string> { "确定" }, null);
+            yield return ChoicePrompt.Ask(option.acceptResult, new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
         Hide();
         ResolveCurrentEvent();
         var story = FindFirstObjectByType<StoryCard>();
@@ -132,16 +132,16 @@ public class EventPopup : MonoBehaviour
         foreach (var item in option.rewardItems)
         {
             if (!item) continue;
-            var takers = players.FindAll(p => p.HasFreeItemSlot && p.CanHold(item));
+            var takers = players.FindAll(p => p.HasRoomFor(item) && p.CanHold(item));
             if (takers.Count == 0)
             {
-                yield return ChoicePrompt.Ask("没有人的背包放得下" + item.itemName + "，只能放弃", new System.Collections.Generic.List<string> { "确定" }, null);
+                yield return ChoicePrompt.Ask(L.T("event.noRoom", item.itemName), new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
                 continue;
             }
             var names = new System.Collections.Generic.List<string>();
             foreach (var p in takers) names.Add(p.playerName);
             int pick = 0;
-            yield return ChoicePrompt.Ask("获得" + item.itemName + "：给谁？", names, x => pick = x);
+            yield return ChoicePrompt.Ask(L.T("event.giveTo", item.itemName), names, x => pick = x);
             takers[pick].TryAddItem(item);
             takers[pick].Refresh();
         }

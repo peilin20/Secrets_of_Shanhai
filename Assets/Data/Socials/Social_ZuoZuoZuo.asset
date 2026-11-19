@@ -16,17 +16,18 @@ MonoBehaviour:
   image: {fileID: 0}
   description: 
   pool: 02000000020000000200000000000000i
-  startingFavor: 3
+  randomOthers: 0
+  startingFavor: 2
   hasSpecies: 0
   species: 0
   outcomes:
-  - label: "\u5927\u80DC\u5229"
-    favorNeeded: 15
-    reward: "\u6BCF\u4EBA1\u571F+3\u9053\u5177\uFF1B\u53E6\u52A05\u79D8\u95FB+\u6BCF\u4EBA1\u9053\u5177"
-  - label: "\u80DC\u5229"
-    favorNeeded: 8
-    reward: "\u6BCF\u4EBA1\u571F+3\u9053\u5177"
-  failureResult: "\uFF08\u5F85\u586B\u5199\uFF09"
+  - label: "\u5927\u6210\u529F"
+    favorNeeded: 6
+    reward: "1\u9053\u5177"
+  - label: "\u6210\u529F"
+    favorNeeded: 3
+    reward: "\u53D9\u4E8B"
+  failureResult: 
   failureCombat: {fileID: 0}
   special: 
   hasSpeciesBonus: 0

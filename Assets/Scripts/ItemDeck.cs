@@ -22,20 +22,24 @@ public class ItemDeck : MonoBehaviour
 
     readonly List<ItemData> pile = new List<ItemData>();
     ItemCard drawnCard;
+    public bool CardWaiting => drawnCard != null;   // A drawn item waits for a character card to be clicked.
     bool flying;
-    string defaultPrompt;
 
     void Awake()
     {
-        if (promptText) defaultPrompt = promptText.text;
         if (pileButton) pileButton.onClick.AddListener(Draw);
     }
+
+    void OnEnable() { L.Changed += UpdateCount; }
+    void OnDisable() { L.Changed -= UpdateCount; }
 
     void Start()
     {
         // Each card goes into the pile as many times as its 总量 says.
         foreach (var card in cards)
             if (card) for (int c = 0; c < card.copiesInPile; c++) pile.Add(card);
+        // Cards the players' backgrounds already took in the character creation scene.
+        foreach (var taken in Party.takenFromPile) pile.Remove(taken);
         for (int i = pile.Count - 1; i > 0; i--)
         {
             int j = Random.Range(0, i + 1);
@@ -94,9 +98,8 @@ public class ItemDeck : MonoBehaviour
 
         if (promptText)
         {
-            promptText.text = AnyoneCanTake(item) ? defaultPrompt
-                : "没有玩家能拿这张牌（" + (item.exclusiveTo ? item.itemName + " 是" + item.exclusiveTo.className + "专属" : "大家的道具栏都满了")
-                  + "），点击道具牌堆弃掉";
+            promptText.text = AnyoneCanTake(item) ? L.T("items.givePrompt")
+                : L.T("deck.nobody", item.IsExclusive ? L.T("deck.exclusiveOf", item.itemName, item.ExclusiveName) : L.T("deck.allFull"));
             promptText.gameObject.SetActive(true);
             promptText.transform.SetAsLastSibling();
         }
@@ -108,7 +111,7 @@ public class ItemDeck : MonoBehaviour
     {
         if (drawnCard || flying || pile.Count == 0) return false;
         Draw();
-        if (drawnCard && character.CanHold(drawnCard.item) && character.HasFreeItemSlot) StartCoroutine(FlyTo(character));
+        if (drawnCard && character.CanHold(drawnCard.item) && character.HasRoomFor(drawnCard.item)) StartCoroutine(FlyTo(character));
         return true;
     }
 
@@ -116,7 +119,7 @@ public class ItemDeck : MonoBehaviour
     static bool AnyoneCanTake(ItemData item)
     {
         foreach (var c in FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude))
-            if (c.HasFreeItemSlot && c.CanHold(item)) return true;
+            if (c.HasRoomFor(item) && c.CanHold(item)) return true;
         return false;
     }
 
@@ -125,16 +128,16 @@ public class ItemDeck : MonoBehaviour
     {
         if (!drawnCard || flying) return;
         var item = drawnCard.item;
-        if (!character.CanHold(item) && item.exclusiveTo)
+        if (!character.CanHold(item) && item.IsExclusive)
         {
             // 专属: only a player of that class may have it.
-            if (promptText) promptText.text = item.itemName + " 是" + item.exclusiveTo.className + "专属，只能给" + item.exclusiveTo.className;
+            if (promptText) promptText.text = L.T("deck.onlyFor", item.itemName, item.ExclusiveName);
             return;
         }
-        if (!character.HasFreeItemSlot)
+        if (!character.HasRoomFor(item))
         {
             // Full: the card stays out so it can go to someone else.
-            if (promptText) promptText.text = character.playerName + " 的背包满了（道具和负伤共 " + CharacterCard.ItemSlots + " 格），请选别的玩家";
+            if (promptText) promptText.text = L.T("deck.full", character.playerName, CharacterCard.ItemSlots);
             return;
         }
         StartCoroutine(FlyTo(character));
@@ -164,6 +167,6 @@ public class ItemDeck : MonoBehaviour
 
     void UpdateCount()
     {
-        if (countText) countText.text = pile.Count > 0 ? pile.Count + " left" : "Empty";
+        if (countText) countText.text = pile.Count > 0 ? L.T("pile.left", pile.Count) : L.T("pile.empty");
     }
 }

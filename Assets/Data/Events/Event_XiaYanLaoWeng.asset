@@ -1,0 +1,48 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8b2183bfedb0e345b19cf887d8374e6, type: 3}
+  m_Name: Event_XiaYanLaoWeng
+  m_EditorClassIdentifier: Assembly-CSharp::EventData
+  title: "\u778E\u773C\u8001\u7FC1"
+  image: {fileID: 0}
+  description: "\u90B8\u5E97\u7684\u89D2\u843D\u91CC\u5750\u7740\u4E00\u540D\u76F2\u773C\u8001\u4EBA\u3002\u4F60\u4EEC\u8FDB\u95E8\u7684\u65F6\u5019\uFF0C\u4ED6\u4F4E\u7740\u5934\u50CF\u5728\u6253\u76F9\u3002\n\u4F60\u4EEC\u6B63\u8BF4\u7740\u8BDD\uFF0C\u4ED6\u5FFD\u7136\u5F00\u53E3\uFF1A\n\n\u201C\u8BF8\u4F4D\u8981\u51FA\u8FDC\u95E8\uFF1F\u201D\n\u201C\u90A3\u4F60\u4EEC\u8BB0\u4F4F\u4E00\u53E5\uFF0C\u4ECA\u5929\u5728\u8FD9\u91CC\u4F60\u4EEC\u8981\u9047\u5230\u4E00\u4F19\u4EBA\uFF0C\u8BA9\u4ED6\u4EEC\u4E2D\u7684\u4EBA\u54ED\uFF0C\u5C31\u662F\u5927\u5409\u3002\u82E5\u662F\u4F17\u4EBA\u90FD\u7B11\uFF0C\u4E4B\u540E\u5C31\u96BE\u8BF4\u4E86\u3002\u201D\n\n\u8BDD\u97F3\u521A\u843D\u4E0B\uFF0C\u90B8\u5E97\u95E8\u5916\u5C31\u4F20\u6765\u5522\u5450\uFF0C\u9523\u58F0\uFF0C\u811A\u6B65\u58F0\uFF0C\u8FD8\u6709\u8BF4\u7B11\u7684\u58F0\u97F3\u3002\u4E00\u961F\u9001\u4EB2\u7684\u4EBA\u7ADF\u4ECE\u8352\u9053\u90A3\u5934\u8D70\u6765\u3002"
+  options:
+  - label: "\u6218\u6597:"
+    text: "\u5927\u95F9\u9001\u4EB2\u8F66\u961F"
+    kind: 0
+    buttonName: "\u5927\u95F9\u9001\u4EB2\u8F66\u961F"
+    combat: {fileID: 11400000, guid: 64a73793ce8262c4b91139c4001c2824, type: 2}
+    social: {fileID: 0}
+    requiresSpecies: 0
+    species: 0
+    choiceText: 
+    acceptButton: "\u7B54\u5E94"
+    refuseButton: "\u62D2\u7EDD"
+    acceptResult: 
+    rewardItems: []
+    nextEvent: {fileID: 0}
+  - label: "\u793E\u4EA4:"
+    text: "\u8FFD\u95EE\u8001\u7FC1"
+    kind: 1
+    buttonName: "\u8FFD\u95EE\u8001\u7FC1"
+    combat: {fileID: 0}
+    social: {fileID: 11400000, guid: 778173193a1b3a043b145806a5dfca74, type: 2}
+    requiresSpecies: 0
+    species: 0
+    choiceText: 
+    acceptButton: "\u7B54\u5E94"
+    refuseButton: "\u62D2\u7EDD"
+    acceptResult: 
+    rewardItems: []
+    nextEvent: {fileID: 0}
+  nextStep: 
+  notFirstEvent: 0

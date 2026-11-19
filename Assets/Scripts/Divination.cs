@@ -28,6 +28,20 @@ public static class Divination
         return true;
     }
 
+    // Birthday (month, day) plus age: the birth year is worked out from today's date
+    // (one year earlier if this year's birthday hasn't come yet). Returns false if it isn't a real date.
+    public static bool TryParseWithAge(int age, string month, string day, DateTime today, out DateTime birth)
+    {
+        birth = default;
+        if (age < 0 || !int.TryParse(month, out int m) || !int.TryParse(day, out int d)) return false;
+        if (m < 1 || m > 12 || d < 1 || d > 31) return false;
+        int y = today.Year - age;
+        if (m > today.Month || (m == today.Month && d > today.Day)) y--;
+        if (y < 1 || y > 9999 || d > DateTime.DaysInMonth(y, m)) return false;
+        birth = new DateTime(y, m, d);
+        return true;
+    }
+
     // Index 0..59 of the day pillar (0 = 甲子).
     public static int DayPillar(DateTime birth)
     {

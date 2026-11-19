@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ef7b434babc9e54e8da89bb78b5fd6c, type: 3}
   m_Name: ShangYao
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: "\u4F24\u836F"
+  itemName: "\u4f24\u836f - \u91d1\u3001\u571f"
   kind: 1
   mechanic: 19
   value: 0
@@ -21,7 +21,7 @@ MonoBehaviour:
   image: {fileID: 0}
   description: 
   effects:
-  - label: "\u6548\u679C"
-    value: "\u6D88\u96641\u5BF9\u5E94\u5C5E\u6027\u8D1F\u4F24\u724C"
-  copiesInPile: 10
+  - label: "\u6548\u679c"
+    value: "\u6d88\u96641\u91d1\u6216\u571f\u5c5e\u6027\u8d1f\u4f24\u724c"
+  copiesInPile: 3
   exclusiveTo: {fileID: 0}

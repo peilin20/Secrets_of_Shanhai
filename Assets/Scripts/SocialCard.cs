@@ -18,6 +18,7 @@ public class SocialCard : MonoBehaviour
     void Start()
     {
         Refresh();
+        if (Application.isPlaying) ImageZoom.Enable(socialImage);   // Click the picture: full screen.
     }
 
     public void SetSocial(SocialData social)
@@ -55,11 +56,11 @@ public class SocialCard : MonoBehaviour
             // No space after a label: Unity's text wraps at spaces, which would push Chinese text to the next line.
             var sb = new StringBuilder();
             if (!string.IsNullOrEmpty(data.description)) sb.Append(data.description).Append("\n\n");
-            sb.Append("<b>初始好感度：</b>").Append(data.startingFavor);
+            sb.Append("<b>").Append(L.T("sc.start")).Append("</b>").Append(data.startingFavor);
             foreach (var outcome in data.outcomes)
-                sb.Append("\n\n<b>").Append(outcome.label).Append("(").Append(outcome.favorNeeded).Append("好感度):</b>").Append(outcome.reward);
-            sb.Append("\n\n<b>失败：</b>").Append(data.failureResult);
-            if (!string.IsNullOrEmpty(data.special)) sb.Append("\n\n<b>特殊：</b>").Append(data.special);
+                sb.Append("\n\n<b>").Append(outcome.label).Append(L.T("sc.need", outcome.favorNeeded)).Append("</b>").Append(outcome.reward);
+            sb.Append("\n\n<b>").Append(L.T("cc.fail")).Append("</b>").Append(data.failureResult);
+            if (!string.IsNullOrEmpty(data.special)) sb.Append("\n\n<b>").Append(L.T("cc.special")).Append("</b>").Append(data.special);
             bodyText.text = sb.ToString();
         }
     }

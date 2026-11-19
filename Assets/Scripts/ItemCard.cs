@@ -55,11 +55,12 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         if (elementCircle) { elementCircle.enabled = !data.special; elementCircle.color = ElementToken.ColorFor(data.element); }
         if (elementText) elementText.text = data.special ? "" : CombatCard.ElementChar(data.element);
         if (itemImage) itemImage.enabled = false;
-        if (descriptionText) descriptionText.text = data.special ? "特殊负伤（无法去除）"
-            : "负伤（难度 " + data.Level + "）\n" + InjuryData.TypeOf(data.element);
-        if (effectsText) effectsText.text = "<b>效果：</b>" + data.effect;
+        if (descriptionText) descriptionText.text = data.special ? L.T("injury.special")
+            : L.T("injury.kind", L.ElementName(data.element), data.Level) + "\n" + InjuryData.TypeOf(data.element);
+        if (effectsText) effectsText.text = "<b>" + L.T("injury.effect") + "</b>" + data.effect;
         var background = GetComponent<Image>();
-        if (background) background.color = InjuryColor;
+        // Tinted by the injury's element, so its element shows at a glance.
+        if (background) background.color = data.special ? InjuryColor : Color.Lerp(InjuryColor, ElementToken.ColorFor(data.element), 0.45f);
     }
 
     public void Refresh()
@@ -82,7 +83,7 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         {
             var sb = new StringBuilder();
             foreach (var effect in item.effects)
-                sb.Append("<b>").Append(effect.label).Append("：</b>").Append(effect.value).Append('\n');
+                sb.Append("<b>").Append(effect.label).Append(L.T("sep.colon")).Append("</b>").Append(effect.value).Append('\n');
             effectsText.text = sb.ToString().TrimEnd('\n');
         }
     }

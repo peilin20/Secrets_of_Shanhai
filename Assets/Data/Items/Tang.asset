@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ef7b434babc9e54e8da89bb78b5fd6c, type: 3}
   m_Name: Tang
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: "\u7CD6"
+  itemName: "\u7CD6\u7CD5"
   kind: 1
   mechanic: 21
   value: 0
@@ -22,6 +22,6 @@ MonoBehaviour:
   description: "\u4EC5\u4E0A\u573A\u89D2\u8272"
   effects:
   - label: "\u6548\u679C"
-    value: "\u793E\u4EA4\u4E2D\uFF0C\u53EF\u4F5C\u4E3A1\u4EFB\u610F\u5C5E\u6027token\u4F7F\u7528\u3002\u5728\u548C\u5B69\u5B50\u8FDB\u884C\u793E\u4EA4\u65F6\uFF0C\u7ACB\u523B\u83B7\u5F973\u597D\u611F\u5EA6"
+    value: "\u793E\u4EA4\u4E2D\uFF0C\u53EF\u4F5C\u4E3A1\u81EA\u9009\u5C5E\u6027token\u4F7F\u7528\u3002\u5728\u548C\u5B69\u5B50\u8FDB\u884C\u793E\u4EA4\u65F6\uFF0C\u7ACB\u523B\u83B7\u5F973\u597D\u611F\u5EA6"
   copiesInPile: 1
   exclusiveTo: {fileID: 0}

@@ -16,7 +16,7 @@ MonoBehaviour:
   image: {fileID: 0}
   description: 
   pool: 00000000040000000100000002000000i
-  startingFavor: 3
+  startingFavor: 2
   hasSpecies: 1
   species: 0
   outcomes:

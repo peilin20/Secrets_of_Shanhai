@@ -14,11 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CombatData
   title: "\u597D\u72D7\u4E0D\u6321\u9053"
   element: 2
+  hasSpecies: 0
+  species: 0
   image: {fileID: 0}
   description: 
   greatSuccessThreshold: 8
-  greatSuccessReward: "\u5927\u9EC4\u72D7\u5939\u7740\u5C3E\u5DF4\u8BF4\u4ED6\u9519\u4E86\uFF0C\u60F3\u77E5\u9053\u4EC0\u4E48\u4ED6\u90FD\u8BF4\uFF08\u62BD\u53D61\u201C\u6751\u5E84\u79D8\u95FB\u5361\u201D\uFF09\u3002\u83B71\u571Ftoken\u3002"
-  successThreshold: 4
+  greatSuccessReward: "\u5927\u9EC4\u72D7\u5939\u7740\u5C3E\u5DF4\u8BF4\u4ED6\u9519\u4E86\uFF0C\u83B7\u5F971\u9053\u5177"
+  successThreshold: 5
   successReward: "\u5927\u9EC4\u72D7\u770B\u5F62\u52BF\u4E0D\u5999\u8D76\u7D27\u8DD1\u8DEF\uFF0C\u83B7\u5F971\u571Ftoken"
-  failureResult: "\u56E2\u961F\u603B\u8BA1\u629B\u5F03\u4EF7\u503C200\u5143\u7684\u9053\u5177\u724C\uFF0C\u4E00\u540D\u73A9\u5BB6\u62BD\u53D6\u4E00\u5F20\u201C\u8D1F\u4F24\u201D\u724C"
+  failureResult: "\u65E0"
   special: 
