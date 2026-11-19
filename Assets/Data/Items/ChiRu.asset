@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: "\u8d64\u9c6c"
   kind: 0
-  mechanic: 0
+  mechanic: 24
   value: 0
   hasElement: 0
   element: 0
@@ -25,3 +25,7 @@ MonoBehaviour:
     value: "\u5360\u636e2\u80cc\u5305\u4f4d\u3002\u6bcf\u6d88\u80171\u6c34token\uff0c\u83b7\u5f971\u6c34\u6218\u6597\u503c"
   copiesInPile: 0
   exclusiveTo: {fileID: 0}
+  speciesOnly: 1
+  exclusiveSpecies: 2
+  backpackSlots: 2
+  contents: []

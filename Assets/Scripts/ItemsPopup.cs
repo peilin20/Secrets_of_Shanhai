@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -190,6 +192,12 @@ public class ItemsPopup : MonoBehaviour
             if (deck) StartCoroutine(deck.UseHealItem(who, slot, () => { if (isActiveAndEnabled) Show(who); }));
             return;
         }
+        if (card.item && card.item.mechanic == ItemMechanic.Pouch)
+        {
+            var who = owner;
+            StartCoroutine(OpenPouch(who, slot));
+            return;
+        }
         if (card.item && card.item.kind == ItemKind.Consumable)
         {
             titleText.text = L.T("bag.consumable", owner.playerName, card.item.itemName);
@@ -198,11 +206,35 @@ public class ItemsPopup : MonoBehaviour
         if (!owner.ToggleEquip(slot))
         {
             titleText.text = L.T("bag.cantEquip", owner.playerName, owner.equipmentLocked ? L.T("bag.locked")
-                : L.T("bag.exclusive", card.item.itemName, card.item.exclusiveTo ? card.item.exclusiveTo.className : L.T("bag.otherClass")));
+                : L.T("bag.exclusive", card.item.itemName, card.item.IsExclusive ? card.item.ExclusiveName : L.T("bag.otherClass")));
             return;
         }
         UpdateEquippedLook();
         UpdateTitle();
+    }
+
+    // 锦囊: it's replaced by what's inside. It frees its own slot; the rest need free slots too.
+    IEnumerator OpenPouch(CharacterCard who, int slot)
+    {
+        var pouch = who.items[slot];
+        int need = pouch.contents.FindAll(x => x && !CharacterCard.IsEquipment(x)).Count - 1;
+        if (who.ItemSlots_Free() < need)
+        {
+            yield return ChoicePrompt.Ask(L.T("pouch.noRoom", who.playerName, pouch.itemName, need), new List<string> { L.T("setup.ok") }, null);
+            yield break;
+        }
+        int answer = 1;
+        var names = new List<string>();
+        foreach (var x in pouch.contents) if (x) names.Add(x.itemName);
+        yield return ChoicePrompt.Ask(L.T("pouch.ask", who.playerName, pouch.itemName, string.Join(L.T("setup.listSep"), names.ToArray())),
+            new List<string> { L.T("pouch.open"), L.T("common.cancel") }, x => answer = x);
+        if (answer != 0) yield break;
+        who.items[slot] = null;
+        foreach (var x in pouch.contents) if (x) who.TryAddItem(x);
+        who.Refresh();
+        yield return ChoicePrompt.Ask(L.T("pouch.opened", who.playerName, pouch.itemName, string.Join(L.T("setup.listSep"), names.ToArray())),
+            new List<string> { L.T("setup.ok") }, null);
+        if (isActiveAndEnabled) Show(who);
     }
 
     // The equipped card gets a thick gold border.

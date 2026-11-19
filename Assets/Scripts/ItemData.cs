@@ -41,7 +41,10 @@ public enum ItemMechanic
     Panacea,            // 仙草: discard all your injury cards, +1 token of each one's element (used from the backpack)
     Sugar,              // 糖: in social, the speaker counts it as 1 token of any element
     Rattle,             // 拨浪鼓: +2 favor with children / naughty spirits (not wired up yet)
-    NoEffect            // 一些钱: nothing to use
+    NoEffect,           // nothing to use
+    WaterPerToken,      // 赤鱬: spend any number of 水 tokens, +1 水 combat value each
+    Pouch,              // 锦囊: opened from the backpack, it becomes the items in `contents`
+    Money               // 一些钱: combat +1d4 金 (read from the card); social: affinity rises to what 成功 needs
 }
 
 // An item card: name, value, element, picture, description and numerical effects.
@@ -61,4 +64,12 @@ public class ItemData : ScriptableObject
     [Header("Pile and class")]
     public int copiesInPile = 1;      // 总量: how many of this card go into the item pile
     public ClassData exclusiveTo;     // 专属: only this class can hold or equip it (empty = anyone)
+    public bool speciesOnly;          // 专属 to a species instead (赤鱬: 白泽专属)
+    public Species exclusiveSpecies;
+    public int backpackSlots;         // Equipment normally takes no backpack slot; this many if it does (赤鱬: 2)
+    public List<ItemData> contents = new List<ItemData>();   // 锦囊: what's inside
+
+    public bool IsExclusive => exclusiveTo || speciesOnly;
+    // Who it's 专属 to, for messages: a class name or a species name.
+    public string ExclusiveName => exclusiveTo ? exclusiveTo.className : speciesOnly ? L.SpeciesName(exclusiveSpecies) : "";
 }

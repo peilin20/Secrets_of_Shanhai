@@ -99,7 +99,7 @@ public class ItemDeck : MonoBehaviour
         if (promptText)
         {
             promptText.text = AnyoneCanTake(item) ? L.T("items.givePrompt")
-                : L.T("deck.nobody", item.exclusiveTo ? L.T("deck.exclusiveOf", item.itemName, item.exclusiveTo.className) : L.T("deck.allFull"));
+                : L.T("deck.nobody", item.IsExclusive ? L.T("deck.exclusiveOf", item.itemName, item.ExclusiveName) : L.T("deck.allFull"));
             promptText.gameObject.SetActive(true);
             promptText.transform.SetAsLastSibling();
         }
@@ -128,10 +128,10 @@ public class ItemDeck : MonoBehaviour
     {
         if (!drawnCard || flying) return;
         var item = drawnCard.item;
-        if (!character.CanHold(item) && item.exclusiveTo)
+        if (!character.CanHold(item) && item.IsExclusive)
         {
             // 专属: only a player of that class may have it.
-            if (promptText) promptText.text = L.T("deck.onlyFor", item.itemName, item.exclusiveTo.className);
+            if (promptText) promptText.text = L.T("deck.onlyFor", item.itemName, item.ExclusiveName);
             return;
         }
         if (!character.HasRoomFor(item))

@@ -450,6 +450,7 @@ public class CombatPanel : MonoBehaviour
             case ItemMechanic.Sugar:
             case ItemMechanic.Rattle: return L.T("why.socialOnly");
             case ItemMechanic.Salve:
+            case ItemMechanic.Pouch:
             case ItemMechanic.Panacea: return L.T("why.useFromBackpack");
             case ItemMechanic.NoEffect: return L.T("why.noEffect");
             case ItemMechanic.FailureGuard: return L.T("why.failureGuard");
@@ -501,6 +502,7 @@ public class CombatPanel : MonoBehaviour
             case ItemMechanic.Reroll: yield return UseReroll(src); break;
             case ItemMechanic.Disguise: yield return UseDisguise(player, src); break;
             case ItemMechanic.Burst: yield return UseBurst(player, src); break;
+            case ItemMechanic.WaterPerToken: yield return UseWaterPerToken(player, src); break;
             case ItemMechanic.SocialOnly:
             case ItemMechanic.FailureGuard: used = false; break;
             default: yield return UseAuto(player, item, src); break;   // Auto, Pursuit (its own attack is plain)
@@ -826,6 +828,20 @@ public class CombatPanel : MonoBehaviour
         yield return Choose(L.T("combat.askDisguise", player.playerName), labels, colors);
         disguises[player] = all[choice];
         log.Add(L.T("combat.logDisguise", src, player.playerName, L.SpeciesName(all[choice])));
+    }
+
+    // 赤鱬: spend any number of 水 tokens, +1 水 combat value for each.
+    IEnumerator UseWaterPerToken(CharacterCard player, string src)
+    {
+        int have = Count(player, Element.Water);
+        if (have == 0) { Fail(L.T("combat.logNoWater", src)); yield break; }
+        var labels = new List<string>();
+        var colors = new List<Color>();
+        for (int i = 1; i <= have; i++) { labels.Add(L.T("combat.spendWater", i)); colors.Add(ElementToken.ColorFor(Element.Water)); }
+        yield return Choose(L.T("combat.askWater", player.playerName), labels, colors);
+        int n = choice + 1;
+        for (int i = 0; i < n; i++) Spend(player, Element.Water);
+        yield return Hit(player, src + L.T("combat.paren", Tokens(Element.Water, n)), n, Element.Water, n + "×1", null);
     }
 
     // 单次高强度输出: one token of each element, 10 of your primary element.
@@ -1342,6 +1358,7 @@ public class CombatPanel : MonoBehaviour
             case ItemMechanic.Bewitching: return L.T("sum.bewitch");
             case ItemMechanic.InjuryTransfer: return L.T("sum.transfer");
             case ItemMechanic.Disguise: return L.T("sum.disguise");
+            case ItemMechanic.WaterPerToken: return L.T("sum.waterPerToken");
         }
         var plan = ParsePlan(item);
         if (plan.manual) return L.T("sum.manual");

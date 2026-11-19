@@ -145,12 +145,24 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         }
     }
 
-    public int UsedSlots => BackpackItemCount + injuries.Count;
+    // Equipment that takes backpack slots (赤鱬 takes 2).
+    public int GearSlots
+    {
+        get
+        {
+            int count = 0;
+            foreach (var item in items) if (item && IsEquipment(item)) count += Mathf.Max(0, item.backpackSlots);
+            return count;
+        }
+    }
+
+    public int UsedSlots => BackpackItemCount + GearSlots + injuries.Count;
 
     public bool HasFreeItemSlot => UsedSlots < ItemSlots;
+    public int ItemSlots_Free() => ItemSlots - UsedSlots;
 
     // Equipment always fits; anything else needs a free backpack slot.
-    public bool HasRoomFor(ItemData item) => IsEquipment(item) || HasFreeItemSlot;
+    public bool HasRoomFor(ItemData item) => IsEquipment(item) ? UsedSlots + Mathf.Max(0, item.backpackSlots) <= ItemSlots : HasFreeItemSlot;
 
     // Puts the item in the first empty slot. Returns false when the backpack is full
     // or the item is 专属 to another class.
@@ -187,7 +199,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
     // A class-exclusive (专属) item can only go to a player of that class.
     public bool CanHold(ItemData item)
     {
-        return item && (!item.exclusiveTo || item.exclusiveTo == characterClass);
+        return item && (!item.exclusiveTo || item.exclusiveTo == characterClass) && (!item.speciesOnly || item.exclusiveSpecies == species);
     }
 
     // Equips the item in this slot, or unequips it if it's already equipped.

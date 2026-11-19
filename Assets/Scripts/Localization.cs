@@ -177,6 +177,16 @@ public static class L
         { "combat.itemsLabel",      new[] { "道具（任何玩家随时可用）", "Items (any player can use them at any time)" } },
         { "social.itemsLabel",      new[] { "道具（装备只有说话的玩家能用）", "Items (only the speaker can use equipment)" } },
         { "story.slotsFull",        new[] { "事件栏已满", "Event slots are full" } },
+        // 赤鱬 / 锦囊 / 一些钱
+        { "combat.logNoWater",      new[] { "{0}：没有水 token，无法使用", "{0}: no Water tokens, can't use it" } },
+        { "combat.spendWater",      new[] { "消耗 {0} 枚水", "Spend {0} Water" } },
+        { "combat.askWater",        new[] { "{0}：消耗几枚水 token？（每枚 +1 水战斗值）", "{0}: how many Water tokens do you spend? (+1 Water combat value each)" } },
+        { "sum.waterPerToken",      new[] { "每消耗1水token +1水", "+1 Water per Water token spent" } },
+        { "social.logMoney",        new[] { "{0}：好感度达到{1}所需（+{2}）", "{0}: affinity rises to what {1} needs (+{2})" } },
+        { "pouch.ask",              new[] { "{0}：打开{1}？里面有：{2}", "{0}: open {1}? Inside: {2}" } },
+        { "pouch.open",             new[] { "打开", "Open" } },
+        { "pouch.opened",           new[] { "{0} 打开了{1}，获得：{2}", "{0} opened {1}. Items acquired: {2}" } },
+        { "pouch.noRoom",           new[] { "{0}：背包放不下，打开{1}还需要 {2} 个空位", "{0}: not enough room. Opening {1} needs {2} more free slot(s)" } },
         // Combat / social card faces, card rewards, character card
         { "cc.was",                 new[] { "{0}（原{1}）", "{0} (was {1})" } },
         { "cc.great",               new[] { "全胜(>={0}战斗值):", "Critical Success (≥{0} combat value): " } },

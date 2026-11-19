@@ -580,7 +580,9 @@ public class SocialPanel : MonoBehaviour
             case ItemMechanic.Sugar: return player == speaker ? null : L.T("why.speakerOnly");
             case ItemMechanic.Rattle: return L.T("why.rattle");
             case ItemMechanic.Salve:
+            case ItemMechanic.Pouch:
             case ItemMechanic.Panacea: return L.T("why.useFromBackpack");
+            case ItemMechanic.Money: return social && social.outcomes.Count > 0 ? null : L.T("why.noEffect");
             case ItemMechanic.NoEffect: return L.T("why.noEffect");
             case ItemMechanic.ExtraTurn:
                 if (player != speaker || !spoke) return L.T("why.afterSpeak");
@@ -618,6 +620,15 @@ public class SocialPanel : MonoBehaviour
                 break;
             case ItemMechanic.InjuryTransfer: yield return UseInjuryTransfer(player, src); break;
             case ItemMechanic.Escape: yield return UseEscape(player, src); break;
+            case ItemMechanic.Money:
+            {
+                // 一些钱: affinity rises to what 成功 (the last, plainest outcome) needs; never lowers it.
+                var success = social.outcomes[social.outcomes.Count - 1];
+                int before = favor;
+                favor = Mathf.Max(favor, Need(success));
+                log.Add(L.T("social.logMoney", src, success.label, favor - before));
+                break;
+            }
             default: used = false; break;
         }
 
