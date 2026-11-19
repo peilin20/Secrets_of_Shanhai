@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4ef7b434babc9e54e8da89bb78b5fd6c, type: 3}
   m_Name: YiRongMianJu
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: "\u6613\u5BB9\u9762\u5177"
+  itemName: "\u753b\u76ae\u9053\u5177"
   kind: 1
   mechanic: 14
   value: 0

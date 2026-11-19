@@ -411,6 +411,17 @@ public class InjuryDeck : MonoBehaviour
     {
         var item = p.items[slot];
         var removable = p.injuries.FindAll(x => x && !x.special);   // 特殊负伤 can't be removed.
+        // 伤药 names the elements it heals ("消除1金或土属性负伤牌"); one with none named heals any.
+        if (item.mechanic == ItemMechanic.Salve)
+        {
+            var named = new List<Element>();
+            foreach (var e in item.effects)
+            {
+                var m = Regex.Match(e.value ?? "", @"消除\s*\d*\s*([金木水火土或、]+)\s*属性负伤");
+                if (m.Success) foreach (char c in m.Groups[1].Value) if ("金木水火土".IndexOf(c) >= 0) named.Add(ElementOf(c.ToString()));
+            }
+            if (named.Count > 0) removable = removable.FindAll(x => named.Contains(x.element));
+        }
         if (removable.Count == 0)
         {
             yield return ChoicePrompt.Ask(L.T("inj.nothingToHeal", item.itemName, p.playerName), new List<string> { L.T("settings.close") }, null);
