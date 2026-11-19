@@ -422,7 +422,7 @@ public static class L
         { "social.noTokens",        new[] { "{0} 没有 token，不能下注，请换人", "{0} has no tokens and can't bet. Choose someone else" } },
         { "social.nobodyCanBet",    new[] { "没有玩家还能下注（每轮至少下注 1 枚 token）", "Nobody can bet any more (each round needs a bet of at least 1 token)" } },
         { "social.hintPick",        new[] { "① 选择本轮说话的玩家", "① Choose who talks this round" } },
-        { "social.hintAgain",       new[] { "② {0} 再说一次（定身术）", "② {0} talks again (extra turn)" } },
+        { "social.hintAgain",       new[] { "② {0} 再说一次（额外回合）", "② {0} talks again (extra turn)" } },
         { "social.hintSpeak",       new[] { "② {0} 说话：选一个属性，下注至少 1 枚（说话前可以换人）", "② {0} talks: pick an element and bet at least 1 token (you can still switch players before talking)" } },
         { "social.speakButton",     new[] { "② 选择属性并下注", "② Pick an element and bet" } },
         { "social.endWith",         new[] { "结束：{0}", "End: {0}" } },
