@@ -78,9 +78,9 @@ public class FortuneSticks : MonoBehaviour
         ort.SetAsLastSibling();
 
         var paper = new Color(0.96f, 0.92f, 0.82f);
-        var title = MakeText(ort, font, L.T("fortune.title"), 72, paper, new Vector2(0f, 440f), new Vector2(900f, 110f));
+        var title = MakeText(ort, font, L.Live(() => L.T("fortune.title")), 72, paper, new Vector2(0f, 440f), new Vector2(900f, 110f));
         title.fontStyle = FontStyle.Bold;
-        var hint = MakeText(ort, font, L.T("fortune.hint", sides), 30, paper, new Vector2(0f, -360f), new Vector2(1000f, 60f));
+        var hint = MakeText(ort, font, L.Live(() => L.T("fortune.hint", sides)), 30, paper, new Vector2(0f, -360f), new Vector2(1000f, 60f));
 
         // Borrow the table's stick box.
         var rt = (RectTransform)sticks.transform;
@@ -100,7 +100,7 @@ public class FortuneSticks : MonoBehaviour
         while (!done && sticks) yield return null;
         if (!sticks) { if (overlay) Destroy(overlay); result(Random.Range(1, sides + 1)); yield break; }
 
-        hint.text = L.T("fortune.result", got);
+        LiveText.Set(hint, L.Live(() => L.T("fortune.result", got)));
         yield return new WaitForSecondsRealtime(resultPause);
 
         rt.SetParent(parent, false);
@@ -112,7 +112,7 @@ public class FortuneSticks : MonoBehaviour
         result(got);
     }
 
-    static Text MakeText(RectTransform parent, Font font, string text, int size, Color color, Vector2 pos, Vector2 box)
+    static Text MakeText(RectTransform parent, Font font, LocString text, int size, Color color, Vector2 pos, Vector2 box)
     {
         var go = new GameObject("Text", typeof(RectTransform), typeof(Text));
         var rt = (RectTransform)go.transform;
@@ -125,7 +125,7 @@ public class FortuneSticks : MonoBehaviour
         t.color = color;
         t.alignment = TextAnchor.MiddleCenter;
         t.raycastTarget = false;
-        t.text = text;
+        LiveText.Set(t, text);
         return t;
     }
 

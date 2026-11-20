@@ -123,16 +123,16 @@ public class EventPopup : MonoBehaviour
                 if (p.species == option.species) found = true;
             if (!found)
             {
-                yield return ChoicePrompt.Ask(L.T("event.needSpecies", L.SpeciesName(option.species)),
-                    new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
+                yield return ChoicePrompt.Ask(L.Live(() => L.T("event.needSpecies", L.SpeciesName(option.species))),
+                    new System.Collections.Generic.List<LocString> { L.Live(() => L.T("setup.ok")) }, null);
                 yield break;
             }
         }
         int answer = 1;
-        yield return ChoicePrompt.Ask(string.IsNullOrEmpty(option.ChoiceText) ? option.Text : option.ChoiceText,new System.Collections.Generic.List<string> { option.AcceptButton, option.RefuseButton }, x => answer = x);
+        yield return ChoicePrompt.Ask(L.Live(() => string.IsNullOrEmpty(option.ChoiceText) ? option.Text : option.ChoiceText),new System.Collections.Generic.List<LocString> { L.Live(() => option.AcceptButton), L.Live(() => option.RefuseButton) }, x => answer = x);
         if (answer != 0) yield break;   // Refused: back to the event card.
         if (!string.IsNullOrEmpty(option.AcceptResult))
-            yield return ChoicePrompt.Ask(option.AcceptResult, new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
+            yield return ChoicePrompt.Ask(L.Live(() => option.AcceptResult), new System.Collections.Generic.List<LocString> { L.Live(() => L.T("setup.ok")) }, null);
         Hide();
         ResolveCurrentEvent();
         var story = FindFirstObjectByType<StoryCard>();
@@ -151,13 +151,13 @@ public class EventPopup : MonoBehaviour
             var takers = players.FindAll(p => p.HasRoomFor(item) && p.CanHold(item));
             if (takers.Count == 0)
             {
-                yield return ChoicePrompt.Ask(L.T("event.noRoom", item.Name), new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
+                yield return ChoicePrompt.Ask(L.Live(() => L.T("event.noRoom", item.Name)), new System.Collections.Generic.List<LocString> { L.Live(() => L.T("setup.ok")) }, null);
                 continue;
             }
-            var names = new System.Collections.Generic.List<string>();
+            var names = new System.Collections.Generic.List<LocString>();
             foreach (var p in takers) names.Add(p.playerName);
             int pick = 0;
-            yield return ChoicePrompt.Ask(L.T("event.giveTo", item.Name), names, x => pick = x);
+            yield return ChoicePrompt.Ask(L.Live(() => L.T("event.giveTo", item.Name)), names, x => pick = x);
             takers[pick].TryAddItem(item);
             takers[pick].Refresh();
         }

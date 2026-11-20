@@ -64,12 +64,12 @@ public class InjuryDeck : MonoBehaviour
 
     // Asks the player to pick one of these injury cards (plus an optional extra button such as 取消 / 完成).
     // `result` gets the index; the extra button is index cards.Count.
-    public static IEnumerator AskInjury(string question, List<InjuryData> cards, string extra, System.Action<int> result)
+    public static IEnumerator AskInjury(LocString question, List<InjuryData> cards, LocString extra, System.Action<int> result)
     {
-        var labels = new List<string>();
+        var labels = new List<LocString>();
         var colors = new List<Color>();
-        foreach (var x in cards) { labels.Add(CardLabel(x)); colors.Add(CardColor(x)); }
-        if (!string.IsNullOrEmpty(extra)) { labels.Add(extra); colors.Add(new Color(0.88f, 0.82f, 0.68f)); }
+        foreach (var x in cards) { labels.Add(L.Live(() => CardLabel(x))); colors.Add(CardColor(x)); }
+        if (!LocString.IsNullOrEmpty(extra)) { labels.Add(extra); colors.Add(new Color(0.88f, 0.82f, 0.68f)); }
         yield return ChoicePrompt.AskCards(question, labels, colors, result);
     }
 
@@ -77,30 +77,30 @@ public class InjuryDeck : MonoBehaviour
 
     // Puts an injury into the player's backpack. `drawn`: it came from the pile, so "抽到时" effects happen.
     // A full backpack makes the player throw away an item of their choice to make room.
-    public IEnumerator Give(CharacterCard p, InjuryData injury, bool drawn, List<string> log)
+    public IEnumerator Give(CharacterCard p, InjuryData injury, bool drawn, List<LocString> log)
     {
         if (!p || !injury) yield break;
         // e.g. "抽到时，失去1件道具。弃掉这张牌。如没有道具则无事发生"
         if (drawn && injury.effect.Contains("抽到时") && injury.effect.Contains("失去1件道具"))
         {
-            if (p.ItemCount > 0) yield return LoseItem(p, L.T("inj.drewLoseItem", p.playerName, injury.Title, injury.EffectText), log);
-            Note(log, "  " + L.T("inj.logLostItem", p.playerName, injury.Title));
+            if (p.ItemCount > 0) yield return LoseItem(p, L.Live(() => L.T("inj.drewLoseItem", p.playerName, injury.Title, injury.EffectText)), log);
+            Note(log, L.Live(() => "  " + L.T("inj.logLostItem", p.playerName, injury.Title)));
             yield break;
         }
         if (!p.HasFreeItemSlot && p.BackpackItemCount > 0)
-            yield return LoseItem(p, L.T("inj.fullBackpack", p.playerName, CharacterCard.ItemSlots, injury.Title), log, true);
+            yield return LoseItem(p, L.Live(() => L.T("inj.fullBackpack", p.playerName, CharacterCard.ItemSlots, injury.Title)), log, true);
         p.injuries.Add(injury);
         if (injury.effect.Contains("无法在下一次事件中上场")) p.sitOutEvent = eventNumber + 1;
         p.Refresh();
     }
 
     // `backpackOnly`: only 消耗品 (to free a backpack slot; equipment doesn't take one).
-    IEnumerator LoseItem(CharacterCard p, string question, List<string> log, bool backpackOnly = false)
+    IEnumerator LoseItem(CharacterCard p, LocString question, List<LocString> log, bool backpackOnly = false)
     {
         var slots = new List<int>();
-        var labels = new List<string>();
+        var labels = new List<LocString>();
         for (int i = 0; i < p.items.Count; i++)
-            if (p.items[i] && (!backpackOnly || !CharacterCard.IsEquipment(p.items[i]))) { slots.Add(i); labels.Add(p.items[i].Name); }
+            if (p.items[i] && (!backpackOnly || !CharacterCard.IsEquipment(p.items[i]))) { slots.Add(i); labels.Add(L.Live(() => p.items[i].Name)); }
         if (slots.Count == 0) yield break;
         int pick = 0;
         yield return ChoicePrompt.Ask(question, labels, x => pick = x);
@@ -109,24 +109,24 @@ public class InjuryDeck : MonoBehaviour
         p.items[slot] = null;
         if (p.equippedSlot == slot) p.equippedSlot = -1;
         p.Refresh();
-        Note(log, "  " + L.T("inj.logDropped", p.playerName, lost.Name));
+        Note(log, L.Live(() => "  " + L.T("inj.logDropped", p.playerName, lost.Name)));
     }
 
     // Removes the injury; any tokens its card promises when it heals ("…并获得2金token") are given.
-    void Heal(CharacterCard p, InjuryData injury, string why, List<string> lines)
+    void Heal(CharacterCard p, InjuryData injury, LocString why, List<LocString> lines)
     {
         p.injuries.Remove(injury);
-        string gained = "";
+        LocString gained = "";
         var m = Regex.Match(injury.effect, @"获得\s*(\d+)\s*(金|木|水|火|土)\s*token");
         if (m.Success)
         {
             var e = ElementOf(m.Groups[2].Value);
             int n = 0;
             for (int i = 0; i < int.Parse(m.Groups[1].Value); i++) n += p.GainToken(e, tokenPrefab);
-            gained = L.T("inj.healTokens", n, L.ElementName(e));
+            gained = L.Live(() => L.T("inj.healTokens", n, L.ElementName(e)));
         }
         p.Refresh();
-        lines.Add(L.T("inj.healed", p.playerName, injury.Title, why) + gained);
+        lines.Add(L.Live(() => L.T("inj.healed", p.playerName, injury.Title, why) + gained));
     }
 
     // --- Events ---
@@ -169,7 +169,7 @@ public class InjuryDeck : MonoBehaviour
     // 负伤 that change the combat value when this player goes on stage:
     // "每次上场战斗值-1", "在战斗中，如果第一个出场，水属性战斗值+1". An element-ed bonus goes through
     // `counter` (克制 ×2 / ×½ against the enemy).
-    public int CombatOnStage(CharacterCard p, bool first, List<string> log, System.Func<int, Element, int> counter = null)
+    public int CombatOnStage(CharacterCard p, bool first, List<LocString> log, System.Func<int, Element, int> counter = null)
     {
         int change = 0;
         foreach (var injury in p.injuries)
@@ -179,21 +179,21 @@ public class InjuryDeck : MonoBehaviour
             if (!m.Success && first) m = Regex.Match(injury.effect, @"战斗中，如果第一个出场，(?:(金|木|水|火|土)属性)?战斗值\s*([+-])\s*(\d+)");
             if (!m.Success) continue;
             int n = int.Parse(m.Groups[3].Value) * (m.Groups[2].Value == "-" ? -1 : 1);
-            string what = L.T("inj.combatValue");
+            LocString what = L.Live(() => L.T("inj.combatValue"));
             if (m.Groups[1].Value != "")
             {
                 var e = ElementOf(m.Groups[1].Value);
-                what = L.T("inj.elementCombatValue", L.ElementName(e));
+                what = L.Live(() => L.T("inj.elementCombatValue", L.ElementName(e)));
                 if (counter != null && n > 0) n = counter(n, e);
             }
             change += n;
-            Note(log, "  " + L.T("inj.logOnStage", p.playerName, injury.Title, what, (n >= 0 ? "+" : "") + n));
+            Note(log, L.Live(() => "  " + L.T("inj.logOnStage", p.playerName, injury.Title, what, (n >= 0 ? "+" : "") + n)));
         }
         return change;
     }
 
     // "每次逃跑失去3主属性token".
-    public void OnRetreat(List<CharacterCard> players, List<string> log)
+    public void OnRetreat(List<CharacterCard> players, List<LocString> log)
     {
         foreach (var p in players)
         {
@@ -205,26 +205,26 @@ public class InjuryDeck : MonoBehaviour
                 int lost = 0;
                 for (int i = 0; i < int.Parse(m.Groups[1].Value); i++)
                     if (CombatPanel.Count(p, p.primaryElement) > 0) { CombatPanel.Spend(p, p.primaryElement); lost++; }
-                Note(log, "  " + L.T("inj.logRetreat", p.playerName, injury.Title, lost));
+                Note(log, L.Live(() => "  " + L.T("inj.logRetreat", p.playerName, injury.Title, lost)));
             }
         }
     }
 
     // After a win: "上场并赢得一次社交事件后，可弃掉这张牌" / "…赢得一次战斗事件后，可弃掉这张牌，并抽取一张道具牌".
-    public List<string> OnWin(bool combat)
+    public List<LocString> OnWin(bool combat)
     {
-        var lines = new List<string>();
+        var lines = new List<LocString>();
         string kind = combat ? "赢得一次战斗事件后" : "赢得一次社交事件后";
         foreach (var p in onStage)
         {
             foreach (var injury in p.injuries.ToArray())
             {
                 if (!injury || !injury.effect.Contains(kind)) continue;
-                Heal(p, injury, L.T(combat ? "inj.whyWonCombat" : "inj.whyWonSocial"), lines);
+                Heal(p, injury, L.Live(() => L.T(combat ? "inj.whyWonCombat" : "inj.whyWonSocial")), lines);
                 if (injury.effect.Contains("抽取一张道具牌"))
                 {
                     var items = FindFirstObjectByType<ItemDeck>();
-                    if (items && items.DrawFor(p)) lines[lines.Count - 1] += L.T("inj.andDrawItem");
+                    if (items && items.DrawFor(p)) lines[lines.Count - 1] += L.Live(() => L.T("inj.andDrawItem"));
                 }
             }
         }
@@ -247,11 +247,11 @@ public class InjuryDeck : MonoBehaviour
         foreach (var part in Regex.Split(Regex.Replace(text, @"（[^）]*）", ""), @"[，,；;。]"))
             if (part.Contains("负伤")) clauses.Add(part);
         if (clauses.Count == 0) clauses.Add(text);
-        var lines = new List<string>();
+        var lines = new List<LocString>();
         foreach (var clause in clauses) yield return ApplyFailureClause(clause, text, players, protectedPlayers, lines);
         if (protectedPlayers.Count > 0)
-            foreach (var p in protectedPlayers) lines.Add(L.T("inj.guarded", p.playerName));
-        yield return Tell(L.T("inj.tellFailure"), lines);
+            foreach (var p in protectedPlayers) lines.Add(L.Live(() => L.T("inj.guarded", p.playerName)));
+        yield return Tell(L.Live(() => L.T("inj.tellFailure")), lines);
     }
 
     Element? swapFrom, swapTo;   // This failure lets a player draw swapTo instead of swapFrom.
@@ -260,20 +260,20 @@ public class InjuryDeck : MonoBehaviour
     IEnumerator AskSwap(CharacterCard p, System.Action<Element> result)
     {
         var options = new List<Element> { swapFrom.Value, swapTo.Value };
-        var labels = new List<string>();
+        var labels = new List<LocString>();
         var colors = new List<Color>();
         foreach (var e in options)
         {
-            labels.Add("<b>" + L.T("injury.title", L.ElementName(e)) + "</b>\n" + L.T("inj.swapOption", L.ElementName(e)));
+            labels.Add(L.Live(() => "<b>" + L.T("injury.title", L.ElementName(e)) + "</b>\n" + L.T("inj.swapOption", L.ElementName(e))));
             colors.Add(ElementToken.ColorFor(e));
         }
         int pick = 0;
-        yield return ChoicePrompt.AskCards(L.T("inj.askSwap", p.playerName), labels, colors, x => pick = x);
+        yield return ChoicePrompt.AskCards(L.Live(() => L.T("inj.askSwap", p.playerName)), labels, colors, x => pick = x);
         result(options[pick]);
     }
 
     // `fullText` is the whole 失败 text, for who-can-be-picked limits written outside the clause ("【请选择一名主属性不为火的角色】").
-    IEnumerator ApplyFailureClause(string text, string fullText, List<CharacterCard> players, List<CharacterCard> protectedPlayers, List<string> lines)
+    IEnumerator ApplyFailureClause(string text, string fullText, List<CharacterCard> players, List<CharacterCard> protectedPlayers, List<LocString> lines)
     {
         var element = InjuryElement(text);
         var free = players.FindAll(p => !protectedPlayers.Contains(p));
@@ -302,11 +302,11 @@ public class InjuryDeck : MonoBehaviour
             var m = Regex.Match(fullText, @"主属性不为\s*(金|木|水|火|土)");
             if (m.Success) free = free.FindAll(p => p.primaryElement != ElementOf(m.Groups[1].Value));
             if (free.Count == 0) yield break;
-            var names = new List<string>();
+            var names = new List<LocString>();
             foreach (var p in free) names.Add(p.playerName);
             int pick = 0;
-            yield return ChoicePrompt.Ask(L.T("inj.pickPlayer", element.HasValue ? L.T("inj.aInjuryOf", L.ElementName(element.Value)) : L.T("inj.aInjury"))
-                                          + (m.Success ? "\n" + L.T("inj.notPrimary", L.ElementName(ElementOf(m.Groups[1].Value))) : ""), names, x => pick = x);
+            yield return ChoicePrompt.Ask(L.Live(() => L.T("inj.pickPlayer", element.HasValue ? L.T("inj.aInjuryOf", L.ElementName(element.Value)) : L.T("inj.aInjury"))
+                                          + (m.Success ? "\n" + L.T("inj.notPrimary", L.ElementName(ElementOf(m.Groups[1].Value))) : "")), names, x => pick = x);
             targets.Add(free[pick]);
         }
 
@@ -326,9 +326,9 @@ public class InjuryDeck : MonoBehaviour
                 }
                 var injury = Draw(drawElement);
                 if (!injury) continue;
-                var log = new List<string>();
+                var log = new List<LocString>();
                 yield return Give(p, injury, true, log);
-                lines.Add(L.T("inj.drew", p.playerName, injury.Title, injury.EffectText));
+                lines.Add(L.Live(() => L.T("inj.drew", p.playerName, injury.Title, injury.EffectText)));
                 lines.AddRange(log);
             }
         }
@@ -351,29 +351,29 @@ public class InjuryDeck : MonoBehaviour
     {
         if (!inEvent) yield break;
         inEvent = false;
-        var lines = new List<string>();
+        var lines = new List<LocString>();
         foreach (var p in players)
         {
             foreach (var injury in p.injuries.ToArray())
             {
                 if (!injury) continue;
                 if (injury.effect.Contains("一次事件完全不上场后") && !onStage.Contains(p))
-                    Heal(p, injury, L.T("inj.whySatOut"), lines);
+                    Heal(p, injury, L.Live(() => L.T("inj.whySatOut")), lines);
                 else if (injury.effect.Contains("无法在下一次事件中上场") && p.sitOutEvent == eventNumber)
-                    Heal(p, injury, L.T("inj.whyRested"), lines);
+                    Heal(p, injury, L.Live(() => L.T("inj.whyRested")), lines);
             }
         }
-        yield return Tell(L.T("inj.tellEventEnd"), lines);
+        yield return Tell(L.Live(() => L.T("inj.tellEventEnd")), lines);
     }
 
     // A new main story card: "抵达下一主线牌时，弃掉这张牌并获得2金token" and the like.
     public IEnumerator OnNewStory()
     {
-        var lines = new List<string>();
+        var lines = new List<LocString>();
         foreach (var p in FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude))
             foreach (var injury in p.injuries.ToArray())
-                if (injury && injury.effect.Contains("抵达下一主线")) Heal(p, injury, L.T("inj.whyNewStory"), lines);
-        yield return Tell(L.T("inj.tellNewStory"), lines);
+                if (injury && injury.effect.Contains("抵达下一主线")) Heal(p, injury, L.Live(() => L.T("inj.whyNewStory")), lines);
+        yield return Tell(L.Live(() => L.T("inj.tellNewStory")), lines);
     }
 
     // Clicking an injury card in the backpack: pay tokens to get rid of it if the card allows
@@ -383,21 +383,21 @@ public class InjuryDeck : MonoBehaviour
         var m = Regex.Match(injury.effect, @"(?:弃掉|消耗)\s*(\d+)\s*(主属性|金|木|水|火|土)\s*token\s*(?:即)?可(?:立即)?弃掉这张牌");
         if (!m.Success)
         {
-            yield return ChoicePrompt.Ask(L.T("inj.whose", p.playerName, injury.Title) + "\n" + injury.EffectText, new List<string> { L.T("settings.close") }, null);
+            yield return ChoicePrompt.Ask(L.Live(() => L.T("inj.whose", p.playerName, injury.Title) + "\n" + injury.EffectText), new List<LocString> { L.Live(() => L.T("settings.close")) }, null);
             yield break;
         }
         int n = int.Parse(m.Groups[1].Value);
         var e = m.Groups[2].Value == "主属性" ? p.primaryElement : ElementOf(m.Groups[2].Value);
-        string cost = L.T("inj.cost", n, L.ElementName(e));
+        LocString cost = L.Live(() => L.T("inj.cost", n, L.ElementName(e)));
         if (CombatPanel.Count(p, e) < n)
         {
-            yield return ChoicePrompt.Ask(L.T("inj.whose", p.playerName, injury.Title) + "\n" + injury.EffectText + "\n\n" + L.T("inj.cantAfford", cost),
-                new List<string> { L.T("settings.close") }, null);
+            yield return ChoicePrompt.Ask(L.Live(() => L.T("inj.whose", p.playerName, injury.Title) + "\n" + injury.EffectText + "\n\n" + L.T("inj.cantAfford", cost)),
+                new List<LocString> { L.Live(() => L.T("settings.close")) }, null);
             yield break;
         }
         int answer = 1;
-        yield return ChoicePrompt.Ask(L.T("inj.whose", p.playerName, injury.Title) + "\n" + injury.EffectText + "\n\n" + L.T("inj.askPay", cost),
-            new List<string> { L.T("inj.discard"), L.T("common.cancel") }, x => answer = x);
+        yield return ChoicePrompt.Ask(L.Live(() => L.T("inj.whose", p.playerName, injury.Title) + "\n" + injury.EffectText + "\n\n" + L.T("inj.askPay", cost)),
+            new List<LocString> { L.Live(() => L.T("inj.discard")), L.Live(() => L.T("common.cancel")) }, x => answer = x);
         if (answer != 0) yield break;
         for (int i = 0; i < n; i++) CombatPanel.Spend(p, e);
         p.injuries.Remove(injury);
@@ -424,47 +424,47 @@ public class InjuryDeck : MonoBehaviour
         }
         if (removable.Count == 0)
         {
-            yield return ChoicePrompt.Ask(L.T("inj.nothingToHeal", item.Name, p.playerName), new List<string> { L.T("settings.close") }, null);
+            yield return ChoicePrompt.Ask(L.Live(() => L.T("inj.nothingToHeal", item.Name, p.playerName)), new List<LocString> { L.Live(() => L.T("settings.close")) }, null);
             yield break;
         }
-        var lines = new List<string>();
+        var lines = new List<LocString>();
         if (item.mechanic == ItemMechanic.Salve)
         {
             int answer = removable.Count;
-            yield return AskInjury(L.T("inj.askSalve", p.playerName, item.Name), removable, L.T("common.cancel"), x => answer = x);
+            yield return AskInjury(L.Live(() => L.T("inj.askSalve", p.playerName, item.Name)), removable, L.Live(() => L.T("common.cancel")), x => answer = x);
             if (answer >= removable.Count) yield break;
             var chosen = removable[answer];
             p.injuries.Remove(chosen);
-            lines.Add(L.T("inj.healed", p.playerName, chosen.Title, item.Name));
+            lines.Add(L.Live(() => L.T("inj.healed", p.playerName, chosen.Title, item.Name)));
         }
         else
         {
             int answer = 1;
-            yield return ChoicePrompt.Ask(L.T("inj.askPanacea", p.playerName, item.Name, removable.Count),
-                new List<string> { L.T("common.use"), L.T("common.cancel") }, x => answer = x);
+            yield return ChoicePrompt.Ask(L.Live(() => L.T("inj.askPanacea", p.playerName, item.Name, removable.Count)),
+                new List<LocString> { L.Live(() => L.T("common.use")), L.Live(() => L.T("common.cancel")) }, x => answer = x);
             if (answer != 0) yield break;
             foreach (var injury in removable)
             {
                 p.injuries.Remove(injury);
                 int n = p.GainToken(injury.element, tokenPrefab);
-                lines.Add(L.T("inj.healed", p.playerName, injury.Title, item.Name) + (n > 0 ? L.T("inj.healTokens", 1, L.ElementName(injury.element)) : ""));
+                lines.Add(L.Live(() => L.T("inj.healed", p.playerName, injury.Title, item.Name) + (n > 0 ? L.T("inj.healTokens", 1, L.ElementName(injury.element)) : "")));
             }
         }
         p.items[slot] = null;
         p.Refresh();
-        yield return Tell(item.Name, lines);
+        yield return Tell(L.Live(() => item.Name), lines);
         done?.Invoke();
     }
 
     // --- Helpers ---
 
-    static IEnumerator Tell(string title, List<string> lines)
+    static IEnumerator Tell(LocString title, List<LocString> lines)
     {
         if (lines.Count == 0) yield break;
-        yield return ChoicePrompt.Ask("<b>" + title + "</b>\n" + string.Join("\n", lines.ToArray()), new List<string> { L.T("setup.ok") }, null);
+        yield return ChoicePrompt.Ask(L.Live(() => "<b>" + title + "</b>\n" + LocString.Join("\n", lines)), new List<LocString> { L.Live(() => L.T("setup.ok")) }, null);
     }
 
-    static void Note(List<string> log, string line)
+    static void Note(List<LocString> log, LocString line)
     {
         if (log != null) log.Add(line);
     }

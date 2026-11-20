@@ -15,9 +15,16 @@ public class BackgroundPopup : MonoBehaviour
         if (dimButton) dimButton.onClick.AddListener(Hide);
     }
 
+    BackgroundData shown;
+
+    void OnEnable() { L.Changed += OnLanguage; }
+    void OnDisable() { L.Changed -= OnLanguage; }
+    void OnLanguage() { if (shown) Show(shown); }
+
     public void Show(BackgroundData background)
     {
         if (!background) return;
+        shown = background;
         titleText.text = background.Name;
         descriptionText.text = background.Description;
         gameObject.SetActive(true);

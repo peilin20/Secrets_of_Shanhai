@@ -65,7 +65,8 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
         }
         else
         {
-            drawButtonText.text = deck.CardsLeft == 0 ? L.T("story.noEventsLeft") : L.T("story.slotsFull");
+            bool none = deck.CardsLeft == 0;
+            LiveText.Set(drawButtonText, L.Live(() => none ? L.T("story.noEventsLeft") : L.T("story.slotsFull")));
         }
     }
 

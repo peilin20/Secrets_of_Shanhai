@@ -98,8 +98,9 @@ public class ItemDeck : MonoBehaviour
 
         if (promptText)
         {
-            promptText.text = AnyoneCanTake(item) ? L.T("items.givePrompt")
-                : L.T("deck.nobody", item.IsExclusive ? L.T("deck.exclusiveOf", item.Name, item.ExclusiveName) : L.T("deck.allFull"));
+            bool anyone = AnyoneCanTake(item);
+            LiveText.Set(promptText, L.Live(() => anyone ? L.T("items.givePrompt")
+                : L.T("deck.nobody", item.IsExclusive ? L.T("deck.exclusiveOf", item.Name, item.ExclusiveName) : L.T("deck.allFull"))));
             promptText.gameObject.SetActive(true);
             promptText.transform.SetAsLastSibling();
         }
@@ -131,13 +132,13 @@ public class ItemDeck : MonoBehaviour
         if (!character.CanHold(item) && item.IsExclusive)
         {
             // 专属: only a player of that class may have it.
-            if (promptText) promptText.text = L.T("deck.onlyFor", item.Name, item.ExclusiveName);
+            if (promptText) LiveText.Set(promptText, L.Live(() => L.T("deck.onlyFor", item.Name, item.ExclusiveName)));
             return;
         }
         if (!character.HasRoomFor(item))
         {
             // Full: the card stays out so it can go to someone else.
-            if (promptText) promptText.text = L.T("deck.full", character.playerName, CharacterCard.ItemSlots);
+            if (promptText) LiveText.Set(promptText, L.Live(() => L.T("deck.full", character.playerName, CharacterCard.ItemSlots)));
             return;
         }
         StartCoroutine(FlyTo(character));

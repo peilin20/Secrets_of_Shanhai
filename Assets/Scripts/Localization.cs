@@ -502,6 +502,25 @@ public static class L
         Current = Current == Language.Chinese ? Language.English : Language.Chinese;
     }
 
+    // Runs `make` once in Chinese and once in English (without telling anyone the language changed),
+    // so the text can follow a later language switch. See LocString.
+    public static LocString Live(System.Func<string> make)
+    {
+        var saved = Current;
+        try
+        {
+            current = Language.Chinese;
+            string zh = make();
+            current = Language.English;
+            string en = make();
+            return new LocString(zh, en);
+        }
+        finally { current = saved; }
+    }
+
+    // The same for code that already builds a LocString (e.g. `src + L.T(...)`).
+    public static LocString Live(System.Func<LocString> make) => Live(() => { var x = make(); return x == null ? "" : x.ToString(); });
+
     public static string T(string key, params object[] args)
     {
         if (!table.TryGetValue(key, out var row)) return key;

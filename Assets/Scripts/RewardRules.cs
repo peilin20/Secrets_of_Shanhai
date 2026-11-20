@@ -11,7 +11,7 @@ public static class RewardRules
 
     // Adds a line per token handed out to `lines`.
     public static IEnumerator Give(string text, List<CharacterCard> players, IReadOnlyList<CharacterCard> onStage,
-                                   ElementToken tokenPrefab, List<string> lines)
+                                   ElementToken tokenPrefab, List<LocString> lines)
     {
         if (string.IsNullOrEmpty(text) || !tokenPrefab) yield break;
         foreach (Match m in TokenReward.Matches(text))
@@ -19,7 +19,6 @@ public static class RewardRules
             string who = m.Groups[1].Value;
             int n = int.Parse(m.Groups[2].Value);
             var element = InjuryDeck.ElementOf(m.Groups[3].Value);
-            string name = L.ElementName(element);
 
             if (who == "每人" || who.StartsWith("上场角色"))
             {
@@ -28,23 +27,23 @@ public static class RewardRules
                 {
                     int got = 0;
                     for (int i = 0; i < n; i++) got += p.GainToken(element, tokenPrefab);
-                    lines.Add(L.T("reward.got", p.playerName, got, name));
+                    lines.Add(L.Live(() => L.T("reward.got", p.playerName, got, L.ElementName(element))));
                 }
                 continue;
             }
 
             // Team tokens: the players decide who gets each one.
-            var names = new List<string>();
+            var names = new List<LocString>();
             foreach (var p in players) names.Add(p.playerName);
             var given = new Dictionary<CharacterCard, int>();
             for (int i = 0; i < n; i++)
             {
                 int pick = 0;
-                yield return ChoicePrompt.Ask(L.T("reward.askTeam", n, name, i + 1), names, x => pick = x);
+                yield return ChoicePrompt.Ask(L.Live(() => L.T("reward.askTeam", n, L.ElementName(element), i + 1)), names, x => pick = x);
                 var p = players[pick];
                 given[p] = (given.TryGetValue(p, out int c) ? c : 0) + p.GainToken(element, tokenPrefab);
             }
-            foreach (var pair in given) lines.Add(L.T("reward.got", pair.Key.playerName, pair.Value, name));
+            foreach (var pair in given) lines.Add(L.Live(() => L.T("reward.got", pair.Key.playerName, pair.Value, L.ElementName(element))));
         }
     }
 }

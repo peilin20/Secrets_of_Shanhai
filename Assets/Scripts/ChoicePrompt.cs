@@ -18,11 +18,11 @@ public class ChoicePrompt : MonoBehaviour
     static readonly Color Ink = new Color(0.2f, 0.16f, 0.12f);
 
     // Shows the message with these answers and waits for a click; `result` gets the answer's index.
-    public static IEnumerator Ask(string text, List<string> answers, System.Action<int> result)
+    public static IEnumerator Ask(LocString text, List<LocString> answers, System.Action<int> result)
     {
         var p = Get();
         if (!p) { result?.Invoke(0); yield break; }
-        p.message.text = text;
+        LiveText.Set(p.message, text);   // Follows a language switch while it's open.
         foreach (Transform child in p.row) Destroy(child.gameObject);
         p.answer = -1;
         // Buttons shrink so a long list still fits in the panel.
@@ -41,11 +41,11 @@ public class ChoicePrompt : MonoBehaviour
 
     // Like Ask, but the answers are cards: taller buttons in their own colours, with wrapped text
     // (e.g. a 负伤 card's element and effect). A dark colour gets white text.
-    public static IEnumerator AskCards(string text, List<string> answers, List<Color> colors, System.Action<int> result)
+    public static IEnumerator AskCards(LocString text, List<LocString> answers, List<Color> colors, System.Action<int> result)
     {
         var p = Get();
         if (!p) { result?.Invoke(0); yield break; }
-        p.message.text = text;
+        LiveText.Set(p.message, text);   // Follows a language switch while it's open.
         foreach (Transform child in p.row) Destroy(child.gameObject);
         p.answer = -1;
         float width = Mathf.Min(300f, (1060f - 12f * (answers.Count - 1)) / Mathf.Max(1, answers.Count));
@@ -59,7 +59,7 @@ public class ChoicePrompt : MonoBehaviour
             var color = i < colors.Count ? colors[i] : Tan;
             button.GetComponent<Image>().color = color;
             var label = button.GetComponentInChildren<Text>();
-            label.fontSize = answers[i].Length > 60 ? 18 : 21;
+            label.fontSize = answers[i].ToString().Length > 60 ? 18 : 21;
             label.supportRichText = true;
             label.alignment = TextAnchor.MiddleCenter;
             label.horizontalOverflow = HorizontalWrapMode.Wrap;
@@ -133,7 +133,7 @@ public class ChoicePrompt : MonoBehaviour
         return instance;
     }
 
-    Button MakeButton(string label, float width)
+    Button MakeButton(LocString label, float width)
     {
         var go = new GameObject("Answer", typeof(RectTransform), typeof(Image), typeof(Button));
         var rt = (RectTransform)go.transform;
@@ -150,7 +150,7 @@ public class ChoicePrompt : MonoBehaviour
         t.fontSize = 22;
         t.color = Ink;
         t.alignment = TextAnchor.MiddleCenter;
-        t.text = label;
+        LiveText.Set(t, label);
         return go.GetComponent<Button>();
     }
 }

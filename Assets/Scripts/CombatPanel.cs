@@ -71,10 +71,10 @@ public class CombatPanel : MonoBehaviour
     readonly Dictionary<CharacterCard, Species> disguises = new Dictionary<CharacterCard, Species>();   // 易容面具
 
     // The last dice roll, for 贡品 (reroll).
-    class LastRoll { public CharacterCard player; public string itemName; public List<int> sides = new List<int>(); public int flat; public Element? attribute; public int value, final; }
+    class LastRoll { public CharacterCard player; public LocString itemName; public List<int> sides = new List<int>(); public int flat; public Element? attribute; public int value, final; }
     LastRoll lastRoll;
 
-    readonly List<string> log = new List<string>();
+    readonly List<LocString> log = new List<LocString>();   // Each line in both languages.
     readonly List<CharacterCard> players = new List<CharacterCard>();
     readonly List<Button> pickButtons = new List<Button>();
     readonly List<Button> useButtons = new List<Button>();
@@ -179,6 +179,18 @@ public class CombatPanel : MonoBehaviour
         UpdateTexts();
     }
 
+    void OnEnable() { L.Changed += OnLanguage; }
+    void OnDisable() { L.Changed -= OnLanguage; }
+
+    void OnLanguage()
+    {
+        if (!combat && players.Count == 0) return;
+        UpdateTexts();
+        if (busy || finished) return;   // A question on screen, or the result: those texts follow by themselves.
+        BuildItemRow();
+        if (fighter) ShowFighter(fighter); else ShowFieldButtons();
+    }
+
     public void Close()
     {
         StopAllCoroutines();
@@ -201,7 +213,7 @@ public class CombatPanel : MonoBehaviour
             // Ending the round without using the equipment: the player still went on stage.
             if (!fighter || StageBlock(fighter) != null) return;
             OnStage(fighter);
-            log.Add(L.T("combat.logNoEquip", round, fighter.playerName));
+            log.Add(L.Live(() => L.T("combat.logNoEquip", round, fighter.playerName)));
         }
         fought = false;
         lastRoll = null;
@@ -213,7 +225,7 @@ public class CombatPanel : MonoBehaviour
         {
             enemyElement = enemyElementNextRound.Value;
             enemyElementNextRound = null;
-            log.Add("  " + L.T("combat.enemyNowBewitched", L.ElementName(enemyElement)));
+            log.Add(L.Live(() => "  " + L.T("combat.enemyNowBewitched", L.ElementName(enemyElement))));
         }
         if (round > rounds) Finish();
         ShowFighter(null);
@@ -479,8 +491,7 @@ public class CombatPanel : MonoBehaviour
         HideFieldButtons();
         if (item.mechanic != ItemMechanic.Reroll) lastRoll = null;
 
-        string who = isRoundFight ? L.T("combat.srcRound", round, player.playerName) : "  " + L.T("combat.srcItem", player.playerName);
-        string src = L.T("combat.uses", who, item.Name);
+        LocString src = L.Live(() => L.T("combat.uses", isRoundFight ? L.T("combat.srcRound", round, player.playerName) : "  " + L.T("combat.srcItem", player.playerName), item.Name));
         used = true;
 
         switch (item.mechanic)
@@ -488,7 +499,7 @@ public class CombatPanel : MonoBehaviour
             case ItemMechanic.TokensTimesThree: yield return UseTokensTimesThree(player, src); break;
             case ItemMechanic.FiveElementCharm: yield return UseFiveElementCharm(player, src); break;
             case ItemMechanic.Escape: yield return UseEscape(player, src); break;
-            case ItemMechanic.Retreat: Retreat(L.T("combat.logRetreatSafe", src), false); break;
+            case ItemMechanic.Retreat: Retreat(L.Live(() => L.T("combat.logRetreatSafe", src)), false); break;
             case ItemMechanic.IncenseBurner: yield return UseIncenseBurner(player, src); break;
             case ItemMechanic.BloodMist: yield return UseBloodMist(player, src); break;
             case ItemMechanic.Bewitching: yield return UseBewitching(player, src); break;
@@ -496,7 +507,7 @@ public class CombatPanel : MonoBehaviour
             case ItemMechanic.Sachet: yield return UseSachet(player, src); break;
             case ItemMechanic.ExtraTurn:
                 fought = false;
-                log.Add(L.T("combat.logExtraTurn", src));
+                log.Add(L.Live(() => L.T("combat.logExtraTurn", src)));
                 break;
             case ItemMechanic.RainCharm: yield return UseRainCharm(player, src); break;
             case ItemMechanic.SpiceTea: yield return UseSpiceTea(player, src); break;
@@ -531,22 +542,22 @@ public class CombatPanel : MonoBehaviour
 
     bool used;   // Set false by an item that turned out not usable (nothing was spent).
 
-    void Fail(string message)
+    void Fail(LocString message)
     {
         log.Add(message);
         used = false;
     }
 
     // Simple items: pay tokens, roll, attribute, 克制.
-    IEnumerator UseAuto(CharacterCard player, ItemData item, string src)
+    IEnumerator UseAuto(CharacterCard player, ItemData item, LocString src)
     {
         var plan = ParsePlan(item);
-        if (plan.manual) { log.Add(L.T("combat.logManual", src)); yield break; }
+        if (plan.manual) { log.Add(L.Live(() => L.T("combat.logManual", src))); yield break; }
 
         int primaryHave = Count(player, player.primaryElement);
         if (primaryHave < plan.costPrimary || TokensOf(player).Count < plan.costPrimary + plan.costAny)
         {
-            Fail(L.T("combat.logNotEnough", src));
+            Fail(L.Live(() => L.T("combat.logNotEnough", src)));
             yield break;
         }
         Element? spent = null;
@@ -554,18 +565,18 @@ public class CombatPanel : MonoBehaviour
         for (int i = 0; i < plan.costPrimary; i++) { Spend(player, player.primaryElement); spent = player.primaryElement; Count1(spentList, player.primaryElement); }
         for (int i = 0; i < plan.costAny; i++)
         {
-            yield return ChooseToken(player, L.T("combat.askToken", player.playerName), false);
+            yield return ChooseToken(player, L.Live(() => L.T("combat.askToken", player.playerName)), false);
             Spend(player, (Element)choice);
             spent = (Element)choice;
             Count1(spentList, spent.Value);
         }
 
-        var roll = new LastRoll { player = player, itemName = item.Name };
+        var roll = new LastRoll { player = player, itemName = L.Live(() => item.Name) };
         var parts = new List<string>();
         yield return RollValue(plan.dice, roll, parts);
 
         Element? attribute = null;
-        string note = "";
+        LocString note = "";
         if (plan.attr == "主") attribute = player.primaryElement;
         else if (plan.attr == "token") attribute = spent;
         else if (plan.attr == "rolled")
@@ -575,24 +586,24 @@ public class CombatPanel : MonoBehaviour
             foreach (Match m in Regex.Matches(plan.rolledText, @"(\d)\s*=\s*([^，,。\s]+)"))
                 if (int.Parse(m.Groups[1].Value) == r)
                     attribute = m.Groups[2].Value.Contains("主") ? player.primaryElement : ParseElement(m.Groups[2].Value);
-            note = L.T("combat.rolledElement", r);
+            note = L.Live(() => L.T("combat.rolledElement", r));
         }
         else attribute = ParseElement(plan.attr);
 
-        string paid = spentList.Count > 0 ? L.T("combat.paren", TokenWords(spentList)) : "";
+        LocString paid = spentList.Count > 0 ? L.Live(() => L.T("combat.paren", TokenWords(spentList))) : "";
         roll.attribute = attribute;
-        yield return Hit(player, src + paid, roll.value, attribute, string.Join(" + ", parts.ToArray()) + note, roll);
+        yield return Hit(player, L.Live(() => src + paid), roll.value, attribute, L.Live(() => string.Join(" + ", parts.ToArray()) + note), roll);
     }
 
     // 破阵刀: every token spent is +3; the attribute is the element spent most (ties: random).
-    IEnumerator UseTokensTimesThree(CharacterCard player, string src)
+    IEnumerator UseTokensTimesThree(CharacterCard player, LocString src)
     {
-        if (TokensOf(player).Count == 0) { Fail(L.T("combat.logNoTokens", src)); yield break; }
+        if (TokensOf(player).Count == 0) { Fail(L.Live(() => L.T("combat.logNoTokens", src))); yield break; }
         var spent = new Dictionary<Element, int>();
         int n = 0;
         while (TokensOf(player).Count > 0)
         {
-            yield return ChooseToken(player, L.T("combat.askTokenX3", player.playerName, n), n > 0);
+            yield return ChooseToken(player, L.Live(() => L.T("combat.askTokenX3", player.playerName, n)), n > 0);
             if (choice < 0) break;
             var e = (Element)choice;
             Spend(player, e);
@@ -607,13 +618,13 @@ public class CombatPanel : MonoBehaviour
             if (pair.Value == best) top.Add(pair.Key);
         }
         var attr = top[Random.Range(0, top.Count)];
-        yield return Hit(player, src + L.T("combat.paren", TokenWords(spent)), 3 * n, attr, n + "×3", null);
+        yield return Hit(player, L.Live(() => src + L.T("combat.paren", TokenWords(spent))), 3 * n, attr, L.Live(() => n + "×3"), null);
     }
 
     // 五行符: each token (at most one per element) is a separate +2 of that element.
-    IEnumerator UseFiveElementCharm(CharacterCard player, string src)
+    IEnumerator UseFiveElementCharm(CharacterCard player, LocString src)
     {
-        if (TokensOf(player).Count == 0) { Fail(L.T("combat.logNoTokens", src)); yield break; }
+        if (TokensOf(player).Count == 0) { Fail(L.Live(() => L.T("combat.logNoTokens", src))); yield break; }
         var usedElements = new List<Element>();
         while (true)
         {
@@ -621,32 +632,32 @@ public class CombatPanel : MonoBehaviour
             foreach (Element e in System.Enum.GetValues(typeof(Element)))
                 if (!usedElements.Contains(e) && Count(player, e) > 0) options.Add(e);
             if (options.Count == 0) break;
-            yield return ChooseElement(L.T("combat.askTokenCharm", player.playerName), options, usedElements.Count > 0);
+            yield return ChooseElement(L.Live(() => L.T("combat.askTokenCharm", player.playerName)), options, usedElements.Count > 0);
             if (choice < 0) break;
             var el = (Element)choice;
             Spend(player, el);
             usedElements.Add(el);
-            yield return Hit(player, src + L.T("combat.paren", Tokens(el, 1)), 2, el, "2", null);
+            yield return Hit(player, L.Live(() => src + L.T("combat.paren", Tokens(el, 1))), 2, el, L.Live(() => "2"), null);
         }
     }
 
     // 脚底抹油: spend any 3 tokens, the team retreats; if 2+ of them counter the enemy, draw an item card.
-    IEnumerator UseEscape(CharacterCard player, string src)
+    IEnumerator UseEscape(CharacterCard player, LocString src)
     {
-        if (TokensOf(player).Count < 3) { Fail(L.T("combat.logNeed3", src)); yield break; }
+        if (TokensOf(player).Count < 3) { Fail(L.Live(() => L.T("combat.logNeed3", src))); yield break; }
         int countering = 0;
         for (int i = 0; i < 3; i++)
         {
-            yield return ChooseToken(player, L.T("combat.askToken3", player.playerName, i + 1), false);
+            yield return ChooseToken(player, L.Live(() => L.T("combat.askToken3", player.playerName, i + 1)), false);
             var e = (Element)choice;
             Spend(player, e);
             if (ElementRules.Counters(e, enemyElement)) countering++;
         }
         bool draw = countering >= 2;
-        Retreat(L.T("combat.logEscape", src) + (draw ? L.T("combat.escapeDraw", countering) : ""), draw);
+        Retreat(L.Live(() => L.T("combat.logEscape", src) + (draw ? L.T("combat.escapeDraw", countering) : "")), draw);
     }
 
-    void Retreat(string message, bool drawItem)
+    void Retreat(LocString message, bool drawItem)
     {
         log.Add(message);
         var injuries = InjuryDeck.Find();
@@ -654,51 +665,51 @@ public class CombatPanel : MonoBehaviour
         retreated = true;
         drawItemAfter = drawItem;
         finished = true;
-        ShowResult(L.T("combat.retreatTitle"), L.T("combat.retreatBody"), drawItem ? L.T("combat.retreatDraw") : "", false);
+        ShowResult(L.Live(() => L.T("combat.retreatTitle")), L.Live(() => L.T("combat.retreatBody")), L.Live(() => drawItem ? L.T("combat.retreatDraw") : ""), false);
     }
 
     // 合香炉: spend 3 tokens of one element for +6 of it; if that element counters the enemy,
     // another 5 (this extra 5 isn't doubled by 克制).
-    IEnumerator UseIncenseBurner(CharacterCard player, string src)
+    IEnumerator UseIncenseBurner(CharacterCard player, LocString src)
     {
         var options = new List<Element>();
         foreach (Element e in System.Enum.GetValues(typeof(Element))) if (Count(player, e) >= 3) options.Add(e);
-        if (options.Count == 0) { Fail(L.T("combat.logNeed3Same", src)); yield break; }
-        yield return ChooseElement(L.T("combat.askElement3", player.playerName), options, false);
+        if (options.Count == 0) { Fail(L.Live(() => L.T("combat.logNeed3Same", src))); yield break; }
+        yield return ChooseElement(L.Live(() => L.T("combat.askElement3", player.playerName)), options, false);
         var el = (Element)choice;
         for (int i = 0; i < 3; i++) Spend(player, el);
-        yield return Hit(player, src + L.T("combat.paren", Tokens(el, 3)), 6, el, "6", null);
+        yield return Hit(player, L.Live(() => src + L.T("combat.paren", Tokens(el, 3))), 6, el, L.Live(() => "6"), null);
         if (ElementRules.Counters(el, enemyElement))
-            yield return Hit(player, src + L.T("combat.counterBonus"), 5, el, "5", null, false);
+            yield return Hit(player, L.Live(() => src + L.T("combat.counterBonus")), 5, el, L.Live(() => "5"), null, false);
     }
 
     // 血雾: draw an injury card, +5 of its element.
-    IEnumerator UseBloodMist(CharacterCard player, string src)
+    IEnumerator UseBloodMist(CharacterCard player, LocString src)
     {
         InjuryData injury = null;
         yield return DrawInjury(player, x => injury = x);
-        if (!injury) { Fail(L.T("combat.logNoInjury", src)); yield break; }
-        yield return Hit(player, src + L.T("combat.drewInjury", L.ElementName(injury.element)), 5, injury.element, "5", null);
+        if (!injury) { Fail(L.Live(() => L.T("combat.logNoInjury", src))); yield break; }
+        yield return Hit(player, L.Live(() => src + L.T("combat.drewInjury", L.ElementName(injury.element))), 5, injury.element, L.Live(() => "5"), null);
     }
 
     // 迷魂香: the player picks an element and draws an injury card of it (not a random one): +2 of that element,
     // and next round the enemy's element becomes it.
-    IEnumerator UseBewitching(CharacterCard player, string src)
+    IEnumerator UseBewitching(CharacterCard player, LocString src)
     {
         var all = new List<Element>((Element[])System.Enum.GetValues(typeof(Element)));
-        yield return ChooseElement(L.T("combat.askBewitch", player.playerName), all, false);
+        yield return ChooseElement(L.Live(() => L.T("combat.askBewitch", player.playerName)), all, false);
         var chosen = (Element)choice;
         InjuryData injury = null;
         yield return DrawInjury(player, x => injury = x, chosen);
-        if (!injury) { Fail(L.T("combat.logNoInjury", src)); yield break; }
-        yield return Hit(player, src + L.T("combat.drawInjury", L.ElementName(injury.element)), 2, injury.element, "2", null);
+        if (!injury) { Fail(L.Live(() => L.T("combat.logNoInjury", src))); yield break; }
+        yield return Hit(player, L.Live(() => src + L.T("combat.drawInjury", L.ElementName(injury.element))), 2, injury.element, L.Live(() => "2"), null);
         enemyElementNextRound = injury.element;
-        log.Add("  " + L.T("combat.enemyNext", L.ElementName(injury.element)));
+        log.Add(L.Live(() => "  " + L.T("combat.enemyNext", L.ElementName(injury.element))));
     }
 
     // 替伤符: per token spent, move one injury card of that element to a teammate or the enemy
     // (to the enemy: 全胜 / 胜利 need 2d4 less each time).
-    IEnumerator UseInjuryTransfer(CharacterCard player, string src)
+    IEnumerator UseInjuryTransfer(CharacterCard player, LocString src)
     {
         int moved = 0;
         while (true)
@@ -710,22 +721,22 @@ public class CombatPanel : MonoBehaviour
 
             var cards = new List<InjuryData>();
             foreach (var i in movable) cards.Add(player.injuries[i]);
-            yield return InjuryDeck.AskInjury(L.T("combat.askTransfer", player.playerName),
-                cards, moved > 0 ? L.T("common.done") : null, x => choice = x);
+            yield return InjuryDeck.AskInjury(L.Live(() => L.T("combat.askTransfer", player.playerName)),
+                cards, L.Live(() => moved > 0 ? L.T("common.done") : null), x => choice = x);
             if (choice >= movable.Count) break;
             var injury = player.injuries[movable[choice]];
 
             var targets = new List<CharacterCard>();
-            var labels = new List<string>();
+            var labels = new List<LocString>();
             var colors = new List<Color>();
-            foreach (var p in players) if (p != player) { targets.Add(p); labels.Add(p.playerName); colors.Add(Tan); }
-            labels.Add(L.T("combat.enemy")); colors.Add(new Color(0.86f, 0.55f, 0.45f));
-            yield return Choose(L.T("combat.askTransferTo", injury.Title), labels, colors);
+            foreach (var p in players) if (p != player) { targets.Add(p); labels.Add(L.Live(() => p.playerName)); colors.Add(Tan); }
+            labels.Add(L.Live(() => L.T("combat.enemy"))); colors.Add(new Color(0.86f, 0.55f, 0.45f));
+            yield return Choose(L.Live(() => L.T("combat.askTransferTo", injury.Title)), labels, colors);
             int targetChoice = choice;
 
             if (injury.special)
             {
-                yield return ChooseToken(player, L.T("combat.askTransferToken", player.playerName, injury.Title), false, null);
+                yield return ChooseToken(player, L.Live(() => L.T("combat.askTransferToken", player.playerName, injury.Title)), false, null);
                 Spend(player, (Element)choice);
             }
             else Spend(player, injury.element);
@@ -735,7 +746,7 @@ public class CombatPanel : MonoBehaviour
             if (choice < targets.Count)
             {
                 var target = targets[choice];
-                log.Add(L.T("combat.logTransfer", src, injury.Title, target.playerName));
+                log.Add(L.Live(() => L.T("combat.logTransfer", src, injury.Title, target.playerName)));
                 var deck = InjuryDeck.Find();
                 if (deck) yield return deck.Give(target, injury, false, log);   // Their backpack may need room.
                 else { target.injuries.Add(injury); target.Refresh(); }
@@ -746,32 +757,32 @@ public class CombatPanel : MonoBehaviour
                 yield return RollDie(4, x => a = x);
                 yield return RollDie(4, x => b = x);
                 LowerThresholds(a + b);
-                log.Add(L.T("combat.logTransferEnemy", src, injury.Title, a, b, a + b));
+                log.Add(L.Live(() => L.T("combat.logTransferEnemy", src, injury.Title, a, b, a + b)));
             }
             player.Refresh();
         }
-        if (moved == 0) Fail(L.T("combat.logNoTransfer", src));
+        if (moved == 0) Fail(L.Live(() => L.T("combat.logNoTransfer", src)));
     }
 
     // 香囊: 全胜 / 胜利 need 1d4 less; if the user (or their disguise) is the enemy's species, the full 4.
-    IEnumerator UseSachet(CharacterCard player, string src)
+    IEnumerator UseSachet(CharacterCard player, LocString src)
     {
         var species = disguises.TryGetValue(player, out var d) ? d : player.species;
         bool same = combat && combat.hasSpecies && combat.species == species;
         int r = 4;
         if (!same) yield return RollDie(4, x => r = x);
         LowerThresholds(r);
-        log.Add(L.T("combat.logSachet", src, r) + L.T(same ? "combat.sachetSame" : "combat.sachetRoll"));
+        log.Add(L.Live(() => L.T("combat.logSachet", src, r) + L.T(same ? "combat.sachetSame" : "combat.sachetRoll")));
     }
 
     // 祈雨符: each 金 token spent gives 1d4 temporary 水 tokens (this event only).
-    IEnumerator UseRainCharm(CharacterCard player, string src)
+    IEnumerator UseRainCharm(CharacterCard player, LocString src)
     {
         int have = Count(player, Element.Metal);
-        var labels = new List<string>();
+        var labels = new List<LocString>();
         var colors = new List<Color>();
-        for (int i = 1; i <= have; i++) { labels.Add(L.T("combat.spendMetal", i)); colors.Add(ElementToken.ColorFor(Element.Metal)); }
-        yield return Choose(L.T("combat.askMetal", player.playerName), labels, colors);
+        for (int i = 1; i <= have; i++) { labels.Add(L.Live(() => L.T("combat.spendMetal", i))); colors.Add(ElementToken.ColorFor(Element.Metal)); }
+        yield return Choose(L.Live(() => L.T("combat.askMetal", player.playerName)), labels, colors);
         int n = choice + 1;
         int gained = 0;
         var rolls = new List<string>();
@@ -783,25 +794,25 @@ public class CombatPanel : MonoBehaviour
             rolls.Add(r.ToString());
             for (int k = 0; k < r; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
         }
-        log.Add(L.T("combat.logRain", src, n, gained, string.Join("+", rolls.ToArray())));
+        log.Add(L.Live(() => L.T("combat.logRain", src, n, gained, string.Join("+", rolls.ToArray()))));
     }
 
     // 香料茶: 2d4 temporary 水 tokens (this event only).
-    IEnumerator UseSpiceTea(CharacterCard player, string src)
+    IEnumerator UseSpiceTea(CharacterCard player, LocString src)
     {
         int a = 0, b = 0;
         yield return RollDie(4, x => a = x);
         yield return RollDie(4, x => b = x);
         int gained = 0;
         for (int k = 0; k < a + b; k++) gained += AddToken(player, Element.Water, true);   // 负伤 can block 水 tokens.
-        log.Add(L.T("combat.logTea", src, gained, a, b));
+        log.Add(L.Live(() => L.T("combat.logTea", src, gained, a, b)));
     }
 
     // 贡品: roll the last roll's dice again.
-    IEnumerator UseReroll(string src)
+    IEnumerator UseReroll(LocString src)
     {
         var last = lastRoll;
-        if (last == null) { Fail(L.T("combat.logNoReroll", src)); yield break; }
+        if (last == null) { Fail(L.Live(() => L.T("combat.logNoReroll", src))); yield break; }
         int value = last.flat;
         var parts = new List<string>();
         foreach (var sides in last.sides)
@@ -813,57 +824,61 @@ public class CombatPanel : MonoBehaviour
         }
         int final = ApplyCounter(value, last.attribute, out string counterNote);
         total += final - last.final;
-        log.Add(L.T("combat.logReroll", src, last.player.playerName, last.itemName, string.Join(" + ", parts.ToArray()), value, counterNote, last.final, final));
+        int before = last.final;
+        log.Add(L.Live(() => { string note; ApplyCounter(value, last.attribute, out note);
+            return L.T("combat.logReroll", src, last.player.playerName, last.itemName, string.Join(" + ", parts.ToArray()), value, note, before, final); }));
         last.value = value;
         last.final = final;
         lastRoll = last;   // Another 贡品 can reroll again.
     }
 
     // 易容面具: for this event, the enemy takes the user for a species they pick.
-    IEnumerator UseDisguise(CharacterCard player, string src)
+    IEnumerator UseDisguise(CharacterCard player, LocString src)
     {
         var all = (Species[])System.Enum.GetValues(typeof(Species));
-        var labels = new List<string>();
+        var labels = new List<LocString>();
         var colors = new List<Color>();
-        foreach (var s in all) { labels.Add(L.SpeciesName(s)); colors.Add(Tan); }
-        yield return Choose(L.T("combat.askDisguise", player.playerName), labels, colors);
+        foreach (var s in all) { labels.Add(L.Live(() => L.SpeciesName(s))); colors.Add(Tan); }
+        yield return Choose(L.Live(() => L.T("combat.askDisguise", player.playerName)), labels, colors);
         disguises[player] = all[choice];
-        log.Add(L.T("combat.logDisguise", src, player.playerName, L.SpeciesName(all[choice])));
+        log.Add(L.Live(() => L.T("combat.logDisguise", src, player.playerName, L.SpeciesName(all[choice]))));
     }
 
     // 赤鱬: spend any number of 水 tokens, +1 水 combat value for each.
-    IEnumerator UseWaterPerToken(CharacterCard player, string src)
+    IEnumerator UseWaterPerToken(CharacterCard player, LocString src)
     {
         int have = Count(player, Element.Water);
-        if (have == 0) { Fail(L.T("combat.logNoWater", src)); yield break; }
-        var labels = new List<string>();
+        if (have == 0) { Fail(L.Live(() => L.T("combat.logNoWater", src))); yield break; }
+        var labels = new List<LocString>();
         var colors = new List<Color>();
-        for (int i = 1; i <= have; i++) { labels.Add(L.T("combat.spendWater", i)); colors.Add(ElementToken.ColorFor(Element.Water)); }
-        yield return Choose(L.T("combat.askWater", player.playerName), labels, colors);
+        for (int i = 1; i <= have; i++) { labels.Add(L.Live(() => L.T("combat.spendWater", i))); colors.Add(ElementToken.ColorFor(Element.Water)); }
+        yield return Choose(L.Live(() => L.T("combat.askWater", player.playerName)), labels, colors);
         int n = choice + 1;
         for (int i = 0; i < n; i++) Spend(player, Element.Water);
-        yield return Hit(player, src + L.T("combat.paren", Tokens(Element.Water, n)), n, Element.Water, n + "×1", null);
+        yield return Hit(player, L.Live(() => src + L.T("combat.paren", Tokens(Element.Water, n))), n, Element.Water, L.Live(() => n + "×1"), null);
     }
 
     // 单次高强度输出: one token of each element, 10 of your primary element.
-    IEnumerator UseBurst(CharacterCard player, string src)
+    IEnumerator UseBurst(CharacterCard player, LocString src)
     {
         foreach (Element e in System.Enum.GetValues(typeof(Element))) Spend(player, e);
-        yield return Hit(player, src + L.T("combat.fiveTokens"), 10, player.primaryElement, "10", null);
+        yield return Hit(player, L.Live(() => src + L.T("combat.fiveTokens")), 10, player.primaryElement, L.Live(() => "10"), null);
     }
 
     // --- Settling a hit ---
 
     // Adds one hit to the total: applies 克制 against the enemy's current element (unless `counter` is false),
     // logs it, and lets 追击刃 holders follow up when the hit was countered.
-    IEnumerator Hit(CharacterCard player, string source, int value, Element? attribute, string detail, LastRoll roll, bool counter = true)
+    IEnumerator Hit(CharacterCard player, LocString source, int value, Element? attribute, LocString detail, LastRoll roll, bool counter = true)
     {
-        string counterNote = L.T("combat.noCounter");
-        int final = counter ? ApplyCounter(value, attribute, out counterNote) : value;
+        string unused;
+        int final = counter ? ApplyCounter(value, attribute, out unused) : value;
         total += final;
-        lastCalc = "<b>" + source.Trim() + "</b>"+"\n" + L.T("combat.valueLine", value) + CounterWords(attribute, counter, value, final);
-        log.Add(L.T("combat.logHit", source, detail, value,
-                attribute.HasValue ? L.T("combat.elementAttr", L.ElementName(attribute.Value)) : L.T("combat.noElement"), counterNote, final));
+        // Worked out in both languages (ApplyCounter only reads), so the box and log can follow a language switch.
+        LocString counterNote = L.Live(() => { string n = L.T("combat.noCounter"); if (counter) ApplyCounter(value, attribute, out n); return n; });
+        lastCalc = L.Live(() => "<b>" + source.ToString().Trim() + "</b>" + "\n" + L.T("combat.valueLine", value) + CounterWords(attribute, counter, value, final));
+        log.Add(L.Live(() => L.T("combat.logHit", source, detail, value,
+                attribute.HasValue ? L.T("combat.elementAttr", L.ElementName(attribute.Value)) : L.T("combat.noElement"), counterNote, final)));
         if (roll != null && roll.sides.Count > 0) { roll.final = final; lastRoll = roll; }
         UpdateTexts();
 
@@ -922,11 +937,11 @@ public class CombatPanel : MonoBehaviour
         foreach (var q in players)
         {
             if (q == hitter || !q.Equipped || q.Equipped.mechanic != ItemMechanic.Pursuit || TokensOf(q).Count == 0) continue;
-            yield return ChooseToken(q, L.T("combat.askPursuit", q.playerName), true, L.T("combat.noPursue"));
+            yield return ChooseToken(q, L.Live(() => L.T("combat.askPursuit", q.playerName)), true, L.Live(() => L.T("combat.noPursue")));
             if (choice < 0) continue;
             var e = (Element)choice;
             Spend(q, e);
-            yield return Hit(q, "  " + L.T("combat.srcPursuit", q.playerName, Tokens(e, 1)), 2, e, "2", null);
+            yield return Hit(q, L.Live(() => "  " + L.T("combat.srcPursuit", q.playerName, Tokens(e, 1))), 2, e, L.Live(() => "2"), null);
         }
     }
 
@@ -981,7 +996,7 @@ public class CombatPanel : MonoBehaviour
     // --- In-combat choices ---
 
     // Shows one button per label where the fight button sits and waits for a click (index in `choice`).
-    IEnumerator Choose(string hint, List<string> labels, List<Color> colors)
+    IEnumerator Choose(LocString hint, List<LocString> labels, List<Color> colors)
     {
         if (!choiceRow)
         {
@@ -1001,7 +1016,7 @@ public class CombatPanel : MonoBehaviour
         Clear(choiceRow);
         choiceRow.gameObject.SetActive(true);
         choiceRow.SetAsLastSibling();
-        fieldHint.text = hint;
+        LiveText.Set(fieldHint, hint);
         choice = -1;
         float width = Mathf.Min(170f, (760f - 8f * (labels.Count - 1)) / Mathf.Max(1, labels.Count));
         for (int i = 0; i < labels.Count; i++)
@@ -1011,7 +1026,7 @@ public class CombatPanel : MonoBehaviour
             b.interactable = true;
             ((RectTransform)b.transform).sizeDelta = new Vector2(width, 56);
             b.GetComponent<Image>().color = colors[i];
-            b.GetComponentInChildren<Text>().text = labels[i];
+            LiveText.Set(b.GetComponentInChildren<Text>(), labels[i]);
             int index = i;
             b.onClick.AddListener(() => choice = index);
         }
@@ -1020,25 +1035,25 @@ public class CombatPanel : MonoBehaviour
     }
 
     // Pick one of the player's tokens. `choice` ends up as the Element, or -1 for the extra "done/skip" button.
-    IEnumerator ChooseToken(CharacterCard player, string hint, bool allowDone, string doneLabel = null)
+    IEnumerator ChooseToken(CharacterCard player, LocString hint, bool allowDone, LocString doneLabel = null)
     {
         var options = new List<Element>();
         foreach (Element e in System.Enum.GetValues(typeof(Element))) if (Count(player, e) > 0) options.Add(e);
-        var labels = new List<string>();
+        var labels = new List<LocString>();
         var colors = new List<Color>();
-        foreach (var e in options) { labels.Add(L.ElementName(e) + " ×" + Count(player, e)); colors.Add(ElementToken.ColorFor(e)); }
-        if (allowDone) { labels.Add(doneLabel ?? L.T("common.done")); colors.Add(Tan); }
+        foreach (var e in options) { labels.Add(L.Live(() => L.ElementName(e) + " ×" + Count(player, e))); colors.Add(ElementToken.ColorFor(e)); }
+        if (allowDone) { labels.Add(doneLabel ?? L.Live(() => L.T("common.done"))); colors.Add(Tan); }
         yield return Choose(hint, labels, colors);
         choice = choice < options.Count ? (int)options[choice] : -1;
     }
 
     // Pick one element from a list. `choice` ends up as the Element, or -1 for "完成".
-    IEnumerator ChooseElement(string hint, List<Element> options, bool allowDone)
+    IEnumerator ChooseElement(LocString hint, List<Element> options, bool allowDone)
     {
-        var labels = new List<string>();
+        var labels = new List<LocString>();
         var colors = new List<Color>();
-        foreach (var e in options) { labels.Add(L.ElementName(e)); colors.Add(ElementToken.ColorFor(e)); }
-        if (allowDone) { labels.Add(L.T("common.done")); colors.Add(Tan); }
+        foreach (var e in options) { labels.Add(L.Live(() => L.ElementName(e))); colors.Add(ElementToken.ColorFor(e)); }
+        if (allowDone) { labels.Add(L.Live(() => L.T("common.done"))); colors.Add(Tan); }
         yield return Choose(hint, labels, colors);
         choice = choice < options.Count ? (int)options[choice] : -1;
     }
@@ -1089,25 +1104,25 @@ public class CombatPanel : MonoBehaviour
     void Finish()
     {
         finished = true;
-        string title, description;
+        LocString title, description;
         bool won;
         if (!combat || (combat.greatSuccessThreshold <= 0 && combat.successThreshold <= 0))
         {
-            title = L.T("combat.over"); description = L.T("combat.noThresholds"); won = false;
+            title = L.Live(() => L.T("combat.over")); description = L.Live(() => L.T("combat.noThresholds")); won = false;
         }
         else if (total >= greatNeed)
         {
-            title = L.T("combat.great"); description = OutcomeList(0); won = true; pendingReward = combat.greatSuccessReward;
+            title = L.Live(() => L.T("combat.great")); description = L.Live(() => OutcomeList(0)); won = true; pendingReward = combat.greatSuccessReward;
         }
         else if (total >= winNeed)
         {
-            title = L.T("combat.win"); description = OutcomeList(1); won = true; pendingReward = combat.successReward;
+            title = L.Live(() => L.T("combat.win")); description = L.Live(() => OutcomeList(1)); won = true; pendingReward = combat.successReward;
         }
         else
         {
-            title = L.T("combat.fail"); description = OutcomeList(2); won = false;
+            title = L.Live(() => L.T("combat.fail")); description = L.Live(() => OutcomeList(2)); won = false;
         }
-        string reward = "";
+        LocString reward = "";
         if (won)
         {
             // 武士: "当你参与的战斗胜利时，获得1主属性token" — every 武士 who went on stage in this combat.
@@ -1115,11 +1130,11 @@ public class CombatPanel : MonoBehaviour
             {
                 if (!p || !p.characterClass || p.characterClass.className != "武士") continue;
                 int got = AddToken(p, p.primaryElement, false);
-                reward += (reward.Length > 0 ? "\n" : "") + L.T("combat.classToken", p.playerName, p.characterClass.Name, got, L.ElementName(p.primaryElement));
+                reward += (reward.IsEmpty ? "" : "\n") + L.Live(() => L.T("combat.classToken", p.playerName, p.characterClass.Name, got, L.ElementName(p.primaryElement)));
             }
             // 负伤 that heal after winning a fight. (Primary-element tokens come with each new main story card, not here.)
             var injuries = InjuryDeck.Find();
-            if (injuries) foreach (var line in injuries.OnWin(true)) reward += (reward.Length > 0 ? "\n" : "") + line;
+            if (injuries) foreach (var line in injuries.OnWin(true)) reward += (reward.IsEmpty ? "" : "\n") + line;
         }
         lost = !won && combat;
         ShowResult(title, description, reward, lost);
@@ -1156,21 +1171,21 @@ public class CombatPanel : MonoBehaviour
     // Tokens the card's reward text promises ("获1土token"…) are handed out on the result screen.
     IEnumerator GiveCardRewards(string text)
     {
-        var lines = new List<string>();
+        var lines = new List<LocString>();
         var injuries = InjuryDeck.Find();
         yield return RewardRules.Give(text, players, injuries ? injuries.OnStage : (IReadOnlyList<CharacterCard>)fighters, tokenPrefab, lines);
-        foreach (var line in lines) resultReward.text += "\n" + line;
+        foreach (var line in lines) LiveText.Append(resultReward, "\n" + line);
     }
 
     // The clean result screen: outcome, total, text, reward, and (on a loss) 失败保护 buttons.
-    void ShowResult(string title, string description, string reward, bool offerFailureGuard)
+    void ShowResult(LocString title, LocString description, LocString reward, bool offerFailureGuard)
     {
         if (!resultView) return;
-        resultTitle.text = title;
-        resultTotal.text = L.T("combat.total", total);
+        LiveText.Set(resultTitle, title);
+        LiveText.Set(resultTotal, L.Live(() => L.T("combat.total", total)));
         LayoutResult(resultTotal, resultDescription, resultReward);
-        resultDescription.text = description;
-        resultReward.text = reward;
+        LiveText.Set(resultDescription, description);
+        LiveText.Set(resultReward, reward);
 
         var guardRow = resultView.transform.Find("FailureGuards");
         if (guardRow) Destroy(guardRow.gameObject);
@@ -1196,7 +1211,7 @@ public class CombatPanel : MonoBehaviour
                     b.interactable = true;
                     ((RectTransform)b.transform).sizeDelta = new Vector2(330, 56);
                     b.GetComponent<Image>().color = Gold;
-                    b.GetComponentInChildren<Text>().text = L.T("combat.useGuard", p.playerName);
+                    LiveText.Set(b.GetComponentInChildren<Text>(), L.Live(() => L.T("combat.useGuard", p.playerName)));
                     var player = p;
                     int slot = i;
                     b.onClick.AddListener(() =>
@@ -1205,7 +1220,7 @@ public class CombatPanel : MonoBehaviour
                         player.items[slot] = null;
                         player.Refresh();
                         if (!protectedPlayers.Contains(player)) protectedPlayers.Add(player);
-                        resultReward.text += (resultReward.text.Length > 0 ? "\n" : "") + L.T("combat.guarded", player.playerName);
+                        LiveText.Append(resultReward, (resultReward.text.Length > 0 ? "\n" : "") + L.Live(() => L.T("combat.guarded", player.playerName)));
                         Destroy(b.gameObject);
                     });
                 }
@@ -1278,18 +1293,18 @@ public class CombatPanel : MonoBehaviour
         if (!combat) resultText.text = L.T("combat.noCard");
         else
         {
-            string calc = string.IsNullOrEmpty(lastCalc) ? L.T("combat.calcHint") : lastCalc;
+            string calc = LocString.IsNullOrEmpty(lastCalc) ? L.T("combat.calcHint") : lastCalc.ToString();
             if (enemyElementNextRound.HasValue) calc += "\n" + L.T("combat.enemyNext", L.ElementName(enemyElementNextRound.Value));
             resultText.text = calc;
         }
         int from = Mathf.Max(0, log.Count - logLinesShown);
         var sb = new StringBuilder();
-        for (int i = from; i < log.Count; i++) sb.AppendLine(log[i]);
+        for (int i = from; i < log.Count; i++) sb.AppendLine(log[i].ToString());
         logText.text = sb.ToString();
     }
 
     public int logLinesShown = 14;
-    string lastCalc;   // The latest hit, step by step.
+    LocString lastCalc;   // The latest hit, step by step.
 
     // --- Reading simple effects from the card text ---
 
