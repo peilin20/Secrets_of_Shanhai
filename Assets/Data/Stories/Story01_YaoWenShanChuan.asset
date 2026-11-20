@@ -24,3 +24,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: f4b1cdba446c25042af4d89dff68a965, type: 2}
   - {fileID: 11400000, guid: fb10d5ad8b6fe8c41bee8d272a7ad90a, type: 2}
   nextStory: {fileID: 11400000, guid: 34cc367e177b93246b67e02a8af858f4, type: 2}
+  titleEn: "Ask the Mountains and Rivers"
+  subtitleEn: "All Things Have a Beginning"
+  bodyEn: "In recent years the times have been unsettled, and people gather and scatter without warning. Provinces and prefectures have changed their names again and again, and the banners over the city walls keep changing. Some old towns have even become untended graveyards, and the lay of the mountains and waterways has slowly drifted from the records. The maps once trusted across the realm can no longer be relied on. And so the capital has decreed that the map of the realm be redrawn.\nRecruited by the Bureau of Geomancy, you meet for the first time at a roadside inn.\n\nTurn over one Background card. It tells why each of you joined this small band to travel the mountains and survey the land. You may share it with your companions, or keep it to yourself for now.\n\nBut before you have a chance to get to know one another, something happens that you can't ignore\u2026\n\nTurn over two event cards."
+  nextStepEn: "Next: once the event cards are resolved, whatever the outcome, turn over Main Story Card 2."

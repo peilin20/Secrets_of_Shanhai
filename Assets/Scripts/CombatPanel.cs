@@ -1130,9 +1130,9 @@ public class CombatPanel : MonoBehaviour
     // Every outcome on the card, the one reached marked: what was avoided and what was missed are visible too.
     string OutcomeList(int reached)
     {
-        return OutcomeLine(reached == 0, L.T("combat.greatLine", greatNeed), combat.greatSuccessReward) + "\n\n"
-             + OutcomeLine(reached == 1, L.T("combat.winLine", winNeed), combat.successReward) + "\n\n"
-             + OutcomeLine(reached == 2, L.T("combat.failLine", winNeed), combat.failureResult);
+        return OutcomeLine(reached == 0, L.T("combat.greatLine", greatNeed), combat.GreatSuccessReward) + "\n\n"
+             + OutcomeLine(reached == 1, L.T("combat.winLine", winNeed), combat.SuccessReward) + "\n\n"
+             + OutcomeLine(reached == 2, L.T("combat.failLine", winNeed), combat.FailureResult);
     }
 
     // The result screen lists every outcome, so the text gets more room: under the total, above the notes.

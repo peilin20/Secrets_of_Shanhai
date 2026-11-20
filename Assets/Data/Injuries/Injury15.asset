@@ -16,3 +16,4 @@ MonoBehaviour:
   element: 2
   effect: "\u65E0\u6CD5\u5728\u6218\u6597\u4E2D\u7B2C\u4E00\u4E2A\u51FA\u573A"
   copiesInPile: 2
+  effectEn: "You can't be the first active player in combat."

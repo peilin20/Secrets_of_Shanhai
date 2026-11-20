@@ -86,14 +86,14 @@ public class EventPopup : MonoBehaviour
             var talk = FindFirstObjectByType<SocialPanel>(FindObjectsInactive.Include);
             if (!talk) return;
             Hide();
-            talk.Open(option.social, option.buttonName);
+            talk.Open(option.social, option.ButtonName);
             return;
         }
         if (option.kind != OptionKind.Combat) return;
         var combat = FindFirstObjectByType<CombatPanel>(FindObjectsInactive.Include);
         if (!combat) return;
         Hide();
-        combat.Open(option.combat, option.buttonName);
+        combat.Open(option.combat, option.ButtonName);
     }
 
     // A choice with no contest (e.g. 白泽 deciding whether to help 赤鱬): accepting ends the event,
@@ -113,10 +113,10 @@ public class EventPopup : MonoBehaviour
             }
         }
         int answer = 1;
-        yield return ChoicePrompt.Ask(string.IsNullOrEmpty(option.choiceText) ? option.text : option.choiceText,new System.Collections.Generic.List<string> { option.acceptButton, option.refuseButton }, x => answer = x);
+        yield return ChoicePrompt.Ask(string.IsNullOrEmpty(option.ChoiceText) ? option.Text : option.ChoiceText,new System.Collections.Generic.List<string> { option.AcceptButton, option.RefuseButton }, x => answer = x);
         if (answer != 0) yield break;   // Refused: back to the event card.
-        if (!string.IsNullOrEmpty(option.acceptResult))
-            yield return ChoicePrompt.Ask(option.acceptResult, new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
+        if (!string.IsNullOrEmpty(option.AcceptResult))
+            yield return ChoicePrompt.Ask(option.AcceptResult, new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
         Hide();
         ResolveCurrentEvent();
         var story = FindFirstObjectByType<StoryCard>();

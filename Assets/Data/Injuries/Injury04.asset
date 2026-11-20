@@ -16,3 +16,4 @@ MonoBehaviour:
   element: 0
   effect: "\u5F03\u63892\u4E3B\u5C5E\u6027token\u5373\u53EF\u5F03\u6389\u8FD9\u5F20\u724C"
   copiesInPile: 4
+  effectEn: "Discard 2 primary-element tokens to discard this card."

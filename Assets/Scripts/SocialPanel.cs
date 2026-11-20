@@ -271,7 +271,7 @@ public class SocialPanel : MonoBehaviour
             {
                 if (favor < Need(outcome)) continue;
                 var o = outcome;
-                labels.Add(L.T("social.endWith", o.label)); colors.Add(Gold); actions.Add(() => EndWith(o));
+                labels.Add(L.T("social.endWith", o.Label)); colors.Add(Gold); actions.Add(() => EndWith(o));
             }
             if (actions.Count > 0)
             {
@@ -302,7 +302,7 @@ public class SocialPanel : MonoBehaviour
             {
                 if (favor < Need(outcome)) continue;
                 var o = outcome;
-                labels.Add(L.T("social.endWith", o.label)); colors.Add(Gold); actions.Add(() => EndWith(o));
+                labels.Add(L.T("social.endWith", o.Label)); colors.Add(Gold); actions.Add(() => EndWith(o));
             }
             if (actions.Count == 0)
             {
@@ -627,7 +627,7 @@ public class SocialPanel : MonoBehaviour
                 var success = social.outcomes[social.outcomes.Count - 1];
                 int before = favor;
                 favor = Mathf.Max(favor, Need(success));
-                log.Add(L.T("social.logMoney", src, success.label, favor - before));
+                log.Add(L.T("social.logMoney", src, success.Label, favor - before));
                 break;
             }
             default: used = false; break;
@@ -813,7 +813,7 @@ public class SocialPanel : MonoBehaviour
         if (busy || finished || bonusUsed || !social) return;
         bonusUsed = true;
         needLess += social.bonusAmount;
-        log.Add("  " + L.T("social.logBonus", social.bonusButton, social.bonusAmount));
+        log.Add("  " + L.T("social.logBonus", social.BonusButton, social.bonusAmount));
         UpdateTexts();
         ShowFieldButtons();
     }
@@ -955,7 +955,7 @@ public class SocialPanel : MonoBehaviour
 
     IEnumerator EndWithRoutine(SocialOutcome outcome)
     {
-        log.Add(L.T("social.logEnd", outcome.label));
+        log.Add(L.T("social.logEnd", outcome.Label));
         UpdateTexts();
         // 负伤 like "上场并赢得一次社交事件后，可弃掉这张牌" settle now; the reward's tokens ("每人2木token"…) are
         // handed out when 继续 is pressed, after the players have seen the result.
@@ -964,7 +964,7 @@ public class SocialPanel : MonoBehaviour
         SpeciesWinBonus(outcome, notes);
         if (injuries) notes.AddRange(injuries.OnWin(false));
         pendingReward = outcome.reward;
-        ShowResult(outcome.label, OutcomeList(outcome), string.Join("\n", notes.ToArray()), false);
+        ShowResult(outcome.Label, OutcomeList(outcome), string.Join("\n", notes.ToArray()), false);
         yield break;
     }
 
@@ -975,8 +975,8 @@ public class SocialPanel : MonoBehaviour
     {
         var lines = new List<string>();
         foreach (var o in social.outcomes)
-            lines.Add(CombatPanel.OutcomeLine(o == reached, L.T("social.outcomeLine", o.label, Need(o)), o.reward));
-        lines.Add(CombatPanel.OutcomeLine(reached == null, L.T("combat.fail"), social.failureResult));
+            lines.Add(CombatPanel.OutcomeLine(o == reached, L.T("social.outcomeLine", o.Label, Need(o)), o.Reward));
+        lines.Add(CombatPanel.OutcomeLine(reached == null, L.T("combat.fail"), social.FailureResult));
         return string.Join("\n\n", lines.ToArray());
     }
 
@@ -987,7 +987,7 @@ public class SocialPanel : MonoBehaviour
         failed = true;
         log.Add(L.T("social.logLost", reason));
         UpdateTexts();
-        string next = social && social.failureCombat ? "\n" + L.T("social.thenCombat", social.failureCombat.title) : "";
+        string next = social && social.failureCombat ? "\n" + L.T("social.thenCombat", social.failureCombat.Title) : "";
         ShowResult(L.T("combat.fail"), social ? OutcomeList(null) : "", reason + next, social != null);
     }
 
@@ -1082,7 +1082,7 @@ public class SocialPanel : MonoBehaviour
         if (toCombat)
         {
             var combat = FindFirstObjectByType<CombatPanel>(FindObjectsInactive.Include);
-            if (combat) { combat.Open(next, next.title); yield break; }
+            if (combat) { combat.Open(next, next.Title); yield break; }
         }
         var events = FindFirstObjectByType<EventPopup>(FindObjectsInactive.Include);
         if (events) events.ResolveCurrentEvent();
@@ -1114,7 +1114,7 @@ public class SocialPanel : MonoBehaviour
         var sb = new StringBuilder();
         if (social)
             foreach (var outcome in social.outcomes)
-                sb.Append(L.T("social.needLine", outcome.label, Need(outcome)))
+                sb.Append(L.T("social.needLine", outcome.Label, Need(outcome)))
                   .Append(favor >= Need(outcome) ? L.T("social.reached") : "").Append('\n');
         if (needLess > 0) sb.Append(L.T("social.allLowered", needLess));
         needText.text = social ? sb.ToString().TrimEnd('\n') : L.T("social.noCard");
@@ -1134,7 +1134,7 @@ public class SocialPanel : MonoBehaviour
         if (bonusButton)
         {
             bonusButton.gameObject.SetActive(showBonus);
-            if (showBonus) bonusButton.GetComponentInChildren<Text>().text = L.T("social.bonusLabel", social.bonusButton, social.bonusAmount);
+            if (showBonus) bonusButton.GetComponentInChildren<Text>().text = L.T("social.bonusLabel", social.BonusButton, social.bonusAmount);
         }
 
         // The NPC's pool: drawn tokens stay visible, faded.

@@ -24,3 +24,7 @@ MonoBehaviour:
   successReward: "\u5927\u9EC4\u72D7\u770B\u5F62\u52BF\u4E0D\u5999\u8D76\u7D27\u8DD1\u8DEF\uFF0C\u83B7\u5F971\u571Ftoken"
   failureResult: "\u65E0"
   special: 
+  titleEn: "Good Dog, Move Aside"
+  greatSuccessRewardEn: "The big yellow dog tucks its tail between its legs and says it was wrong. Gain 1 item"
+  successRewardEn: "Seeing things turn against it, the big yellow dog bolts. Gain 1 Earth token"
+  failureResultEn: "None"

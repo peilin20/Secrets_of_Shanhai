@@ -16,3 +16,4 @@ MonoBehaviour:
   element: 2
   effect: "\u65E0\u6CD5\u5728\u4E0B\u4E00\u6B21\u4E8B\u4EF6\u4E2D\u4E0A\u573A\u3002\u5728\u90A3\u4E4B\u540E\u5F03\u6389\u8FD9\u5F20\u724C"
   copiesInPile: 4
+  effectEn: "You can't be the active player in the next event. Discard this card after that."

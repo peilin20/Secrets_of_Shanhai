@@ -228,7 +228,7 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
     public void Refresh()
     {
         if (!story) return;
-        if (titleText) titleText.text = story.number + " " + story.title;
+        if (titleText) titleText.text = story.number + " " + story.Title;
         if (storyImage)
         {
             // Crops to fill the frame instead of stretching.
@@ -237,13 +237,13 @@ public class StoryCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDra
             var fitter = storyImage.GetComponent<AspectRatioFitter>();
             if (fitter && story.image) fitter.aspectRatio = story.image.rect.width / story.image.rect.height;
         }
-        if (subtitleText) subtitleText.text = story.subtitle;
+        if (subtitleText) subtitleText.text = story.Subtitle;
         if (bodyText)
         {
-            bodyText.text = story.body;
+            bodyText.text = story.Body;
             FitBody();
         }
-        if (nextStepText) nextStepText.text = story.nextStep;
+        if (nextStepText) nextStepText.text = story.NextStep;
         if (drawButton)
         {
             int n = story.fixedEvents.Count > 0 ? story.fixedEvents.Count : story.eventCardsToDraw;

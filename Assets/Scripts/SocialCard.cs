@@ -30,7 +30,7 @@ public class SocialCard : MonoBehaviour
     public void Refresh()
     {
         if (!data) return;
-        if (titleText) titleText.text = data.title;
+        if (titleText) titleText.text = data.Title;
         if (poolRow && circleTemplate)
         {
             foreach (Transform child in poolRow)
@@ -55,12 +55,12 @@ public class SocialCard : MonoBehaviour
         {
             // No space after a label: Unity's text wraps at spaces, which would push Chinese text to the next line.
             var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(data.description)) sb.Append(data.description).Append("\n\n");
+            if (!string.IsNullOrEmpty(data.Description)) sb.Append(data.Description).Append("\n\n");
             sb.Append("<b>").Append(L.T("sc.start")).Append("</b>").Append(data.startingFavor);
             foreach (var outcome in data.outcomes)
-                sb.Append("\n\n<b>").Append(outcome.label).Append(L.T("sc.need", outcome.favorNeeded)).Append("</b>").Append(outcome.reward);
-            sb.Append("\n\n<b>").Append(L.T("cc.fail")).Append("</b>").Append(data.failureResult);
-            if (!string.IsNullOrEmpty(data.special)) sb.Append("\n\n<b>").Append(L.T("cc.special")).Append("</b>").Append(data.special);
+                sb.Append("\n\n<b>").Append(outcome.Label).Append(L.T("sc.need", outcome.favorNeeded)).Append("</b>").Append(outcome.Reward);
+            sb.Append("\n\n<b>").Append(L.T("cc.fail")).Append("</b>").Append(data.FailureResult);
+            if (!string.IsNullOrEmpty(data.Special)) sb.Append("\n\n<b>").Append(L.T("cc.special")).Append("</b>").Append(data.Special);
             bodyText.text = sb.ToString();
         }
     }

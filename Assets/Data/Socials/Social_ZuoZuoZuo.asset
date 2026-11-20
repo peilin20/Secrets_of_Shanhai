@@ -24,9 +24,13 @@ MonoBehaviour:
   - label: "\u5927\u6210\u529F"
     favorNeeded: 6
     reward: "1\u9053\u5177"
+    labelEn: "Critical Success"
+    rewardEn: "1 item"
   - label: "\u6210\u529F"
     favorNeeded: 3
     reward: "\u53D9\u4E8B"
+    labelEn: "Success"
+    rewardEn: "Story only"
   failureResult: 
   failureCombat: {fileID: 0}
   special: 
@@ -34,3 +38,4 @@ MonoBehaviour:
   bonusSpecies: 0
   bonusAmount: 0
   bonusButton: 
+  titleEn: "Here, Boy!"

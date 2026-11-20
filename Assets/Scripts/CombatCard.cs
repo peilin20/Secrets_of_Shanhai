@@ -63,7 +63,7 @@ public class CombatCard : MonoBehaviour
     public void Refresh()
     {
         if (!data) return;
-        if (titleText) titleText.text = data.title;
+        if (titleText) titleText.text = data.Title;
         var element = liveElement ?? data.element;
         if (elementCircle) elementCircle.color = ElementToken.ColorFor(element);
         if (elementText) elementText.text = ElementChar(element);
@@ -79,11 +79,11 @@ public class CombatCard : MonoBehaviour
         {
             // No space after a label: Unity's text wraps at spaces, which would push Chinese text to the next line.
             var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(data.description)) sb.Append(data.description).Append("\n\n");
-            sb.Append("<b>").Append(L.T("cc.great", Need(liveGreat, data.greatSuccessThreshold))).Append("</b>").Append(data.greatSuccessReward).Append("\n\n");
-            sb.Append("<b>").Append(L.T("cc.win", Need(liveWin, data.successThreshold))).Append("</b>").Append(data.successReward).Append("\n\n");
-            sb.Append("<b>").Append(L.T("cc.fail")).Append("</b>").Append(data.failureResult);
-            if (!string.IsNullOrEmpty(data.special)) sb.Append("\n\n<b>").Append(L.T("cc.special")).Append("</b>").Append(data.special);
+            if (!string.IsNullOrEmpty(data.Description)) sb.Append(data.Description).Append("\n\n");
+            sb.Append("<b>").Append(L.T("cc.great", Need(liveGreat, data.greatSuccessThreshold))).Append("</b>").Append(data.GreatSuccessReward).Append("\n\n");
+            sb.Append("<b>").Append(L.T("cc.win", Need(liveWin, data.successThreshold))).Append("</b>").Append(data.SuccessReward).Append("\n\n");
+            sb.Append("<b>").Append(L.T("cc.fail")).Append("</b>").Append(data.FailureResult);
+            if (!string.IsNullOrEmpty(data.Special)) sb.Append("\n\n<b>").Append(L.T("cc.special")).Append("</b>").Append(data.Special);
             bodyText.text = sb.ToString();
         }
     }

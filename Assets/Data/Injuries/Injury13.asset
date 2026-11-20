@@ -16,3 +16,4 @@ MonoBehaviour:
   element: 4
   effect: "\u65E0\u6CD5\u5728\u793E\u4EA4\u4E8B\u4EF6\u4E2D\u7B2C\u4E00\u4E2A\u51FA\u573A\u3002\u4F46\u5728\u6218\u6597\u4E2D\uFF0C\u5982\u679C\u7B2C\u4E00\u4E2A\u51FA\u573A\uFF0C\u6C34\u5C5E\u6027\u6218\u6597\u503C+1"
   copiesInPile: 2
+  effectEn: "You can't be the first active player in a social encounter. But in combat, if you're the first active player, Water combat value +1."

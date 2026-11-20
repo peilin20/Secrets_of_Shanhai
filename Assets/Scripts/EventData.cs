@@ -31,6 +31,23 @@ public class EventOption
     [Header("Story options")]
     public List<ItemData> rewardItems = new List<ItemData>();   // The team picks who gets each one.
     public EventData nextEvent;                                 // Empty: the event ends.
+
+    [Header("English")]
+    public string labelEn;
+    public string buttonNameEn;
+    public string acceptButtonEn;
+    public string refuseButtonEn;
+    [TextArea(2, 6)] public string textEn;
+    [TextArea(2, 6)] public string choiceTextEn;
+    [TextArea(2, 6)] public string acceptResultEn;
+
+    public string Label => L.Current == Language.English && !string.IsNullOrEmpty(labelEn) ? labelEn : label;
+    public string Text => L.Current == Language.English && !string.IsNullOrEmpty(textEn) ? textEn : text;
+    public string ButtonName => L.Current == Language.English && !string.IsNullOrEmpty(buttonNameEn) ? buttonNameEn : buttonName;
+    public string ChoiceText => L.Current == Language.English && !string.IsNullOrEmpty(choiceTextEn) ? choiceTextEn : choiceText;
+    public string AcceptButton => L.Current == Language.English && !string.IsNullOrEmpty(acceptButtonEn) ? acceptButtonEn : acceptButton;
+    public string RefuseButton => L.Current == Language.English && !string.IsNullOrEmpty(refuseButtonEn) ? refuseButtonEn : refuseButton;
+    public string AcceptResult => L.Current == Language.English && !string.IsNullOrEmpty(acceptResultEn) ? acceptResultEn : acceptResult;
 }
 
 // An event card: something that happens after a story card is revealed.
@@ -43,4 +60,13 @@ public class EventData : ScriptableObject
     public List<EventOption> options = new List<EventOption>();
     [TextArea(2, 4)] public string nextStep;   // Shown in bold at the bottom, e.g. "下一步：..."
     public bool notFirstEvent;                 // Never drawn as the game's very first event (e.g. treasure chests).
+
+    [Header("English")]
+    public string titleEn;
+    [TextArea(4, 15)] public string descriptionEn;
+    [TextArea(2, 4)] public string nextStepEn;
+
+    public string Title => L.Current == Language.English && !string.IsNullOrEmpty(titleEn) ? titleEn : title;
+    public string Description => L.Current == Language.English && !string.IsNullOrEmpty(descriptionEn) ? descriptionEn : description;
+    public string NextStep => L.Current == Language.English && !string.IsNullOrEmpty(nextStepEn) ? nextStepEn : nextStep;
 }

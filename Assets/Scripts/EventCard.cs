@@ -144,7 +144,7 @@ public class EventCard : MonoBehaviour, IPointerClickHandler
     public void Refresh()
     {
         if (!data) return;
-        if (titleText) titleText.text = data.title;
+        if (titleText) titleText.text = data.Title;
         if (eventImage)
         {
             // Crops to fill the frame instead of stretching.
@@ -155,13 +155,13 @@ public class EventCard : MonoBehaviour, IPointerClickHandler
         }
         if (bodyText)
         {
-            var sb = new StringBuilder(data.description);
+            var sb = new StringBuilder(data.Description);
             if (data.options.Count > 0) sb.Append("\n");
             foreach (var option in data.options)
                 // No space after the label: Unity's text wraps at spaces, which would push
                 // the whole Chinese sentence onto the next line.
-                sb.Append("\n<b>").Append(option.label).Append("</b>").Append(option.text);
-            if (!string.IsNullOrEmpty(data.nextStep)) sb.Append("\n\n<b>").Append(data.nextStep).Append("</b>");
+                sb.Append("\n<b>").Append(option.Label).Append("</b>").Append(option.Text);
+            if (!string.IsNullOrEmpty(data.NextStep)) sb.Append("\n\n<b>").Append(data.NextStep).Append("</b>");
             bodyText.text = sb.ToString();
         }
     }

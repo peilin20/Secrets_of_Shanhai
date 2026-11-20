@@ -8,6 +8,10 @@ public class SocialOutcome
     public string label;
     public int favorNeeded;
     [TextArea(2, 6)] public string reward;
+    public string labelEn;
+    [TextArea(2, 6)] public string rewardEn;
+    public string Label => L.Current == Language.English && !string.IsNullOrEmpty(labelEn) ? labelEn : label;
+    public string Reward => L.Current == Language.English && !string.IsNullOrEmpty(rewardEn) ? rewardEn : reward;
 }
 
 // A social card: the NPC for one social option of an event.
@@ -37,4 +41,17 @@ public class SocialData : ScriptableObject
     public Species bonusSpecies;
     public int bonusAmount;
     public string bonusButton;                         // The button's text, e.g. "九尾让大妈摸尾巴"
+
+    [Header("English")]
+    public string titleEn;
+    public string bonusButtonEn;
+    [TextArea(2, 6)] public string descriptionEn;
+    [TextArea(2, 6)] public string failureResultEn;
+    [TextArea(2, 6)] public string specialEn;
+
+    public string Title => L.Current == Language.English && !string.IsNullOrEmpty(titleEn) ? titleEn : title;
+    public string Description => L.Current == Language.English && !string.IsNullOrEmpty(descriptionEn) ? descriptionEn : description;
+    public string FailureResult => L.Current == Language.English && !string.IsNullOrEmpty(failureResultEn) ? failureResultEn : failureResult;
+    public string Special => L.Current == Language.English && !string.IsNullOrEmpty(specialEn) ? specialEn : special;
+    public string BonusButton => L.Current == Language.English && !string.IsNullOrEmpty(bonusButtonEn) ? bonusButtonEn : bonusButton;
 }

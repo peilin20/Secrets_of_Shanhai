@@ -16,3 +16,4 @@ MonoBehaviour:
   element: 3
   effect: "\u6BCF\u6B21\u9003\u8DD1\u5931\u53BB3\u4E3B\u5C5E\u6027token"
   copiesInPile: 2
+  effectEn: "Each time you flee, lose 3 primary-element tokens."

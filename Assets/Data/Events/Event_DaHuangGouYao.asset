@@ -22,11 +22,20 @@ MonoBehaviour:
     buttonName: "\u597D\u72D7\u4E0D\u6321\u9053"
     combat: {fileID: 11400000, guid: c0a60c6985b1f624e9c29d74c723502a, type: 2}
     social: {fileID: 0}
+    labelEn: "Good Dog, Move Aside:"
+    buttonNameEn: "Good Dog, Move Aside"
+    textEn: "Force is the simplest, most direct solution. Begin combat [Good Dog, Move Aside!]"
   - label: "\u562C\u562C\u562C:"
     text: "\u53EA\u662F\u53EA\u521A\u5F00\u667A\u7684\u5927\u9EC4\u72D7\u7F62\u4E86\u3002\u7FFB\u5F00\u6307\u5B9A\u4E8B\u4EF6\u5361\u3010\u562C\u562C\u562C\u3011"
     kind: 1
     buttonName: "\u562C\u562C\u562C"
     combat: {fileID: 0}
     social: {fileID: 11400000, guid: 8c2ecc978afb5c74e92891b597fafba2, type: 2}
+    labelEn: "Here, Boy!:"
+    buttonNameEn: "Here, Boy!"
+    textEn: "It's just a big yellow dog that has only just gained a mind of its own. Turn over the named event card [Here, Boy!]"
   nextStep: "\u4E0B\u4E00\u6B65\uFF1A\u6839\u636E\u4E3B\u7EBF\u5361\u6307\u793A\u51B3\u5B9A\u7FFB\u4E0B\u4E00\u5F20\u4E8B\u4EF6\u5361\u6216\u8005\u8FDB\u5165\u65B0\u4E3B\u7EBF\u5361"
   notFirstEvent: 0
+  titleEn: "The Big Yellow Dog Spirit"
+  descriptionEn: "A filthy yellow dog spirit glares at you, growling a low warning."
+  nextStepEn: "Next: follow the main story card to decide whether to turn over the next event card or move on to a new main story card."

@@ -25,4 +25,20 @@ public class CombatData : ScriptableObject
 
     [Header("特殊")]
     [TextArea(2, 6)] public string special;
+
+    [Header("English")]
+    public string titleEn;
+    [TextArea(2, 6)] public string descriptionEn;
+    [TextArea(2, 6)] public string greatSuccessRewardEn;
+    [TextArea(2, 6)] public string successRewardEn;
+    [TextArea(2, 6)] public string failureResultEn;
+    [TextArea(2, 6)] public string specialEn;
+
+    // Shown text follows the language; the Chinese fields stay what the rules read (rewards, failure 负伤).
+    public string Title => L.Current == Language.English && !string.IsNullOrEmpty(titleEn) ? titleEn : title;
+    public string Description => L.Current == Language.English && !string.IsNullOrEmpty(descriptionEn) ? descriptionEn : description;
+    public string GreatSuccessReward => L.Current == Language.English && !string.IsNullOrEmpty(greatSuccessRewardEn) ? greatSuccessRewardEn : greatSuccessReward;
+    public string SuccessReward => L.Current == Language.English && !string.IsNullOrEmpty(successRewardEn) ? successRewardEn : successReward;
+    public string FailureResult => L.Current == Language.English && !string.IsNullOrEmpty(failureResultEn) ? failureResultEn : failureResult;
+    public string Special => L.Current == Language.English && !string.IsNullOrEmpty(specialEn) ? specialEn : special;
 }

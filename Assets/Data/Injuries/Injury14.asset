@@ -16,3 +16,4 @@ MonoBehaviour:
   element: 1
   effect: "\u6BCF\u6B21\u597D\u611F\u5EA6-2\uFF08\u5728\u5F00\u59CB\u672C\u8F6E\u793E\u4EA4\u524D\u7ED3\u7B97\uFF09\uFF0C\u4F46\u5728\u793E\u4EA4\u4E2D\u4F7F\u7528\u706Btoken\u5A01\u80C1\u65F6\u989D\u5916\u8BA1\u51651\u679A"
   copiesInPile: 2
+  effectEn: "Affinity -2 each time (settled before each social round begins), but when you threaten with Fire tokens in a social encounter, 1 extra token counts."
