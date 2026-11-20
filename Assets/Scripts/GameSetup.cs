@@ -93,6 +93,7 @@ public class GameSetup : MonoBehaviour
     {
         screen.SetActive(true);
         screen.transform.SetAsLastSibling();
+        PaperBackground.Apply(screen.GetComponent<Image>());
         BuildPile();
         Party.Clear();
         MakeRandomButton();
@@ -159,7 +160,10 @@ public class GameSetup : MonoBehaviour
         var player = displayCard;
         ResetPlayer();
 
-        // 0. The player's name (left empty: keeps the default).
+        // 1. Species first.
+        yield return ChooseSpecies(player);
+
+        // 2. The player's name (left empty: keeps the default).
         int number = currentPlayer + 1;
         yield return Choose(() => L.T("setup.enterName"), () => new List<string> { L.T("setup.ok") },
             i => PlainButton, i => "", () => new[] { L.T("setup.defaultName", number) }, false);
@@ -181,8 +185,6 @@ public class GameSetup : MonoBehaviour
             ageKey = "setup.badAge";
         }
 
-        // 1. Species.
-        yield return ChooseSpecies(player);
         player.Refresh();
         ShowCard(true);
 
@@ -446,7 +448,7 @@ public class GameSetup : MonoBehaviour
         // Refresh the texts every frame: they follow the mouse, the pick and the language.
         while (!confirmed)
         {
-            if (page.title) page.title.text = L.T("setup.chooseSpecies", player.playerName);
+            if (page.title) page.title.text = L.T("setup.chooseSpecies", nameEntered ? player.playerName : L.T("setup.investigator", currentPlayer + 1));
             if (page.subtitle) page.subtitle.text = L.T("setup.speciesSubtitle");
             for (int i = 0; i < count; i++)
                 if (page.entries[i].nameText) page.entries[i].nameText.text = L.SpeciesName(speciesOptions[i].species);

@@ -54,7 +54,8 @@ public class IntroCG : MonoBehaviour
             SetAlpha(1f);
             skipRequested = false;
             // Stay (a key press moves on).
-            float hold = holdBase + holdPerChar * text.text.Length;
+            // English has about four times as many characters for the same text.
+            float hold = holdBase + holdPerChar * text.text.Length * (L.Current == Language.English ? 0.4f : 1f);
             for (float t = 0f; t < hold && !skipRequested; t += Time.deltaTime) yield return null;
             skipRequested = false;
             // Fade out.
@@ -104,6 +105,7 @@ public class IntroCG : MonoBehaviour
         bgRt.anchorMin = Vector2.zero; bgRt.anchorMax = Vector2.one;
         bgRt.offsetMin = bgRt.offsetMax = Vector2.zero;
         bg.GetComponent<Image>().color = background;
+        PaperBackground.Apply(bg.GetComponent<Image>());   // The old-paper picture, if it's there.
 
         var textGo = new GameObject("Text", typeof(RectTransform), typeof(Text));
         var trt = (RectTransform)textGo.transform;
@@ -141,7 +143,7 @@ public class IntroCG : MonoBehaviour
         srt.anchorMin = srt.anchorMax = srt.pivot = new Vector2(1f, 0f);
         srt.anchoredPosition = new Vector2(-40f, 40f);
         srt.sizeDelta = new Vector2(200f, 70f);
-        skipGo.GetComponent<Image>().color = background;
+        skipGo.GetComponent<Image>().color = new Color(0f, 0f, 0f, 0f);   // Just the word, on the paper.
         skip = skipGo.GetComponent<Button>();
         skip.onClick.AddListener(Leave);
         var label = new GameObject("Label", typeof(RectTransform), typeof(Text), typeof(LocalizedText));
