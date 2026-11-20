@@ -28,4 +28,4 @@ MonoBehaviour:
   copiesInPile: 0
   exclusiveTo: {fileID: 11400000, guid: 7e4f9474d97c72b4a992a68842357233, type: 2}
   itemNameEn: "Bewitching Incense"
-  descriptionEn: "Perfumer only (starting equipment)"
+  descriptionEn: "Incense Master only (starting equipment)"

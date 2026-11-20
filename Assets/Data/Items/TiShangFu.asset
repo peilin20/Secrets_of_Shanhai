@@ -28,4 +28,4 @@ MonoBehaviour:
   copiesInPile: 1
   exclusiveTo: {fileID: 11400000, guid: 7e4f9474d97c72b4a992a68842357233, type: 2}
   itemNameEn: "Wound-Transfer Talisman"
-  descriptionEn: "Perfumer only"
+  descriptionEn: "Incense Master only"
