@@ -1262,7 +1262,8 @@ public class CombatPanel : MonoBehaviour
             pickButtons[i].GetComponent<Image>().color = players[i] == fighter ? Gold : Tan;
         }
         fightButton.interactable = open && !fought && fighter && fighter.Equipped && StageBlock(fighter) == null;
-        if (endRoundButton) endRoundButton.interactable = open && fought;
+        // After attacking, or (the 不使用装备 choice) before attacking with someone on stage who may go.
+        if (endRoundButton) endRoundButton.interactable = open && (fought || (fighter && StageBlock(fighter) == null));
         for (int i = 0; i < useButtons.Count; i++)
             useButtons[i].interactable = open && WhyNotUsable(useOwners[i], useItems[i]) == null;
     }

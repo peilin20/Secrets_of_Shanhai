@@ -271,6 +271,8 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             portraitImage.enabled = portrait != null;
             var fitter = portraitImage.GetComponent<AspectRatioFitter>();
             if (fitter && portrait) fitter.aspectRatio = portrait.rect.width / portrait.rect.height;
+            // Full-body portraits: keep the top of the picture (the face) in the frame, crop the rest below.
+            portraitImage.rectTransform.pivot = new Vector2(0.5f, 1f);
         }
         if (speciesText) speciesText.text = L.T("card.species") + L.SpeciesName(species) + (characterClass ? "   " + L.T("card.class") + characterClass.Name : "");
         if (elementText) elementText.text = L.T("card.element") + (elementChosen ? L.ElementName(primaryElement) : "—");

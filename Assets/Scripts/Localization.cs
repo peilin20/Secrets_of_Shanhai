@@ -317,7 +317,7 @@ public static class L
         { "combat.total",           new[] { "战斗总值：{0}", "Combat total: {0}" } },
         { "combat.noCard",          new[] { "还没有关联战斗卡。", "No combat card is linked yet." } },
         { "combat.calcHint",        new[] { "出战后，这里会显示战斗值是怎么算出来的。", "After an attack, this shows how the combat value was worked out." } },
-        { "combat.fightWith",       new[] { "用 {0} 出战（{1}）", "Attack with {0} ({1})" } },
+        { "combat.fightWith",       new[] { "用{0}出战", "Attack with {0}" } },
         { "combat.endRound",        new[] { "⑤ 结束本轮", "⑤ End round" } },
         { "combat.endLastRound",    new[] { "⑤ 结束第 3 轮并结算", "⑤ End round 3 and settle" } },
         { "combat.skipEndRound",    new[] { "不使用装备，结束本轮", "End round without using equipment" } },
