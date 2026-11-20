@@ -24,6 +24,9 @@ public class ElementChartArt : MonoBehaviour
         // The round chart brings its own frame: no paper behind it, and as big as fits.
         if (art.big)
         {
+            // The enlarged view's own backing is see-through (it still catches the click that closes it).
+            var backing = zoom.GetComponent<Image>();
+            if (backing) backing.color = new Color(0f, 0f, 0f, 0f);
             var paper = art.big.transform.parent as RectTransform;
             if (paper && paper != zoom.transform)
             {
@@ -37,6 +40,7 @@ public class ElementChartArt : MonoBehaviour
             art.big.preserveAspect = true;
         }
         if (art.small) art.small.preserveAspect = true;
+        if (art.bigHint) art.bigHint.color = new Color(0.2f, 0.16f, 0.12f);   // Readable now that the backing is see-through.
         art.Apply();
     }
 
