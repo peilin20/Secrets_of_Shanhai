@@ -30,6 +30,9 @@ MonoBehaviour:
     acceptResult: 
     rewardItems: []
     nextEvent: {fileID: 0}
+    labelEn: "Combat:"
+    buttonNameEn: "Try to catch the children"
+    textEn: "Try to catch the children"
   - label: "\u793E\u4EA4:"
     text: "\u95EE\u8BDD"
     kind: 1
@@ -44,5 +47,10 @@ MonoBehaviour:
     acceptResult: 
     rewardItems: []
     nextEvent: {fileID: 0}
+    labelEn: "Social:"
+    buttonNameEn: "Ask them questions"
+    textEn: "Ask them questions"
   nextStep: 
   notFirstEvent: 0
+  titleEn: "A Band of Children"
+  descriptionEn: "Near this remote roadside inn, you hear the sound of children singing.\n\n<i>\"The mountains have no master, the waters have no name.\nGrass grows in the well, the old temple falls.\nThe gate faces north, the throne faces south.\nToday we ask the way, tomorrow we ask the mountains.\"</i>\n\nFollowing the sound, you spot several children skipping about, singing the same nursery rhyme over and over.\nBut with no village in sight for miles around, where could these children have come from?"

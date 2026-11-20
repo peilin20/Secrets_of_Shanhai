@@ -20,6 +20,22 @@ public class EventPopup : MonoBehaviour
         if (closeButton) closeButton.onClick.AddListener(Hide);
     }
 
+    // Switching language while the window is open: the option buttons follow (the card redraws itself).
+    void OnEnable() { L.Changed += OnLanguage; }
+    void OnDisable() { L.Changed -= OnLanguage; }
+    void OnLanguage()
+    {
+        var data = cardView ? cardView.data : null;
+        if (!data) return;
+        int i = 0;
+        foreach (Transform child in optionRow)
+        {
+            if (child == optionButtonTemplate.transform || !child.gameObject.activeSelf) continue;
+            if (i < data.options.Count) child.Find("Name").GetComponent<Text>().text = data.options[i].ButtonName;
+            i++;
+        }
+    }
+
     public void Show(EventCard card)
     {
         source = card;
@@ -47,7 +63,7 @@ public class EventPopup : MonoBehaviour
             button.gameObject.SetActive(true);
             button.GetComponent<Image>().color = option.kind == OptionKind.Combat ? combatColor
                 : option.kind == OptionKind.Loot || option.kind == OptionKind.Choice || option.kind == OptionKind.Story ? lootColor : socialColor;
-            button.transform.Find("Name").GetComponent<Text>().text = option.buttonName;
+            button.transform.Find("Name").GetComponent<Text>().text = option.ButtonName;
             button.transform.Find("Kind").GetComponent<Text>().text = option.kind.ToString();
             var picked = option;
             button.onClick.AddListener(() => OnOptionPicked(picked));

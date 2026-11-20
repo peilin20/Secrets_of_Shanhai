@@ -24,3 +24,7 @@ MonoBehaviour:
   successReward: "\u83B7\u5F971\u571Ftoken"
   failureResult: "\u65E0\uFF08\u5B69\u5B50\u4EEC\u7B11\u7740\u8DD1\u5F00\uFF0C\u56DB\u6563\u6D88\u5931\u5728\u67AF\u8349\u4E1B\u4E2D\uFF0C\u5C31\u5982\u4ECE\u672A\u5B58\u5728\u8FC7\u4E00\u822C\uFF09"
   special: 
+  titleEn: "Try to Catch the Children"
+  greatSuccessRewardEn: "Item (found where they vanished, or stumbled upon nearby during the chase)"
+  successRewardEn: "Gain 1 Earth token"
+  failureResultEn: "None (the children run off laughing and scatter into the withered grass, vanishing as if they had never been there)"

@@ -30,6 +30,9 @@ MonoBehaviour:
     acceptResult: 
     rewardItems: []
     nextEvent: {fileID: 0}
+    labelEn: "Combat:"
+    buttonNameEn: "Disrupt the wedding procession"
+    textEn: "Disrupt the wedding procession"
   - label: "\u793E\u4EA4:"
     text: "\u8FFD\u95EE\u8001\u7FC1"
     kind: 1
@@ -44,5 +47,10 @@ MonoBehaviour:
     acceptResult: 
     rewardItems: []
     nextEvent: {fileID: 0}
+    labelEn: "Social:"
+    buttonNameEn: "Press the old man"
+    textEn: "Press the old man"
   nextStep: 
   notFirstEvent: 0
+  titleEn: "The Blind Old Man"
+  descriptionEn: "In a corner of the roadside inn sits a blind old man. When you entered, his head was lowered as though he were dozing off.\nAs you are talking among yourselves, he suddenly speaks.\n\n\"Traveling far, are you?\"\n\"Then remember this: Today, you will encounter a group of people here. If you can make one of them cry, it will bring great fortune. But if they all laugh, what follows may not bode well.\"\n\nNo sooner has he finished speaking than the sounds of suona horns, gongs, footsteps, and cheerful chatter drift in from outside the inn. To your surprise, a wedding procession is making its way down the deserted road."

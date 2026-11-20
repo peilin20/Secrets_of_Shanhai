@@ -15,6 +15,10 @@ public class SocialCard : MonoBehaviour
     public Image socialImage;
     public Text bodyText;
 
+    // Switching language redraws the card in the new language.
+    void OnEnable() { L.Changed += Refresh; }
+    void OnDisable() { L.Changed -= Refresh; }
+
     void Start()
     {
         Refresh();

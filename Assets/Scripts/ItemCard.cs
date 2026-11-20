@@ -25,6 +25,11 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public Text descriptionText;
     public Text effectsText;
 
+    // Switching language redraws the card (item or 负伤) in the new language.
+    void OnEnable() { L.Changed += OnLanguage; }
+    void OnDisable() { L.Changed -= OnLanguage; }
+    void OnLanguage() { if (injury) SetInjury(injury); else Refresh(); }
+
     void Start()
     {
         Refresh();
@@ -38,6 +43,7 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     public void SetItem(ItemData data)
     {
         item = data;
+        injury = null;
         Refresh();
     }
 

@@ -24,3 +24,7 @@ MonoBehaviour:
   successReward: "\u83B7\u5F971\u91D1token"
   failureResult: "\u83B7\u5F97\u9053\u5177\u201C\u7CD6\u7CD5\u201D\uFF08\u4F60\u4EEC\u7684\u80E1\u95F9\u6BEB\u65E0\u6740\u4F24\u529B\u3002\u65B0\u5A18\u8C22\u8FC7\u4F60\u4EEC\u7684\u6F14\u51FA\uFF0C\u8FD8\u7ED9\u4F60\u4EEC\u585E\u4E86\u559C\u7CD6\uFF09"
   special: 
+  titleEn: "Disrupt the Wedding Procession"
+  greatSuccessRewardEn: "Item"
+  successRewardEn: "Gain 1 Metal token"
+  failureResultEn: "Gain the item \"Sugar Cake\" (your antics do no harm at all. The bride thanks you for the show and slips you some wedding sweets)"
