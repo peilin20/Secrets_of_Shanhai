@@ -143,6 +143,7 @@ public static class L
         // Piles
         { "pile.items",             new[] { "道具牌堆", "Item Card Pile" } },
         { "pile.events",            new[] { "事件牌堆", "Event Card Pile" } },
+        { "chart.enlarge",          new[] { "点击放大", "Click to enlarge" } },
         { "zoom.close",             new[] { "点击任意处关闭", "Click anywhere to close" } },
         { "card.eventBack",         new[] { "事件", "Event" } },
         { "pile.left",              new[] { "剩余 {0} 张", "{0} left" } },

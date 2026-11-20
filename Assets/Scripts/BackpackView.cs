@@ -31,7 +31,14 @@ public static class BackpackView
             layout.childControlWidth = layout.childControlHeight = false;
             layout.childForceExpandWidth = layout.childForceExpandHeight = false;
         }
-        if (label) { var t = label.GetComponent<Text>(); if (t) t.text = L.T("bag.label"); }
+        if (label)
+        {
+            // The label's own LocalizedText (old key) would put the old text back on a language change.
+            var loc = label.GetComponent<LocalizedText>();
+            if (loc) loc.key = "bag.label";
+            var t = label.GetComponent<Text>();
+            if (t) t.text = L.T("bag.label");
+        }
         foreach (Transform child in row) Object.Destroy(child.gameObject);
         foreach (var p in players)
         {

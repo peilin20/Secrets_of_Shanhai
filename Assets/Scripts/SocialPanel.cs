@@ -107,6 +107,7 @@ public class SocialPanel : MonoBehaviour
         {
             if (!busy && !finished && !spoke && speaker && CanSpeak(speaker) == null) StartCoroutine(Speak());
         });
+        ElementChartArt.Setup(elementChartButton, elementChartZoom);   // The 五行 chart pictures (zh / en).
         if (elementChartButton && elementChartZoom)
             elementChartButton.onClick.AddListener(() => { elementChartZoom.SetActive(true); elementChartZoom.transform.SetAsLastSibling(); });
         var zoomButton = elementChartZoom ? elementChartZoom.GetComponent<Button>() : null;

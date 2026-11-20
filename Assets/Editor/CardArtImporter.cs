@@ -38,7 +38,8 @@ public class CardArtImporter : AssetPostprocessor
     void OnPreprocessTexture()
     {
         bool species = Path.GetDirectoryName(assetPath).Replace('\\', '/') == SpeciesFolder;
-        if (TypeFor(assetPath) == null && !species) return;
+        bool chart = assetPath.Replace('\\', '/').StartsWith("Assets/Resources/ElementChart/");   // The 五行 chart (zh / en).
+        if (TypeFor(assetPath) == null && !species && !chart) return;
         var importer = (TextureImporter)assetImporter;
         importer.textureType = TextureImporterType.Sprite;
         importer.spriteImportMode = SpriteImportMode.Single;
