@@ -2190,7 +2190,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 218d2638e1534d74c9cbe190965fce64, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TitleMenu
-  gameScene: CharacterCreation
+  gameScene: Intro
   startButton: {fileID: 666017920}
   settingsButton: {fileID: 1885200012}
   creditsButton: {fileID: 58720504}
