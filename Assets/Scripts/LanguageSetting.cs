@@ -25,7 +25,10 @@ public static class LanguageSetting
         {
             if (text.GetComponent<LocalizedText>()) continue;
             string key = L.SceneLabelKey(text.text);
-            if (key != null) text.gameObject.AddComponent<LocalizedText>().key = key;
+            if (key == null) continue;
+            var localized = text.gameObject.AddComponent<LocalizedText>();
+            localized.key = key;
+            localized.Apply();   // Its OnEnable ran before the key was set: show the current language now.
         }
         if (!GameObject.Find("SettingsOverlay")) CreateButton();
     }

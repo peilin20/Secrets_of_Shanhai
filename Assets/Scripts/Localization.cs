@@ -79,6 +79,12 @@ public static class L
             "A fight lasts 3 rounds. Play the other two yourselves: pick a player → attack → end the round." } },
         { "tut.result", new[] { "战斗结束：用战斗总值和敌人战斗卡上的门槛比较。加粗的是你们拿到的结果，其他结果也列在这里，可以看到避开了什么失败后果，或者错过了什么奖励。", "The fight is over: the total is compared with the thresholds on the enemy's combat card. The outcome you reached is in bold; the others are listed too, so you can see which failure you avoided or which reward you missed." } },
         { "tut.continue", new[] { "点「继续」领取奖励，结束这场战斗。", "Click \"Continue\" to collect the reward and finish the fight." } },
+        { "tut.injury", new[] {
+            "负伤牌：战斗或社交失败时，卡上的失败结果常会要求玩家抽负伤牌；有些道具（比如迷魂香、血雾）使用时也要抽一张。负伤牌放进背包，和道具一样占一格，背包满了要先扔掉一件道具。\n每张负伤牌有属性和效果，比如每次上场战斗值-1、团队好感度-1，或者暂时不能上场。",
+            "Injury cards: when a fight or talk is lost, the card's failure result often has players draw injury cards; some items (such as Bewitching Incense and Blood Mist) also draw one when used. An injury card goes into the backpack and takes a slot like an item; if the backpack is full, an item has to be thrown away first.\nEach injury card has an element and an effect, such as -1 combat value each time you go on stage, -1 team affinity, or not being able to go on stage for a while." } },
+        { "tut.injuryHeal", new[] {
+            "每张负伤牌上都写着怎么弃掉它：比如赢得一次战斗、抵达下一张主线牌，或者花token（在背包里点这张牌）。伤药和仙草也能治好负伤，替伤符可以把负伤转给队友或敌人。",
+            "Each injury card says how to get rid of it: for example by winning a fight, reaching the next main story card, or spending tokens (click the card in the backpack). Wound Salves and the Immortal Herb can also heal injuries, and a Wound-Transfer Talisman can pass an injury to a teammate or the enemy." } },
         { "tut.combatDone", new[] { "战斗教程结束！接下来是社交教程。", "That's the end of the combat tutorial! Next: the social tutorial." } },
         { "tut.socialStart", new[] { "桌上又出现了一张事件卡。这次试试和它社交：先点一下翻开，再点一次打开。", "Another event card is on the table. This time, try talking: click it to turn it over, then click again to open it." } },
         { "tut.socialOption", new[] { "选择社交选项。", "Choose the social option." } },

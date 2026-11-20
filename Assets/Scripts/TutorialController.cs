@@ -118,6 +118,14 @@ public class TutorialController : MonoBehaviour
         var story = FindFirstObjectByType<StoryCard>();
         RectTransform Rt(Component c) => c ? (RectTransform)c.transform : null;
         bool CombatOpen() => combat && combat.gameObject.activeInHierarchy;
+        // A character's 背包 button (where 负伤 cards go).
+        RectTransform Backpack()
+        {
+            var all = new List<CharacterCard>(FindObjectsByType<CharacterCard>(FindObjectsInactive.Exclude));
+            all.Sort((x, y) => string.Compare(x.name, y.name, System.StringComparison.Ordinal));
+            var c = all.Count > 0 ? all[0] : null;
+            return c && c.itemsButton ? (RectTransform)c.itemsButton.transform : Rt(c);
+        }
 
         RectTransform FirstEventCard()
         {
@@ -160,6 +168,8 @@ public class TutorialController : MonoBehaviour
             new Step { key = "tut.finishCombat", free = true, doneWhen = () => combat && combat.Finished && combat.resultView && combat.resultView.activeInHierarchy },
             new Step { key = "tut.result", target = () => combat && combat.resultView ? (RectTransform)combat.resultView.transform : null },
             new Step { key = "tut.continue", target = () => combat ? Rt(combat.continueButton) : null, free = true, doneWhen = () => !CombatOpen() },
+            new Step { key = "tut.injury", target = Backpack },
+            new Step { key = "tut.injuryHeal", target = Backpack },
             new Step { key = "tut.combatDone" },
         };
     }
