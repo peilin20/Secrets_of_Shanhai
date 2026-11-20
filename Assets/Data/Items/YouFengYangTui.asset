@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679c"
     value: "\u5728\u6218\u6597\u548c\u793e\u4ea4\u4e2d\u989d\u5916\u83b7\u5f971\u56de\u5408"
+    labelEn: "Effect"
+    valueEn: "Gain 1 extra turn in combat or a social encounter"
   copiesInPile: 0
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Lamb Leg Confit"
+  descriptionEn: "Usable as the active player. The current player gets an extra turn"

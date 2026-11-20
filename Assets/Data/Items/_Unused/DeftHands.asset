@@ -21,7 +21,15 @@ MonoBehaviour:
   effects:
   - label: "\u6218\u6597\u503C\u52A0\u6210"
     value: +1
+    labelEn: "Combat Bonus"
+    valueEn: 
   - label: "\u6218\u6597\u503C\u5C5E\u6027"
     value: "\u91D1"
+    labelEn: "Combat Element"
+    valueEn: "Metal"
   - label: "\u7279\u6B8A"
     value: "\u62BD\u53D6\u4E00\u5F20\u9053\u5177\u5361"
+    labelEn: "Special"
+    valueEn: "Draw an item card"
+  itemNameEn: "Deft Hands"
+  descriptionEn: "Combat only. No effect on creatures without a physical body. Not consumed\nCraftsman only"

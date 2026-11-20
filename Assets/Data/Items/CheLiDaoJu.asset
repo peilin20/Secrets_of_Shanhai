@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u4ECE\u6218\u6597\u548C\u793E\u4EA4\u4E2D\u5B89\u5168\u64A4\u79BB"
+    labelEn: "Effect"
+    valueEn: "Retreat safely from combat or a social encounter"
   copiesInPile: 3
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Heel Oil"
+  descriptionEn: ""

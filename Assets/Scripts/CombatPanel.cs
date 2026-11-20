@@ -269,7 +269,7 @@ public class CombatPanel : MonoBehaviour
                 card.draggable = false;
                 card.onClick = c => ShowCardZoom(c.item);
                 Place(card.transform, weaponCardScale);
-                fightButton.GetComponentInChildren<Text>().text = L.T("combat.fightWith", weapon.itemName, Summary(weapon));
+                fightButton.GetComponentInChildren<Text>().text = L.T("combat.fightWith", weapon.Name, Summary(weapon));
             }
         }
         ShowFieldButtons();
@@ -300,7 +300,7 @@ public class CombatPanel : MonoBehaviour
         else if (!fighter) fieldHint.text = L.T("combat.hintPick");
         else if (fought) fieldHint.text = L.T("combat.hintAfter");
         else if (block != null) fieldHint.text = L.T("combat.hintBlocked", block);
-        else if (hasWeapon) fieldHint.text = L.T("combat.hintFight", fighter.playerName, fighter.Equipped.itemName);
+        else if (hasWeapon) fieldHint.text = L.T("combat.hintFight", fighter.playerName, fighter.Equipped.Name);
         else fieldHint.text = L.T("combat.hintNoWeapon", fighter.playerName);
         RefreshInteractable();
     }
@@ -353,7 +353,7 @@ public class CombatPanel : MonoBehaviour
                 {
                     if (!itemDetailText) return;
                     string why = equipment ? null : WhyNotUsable(player, item);
-                    itemDetailText.text = L.T("items.nameDetail", item.itemName, ItemSummary(item)) + (why != null ? "   " + L.T("items.cantUse", why) : "");
+                    itemDetailText.text = L.T("items.nameDetail", item.Name, ItemSummary(item)) + (why != null ? "   " + L.T("items.cantUse", why) : "");
                 };
                 var use = entry.Find("UseButton").GetComponent<Button>();
                 if (equipment) { use.gameObject.SetActive(false); continue; }   // Equipment is used with the fight button.
@@ -480,7 +480,7 @@ public class CombatPanel : MonoBehaviour
         if (item.mechanic != ItemMechanic.Reroll) lastRoll = null;
 
         string who = isRoundFight ? L.T("combat.srcRound", round, player.playerName) : "  " + L.T("combat.srcItem", player.playerName);
-        string src = L.T("combat.uses", who, item.itemName);
+        string src = L.T("combat.uses", who, item.Name);
         used = true;
 
         switch (item.mechanic)
@@ -560,7 +560,7 @@ public class CombatPanel : MonoBehaviour
             Count1(spentList, spent.Value);
         }
 
-        var roll = new LastRoll { player = player, itemName = item.itemName };
+        var roll = new LastRoll { player = player, itemName = item.Name };
         var parts = new List<string>();
         yield return RollValue(plan.dice, roll, parts);
 
@@ -1115,7 +1115,7 @@ public class CombatPanel : MonoBehaviour
             {
                 if (!p || !p.characterClass || p.characterClass.className != "武士") continue;
                 int got = AddToken(p, p.primaryElement, false);
-                reward += (reward.Length > 0 ? "\n" : "") + L.T("combat.classToken", p.playerName, p.characterClass.className, got, L.ElementName(p.primaryElement));
+                reward += (reward.Length > 0 ? "\n" : "") + L.T("combat.classToken", p.playerName, p.characterClass.Name, got, L.ElementName(p.primaryElement));
             }
             // 负伤 that heal after winning a fight. (Primary-element tokens come with each new main story card, not here.)
             var injuries = InjuryDeck.Find();
@@ -1405,8 +1405,8 @@ public class CombatPanel : MonoBehaviour
 
     public static string ItemSummary(ItemData item)
     {
-        var sb = new StringBuilder(item.description.Replace("\n", " "));
-        foreach (var e in item.effects) sb.Append("  ").Append(e.label).Append("：").Append(e.value.Replace("\n", " "));
+        var sb = new StringBuilder((item.Description ?? "").Replace("\n", " "));
+        foreach (var e in item.effects) sb.Append("  ").Append(e.Label).Append(L.T("sep.colon")).Append((e.Value ?? "").Replace("\n", " "));
         return sb.ToString();
     }
 

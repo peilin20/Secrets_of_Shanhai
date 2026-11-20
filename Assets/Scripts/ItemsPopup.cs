@@ -175,7 +175,7 @@ public class ItemsPopup : MonoBehaviour
 
     void UpdateTitle()
     {
-        string equipped = owner.Equipped ? owner.Equipped.itemName : L.T("bag.none");
+        string equipped = owner.Equipped ? owner.Equipped.Name : L.T("bag.none");
         string hint = L.T(owner.equipmentLocked ? "bag.lockedHint" : "bag.equipHint");
         titleText.text = L.T("bag.title", owner.playerName, owner.UsedSlots, CharacterCard.ItemSlots, equipped, hint);
     }
@@ -200,13 +200,13 @@ public class ItemsPopup : MonoBehaviour
         }
         if (card.item && card.item.kind == ItemKind.Consumable)
         {
-            titleText.text = L.T("bag.consumable", owner.playerName, card.item.itemName);
+            titleText.text = L.T("bag.consumable", owner.playerName, card.item.Name);
             return;
         }
         if (!owner.ToggleEquip(slot))
         {
             titleText.text = L.T("bag.cantEquip", owner.playerName, owner.equipmentLocked ? L.T("bag.locked")
-                : L.T("bag.exclusive", card.item.itemName, card.item.IsExclusive ? card.item.ExclusiveName : L.T("bag.otherClass")));
+                : L.T("bag.exclusive", card.item.Name, card.item.IsExclusive ? card.item.ExclusiveName : L.T("bag.otherClass")));
             return;
         }
         UpdateEquippedLook();
@@ -220,19 +220,19 @@ public class ItemsPopup : MonoBehaviour
         int need = pouch.contents.FindAll(x => x && !CharacterCard.IsEquipment(x)).Count - 1;
         if (who.ItemSlots_Free() < need)
         {
-            yield return ChoicePrompt.Ask(L.T("pouch.noRoom", who.playerName, pouch.itemName, need), new List<string> { L.T("setup.ok") }, null);
+            yield return ChoicePrompt.Ask(L.T("pouch.noRoom", who.playerName, pouch.Name, need), new List<string> { L.T("setup.ok") }, null);
             yield break;
         }
         int answer = 1;
         var names = new List<string>();
-        foreach (var x in pouch.contents) if (x) names.Add(x.itemName);
-        yield return ChoicePrompt.Ask(L.T("pouch.ask", who.playerName, pouch.itemName, string.Join(L.T("setup.listSep"), names.ToArray())),
+        foreach (var x in pouch.contents) if (x) names.Add(x.Name);
+        yield return ChoicePrompt.Ask(L.T("pouch.ask", who.playerName, pouch.Name, string.Join(L.T("setup.listSep"), names.ToArray())),
             new List<string> { L.T("pouch.open"), L.T("common.cancel") }, x => answer = x);
         if (answer != 0) yield break;
         who.items[slot] = null;
         foreach (var x in pouch.contents) if (x) who.TryAddItem(x);
         who.Refresh();
-        yield return ChoicePrompt.Ask(L.T("pouch.opened", who.playerName, pouch.itemName, string.Join(L.T("setup.listSep"), names.ToArray())),
+        yield return ChoicePrompt.Ask(L.T("pouch.opened", who.playerName, pouch.Name, string.Join(L.T("setup.listSep"), names.ToArray())),
             new List<string> { L.T("setup.ok") }, null);
         if (isActiveAndEnabled) Show(who);
     }

@@ -14,3 +14,5 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BackgroundData
   backgroundName: "\u501F\u547D\u4EBA"
   description: "\u4E09\u5E74\u524D\uFF0C\u4F60\u672C\u8BE5\u6B7B\u4E8E\u4E00\u573A\u5C71\u6D2A\uFF0C\u5374\u88AB\u4E00\u4F4D\u4E0D\u77E5\u540D\u7684\u5C71\u795E\u6551\u4E0B\u3002\u4F5C\u4E3A\u4EA4\u6362\uFF0C\u4F60\u7B54\u5E94\u66FF\u7942\u5B8C\u6210\u4E00\u4EF6\u4E8B\u3002\u5982\u4ECA\u4F60\u5728\u68A6\u4E2D\u53CD\u590D\u542C\u89C1\u4E00\u4E2A\u58F0\u97F3\uFF1A\u201C\u53BB\u65ED\u65E5\u6751\uFF0C\u628A\u6211\u7684\u4E1C\u897F\u5E26\u56DE\u6765\u3002\u201D"
+  backgroundNameEn: "Borrowed Life"
+  descriptionEn: "Three years ago you should have died in a flash flood, but a nameless mountain god saved you. In exchange, you promised to do one thing for the god. Now, in your dreams, you keep hearing a voice: \"Go to Xuri Village and bring back what is mine.\""

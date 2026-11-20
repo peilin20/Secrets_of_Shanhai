@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u5728\u672C\u6B21\u4E8B\u4EF6\u4E2D\uFF0C\u83B7\u5F972d4\u4E34\u65F6\u6C34token"
+    labelEn: "Effect"
+    valueEn: "Gain 2d4 temporary Water tokens for this event"
   copiesInPile: 3
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Spiced Tea"
+  descriptionEn: "None"

@@ -17,3 +17,5 @@ MonoBehaviour:
   startItems: []
   randomConsumables: 0
   startInjury: {fileID: 11400000, guid: 636fae7d57af25a4eacbabd2e5004e75, type: 2}
+  backgroundNameEn: "Herb Seeker"
+  descriptionEn: "Your cultivation went astray, and the spiritual energy in your body fell out of balance. A spirit herb that grows near Xuri Village can not only cure you but also greatly advance your cultivation.\n\nYou start with a special injury card that can't be removed."

@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u6D88\u9664\u89D2\u8272\u8EAB\u4E0A\u6240\u6709\u8D1F\u4F24\u724C\u3002\u6BCF\u6D88\u9664\u4E00\u5F20\uFF0C\u83B7\u5F971\u5BF9\u5E94\u5C5E\u6027token"
+    labelEn: "Effect"
+    valueEn: "Remove all of the character's injury cards. For each one removed, gain 1 token of its element"
   copiesInPile: 0
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Immortal Herb"
+  descriptionEn: "None"

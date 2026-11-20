@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u62BD\u53D6\u4E00\u5F20\u8D1F\u4F24\u724C\uFF0C+5\u5BF9\u5E94\u5C5E\u6027\u6218\u6597\u503C"
+    labelEn: "Effect"
+    valueEn: "Draw an injury card: +5 combat value of its element"
   copiesInPile: 1
   exclusiveTo: {fileID: 11400000, guid: 7e4f9474d97c72b4a992a68842357233, type: 2}
+  itemNameEn: "Blood Mist"
+  descriptionEn: "Perfumer only"

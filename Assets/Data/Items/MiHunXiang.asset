@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u62BD\u53D6\u4E00\u5F20\u8D1F\u4F24\u724C+2\u5BF9\u5E94\u5C5E\u6027\u6218\u6597\u503C\uFF0C\u4E0B\u56DE\u5408\uFF0C\u654C\u4EBA\u5C5E\u6027\u6682\u65F6\u53D8\u4E3A\u8D1F\u4F24\u724C\u5BF9\u5E94\u5C5E\u6027"
+    labelEn: "Effect"
+    valueEn: "Draw an injury card: +2 combat value of its element. Next round, the enemy's element temporarily becomes the injury card's element"
   copiesInPile: 0
   exclusiveTo: {fileID: 11400000, guid: 7e4f9474d97c72b4a992a68842357233, type: 2}
+  itemNameEn: "Bewitching Incense"
+  descriptionEn: "Perfumer only (starting equipment)"

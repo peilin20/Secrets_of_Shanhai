@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u6D88\u8017\u89D2\u8272\u4E3B\u5C5E\u6027token1\u679A\uFF0C\u6218\u6597\u503C\u52A0\u6210\uFF1A+4\u3002\u6218\u6597\u503C\u5C5E\u6027\uFF1A\u901A\u8FC7\u6295\u63B71d6\u51B3\u5B9A\u30021=\u91D1\uFF0C2=\u6728\uFF0C3=\u6C34\uFF0C4=\u706B\uFF0C5=\u571F\uFF0C6=\u89D2\u8272\u4E3B\u5C5E\u6027"
+    labelEn: "Effect"
+    valueEn: "Spend 1 primary-element token. Combat value bonus: +4. Combat value element: roll 1d6. 1 = Metal, 2 = Wood, 3 = Water, 4 = Fire, 5 = Earth, 6 = your primary element"
   copiesInPile: 1
   exclusiveTo: {fileID: 11400000, guid: 0ecae4fe3c845344b913bde43c012f56, type: 2}
+  itemNameEn: "Wine Gourd"
+  descriptionEn: "Ranger only"

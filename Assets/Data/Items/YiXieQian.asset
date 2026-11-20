@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679c"
     value: "\u6218\u6597 - +1d4\u91d1\u5c5e\u6027\u6218\u6597\u503c\n\u793e\u4ea4 - \u597d\u611f\u5ea6\u8fbe\u5230\u6210\u529f\u6240\u9700\u503c"
+    labelEn: "Effect"
+    valueEn: "Combat: +1d4 Metal combat value\nSocial: affinity rises to the amount needed for Success"
   copiesInPile: 3
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Some Coins"
+  descriptionEn: "Three strings of copper coins. Give them away in a social encounter to win someone over, or break them apart and throw them at people like bits of metal."

@@ -6,6 +6,12 @@ public class ItemEffect
 {
     public string label;
     public string value;
+    public string labelEn;
+    public string valueEn;
+
+    // What's shown: English when the game is in English and there is an English text. `value` stays the rule text.
+    public string Label => L.Current == Language.English && !string.IsNullOrEmpty(labelEn) ? labelEn : label;
+    public string Value => L.Current == Language.English && !string.IsNullOrEmpty(valueEn) ? valueEn : value;
 }
 
 public enum ItemKind
@@ -61,6 +67,14 @@ public class ItemData : ScriptableObject
     [TextArea(3, 10)] public string description;
     public List<ItemEffect> effects = new List<ItemEffect>();
 
+    [Header("English")]
+    public string itemNameEn;
+    [TextArea(3, 10)] public string descriptionEn;
+
+    // Shown names and text follow the language; the Chinese fields stay what the rules read.
+    public string Name => L.Current == Language.English && !string.IsNullOrEmpty(itemNameEn) ? itemNameEn : itemName;
+    public string Description => L.Current == Language.English && !string.IsNullOrEmpty(descriptionEn) ? descriptionEn : description;
+
     [Header("Pile and class")]
     public int copiesInPile = 1;      // 总量: how many of this card go into the item pile
     public ClassData exclusiveTo;     // 专属: only this class can hold or equip it (empty = anyone)
@@ -71,5 +85,5 @@ public class ItemData : ScriptableObject
 
     public bool IsExclusive => exclusiveTo || speciesOnly;
     // Who it's 专属 to, for messages: a class name or a species name.
-    public string ExclusiveName => exclusiveTo ? exclusiveTo.className : speciesOnly ? L.SpeciesName(exclusiveSpecies) : "";
+    public string ExclusiveName => exclusiveTo ? exclusiveTo.Name : speciesOnly ? L.SpeciesName(exclusiveSpecies) : "";
 }

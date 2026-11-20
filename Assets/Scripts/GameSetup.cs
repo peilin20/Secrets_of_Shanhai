@@ -252,14 +252,14 @@ public class GameSetup : MonoBehaviour
 
         // 3. Background.
         yield return Choose(() => L.T("setup.chooseBackground", player.playerName), BackgroundLabels,
-            i => PlainButton, i => backgrounds[i].description);
+            i => PlainButton, i => backgrounds[i].Description);
         player.background = backgrounds[picked];
         player.Refresh();
         yield return GiveBackgroundStart(player, player.background, false);
 
         // 4. Class, and its weapon cards.
         yield return Choose(() => L.T("setup.chooseClass", player.playerName), ClassLabels,
-            i => PlainButton, i => classes[i].description + "\n\n" + L.T("setup.weapons", WeaponNames(classes[i])));
+            i => PlainButton, i => classes[i].Description + "\n\n" + L.T("setup.weapons", WeaponNames(classes[i])));
         var chosen = classes[picked];
         var slots = GiveClass(player, chosen);
 
@@ -352,14 +352,14 @@ public class GameSetup : MonoBehaviour
     List<string> BackgroundLabels()
     {
         var labels = new List<string>();
-        foreach (var b in backgrounds) labels.Add(b.backgroundName);
+        foreach (var b in backgrounds) labels.Add(b.Name);
         return labels;
     }
 
     List<string> ClassLabels()
     {
         var labels = new List<string>();
-        foreach (var c in classes) labels.Add(c.className);
+        foreach (var c in classes) labels.Add(c.Name);
         return labels;
     }
 
@@ -663,8 +663,8 @@ public class GameSetup : MonoBehaviour
                 {
                     var names = new StringBuilder();
                     for (int i = 0; i < got.Count; i++)
-                        names.Append(i == 0 ? "" : i == got.Count - 1 ? L.T("setup.and") : L.T("setup.listSep")).Append(got[i].itemName);
-                    return L.T(consumables ? "setup.gotConsumables" : "setup.gotItems", player.playerName, bg.backgroundName, names.ToString());
+                        names.Append(i == 0 ? "" : i == got.Count - 1 ? L.T("setup.and") : L.T("setup.listSep")).Append(got[i].Name);
+                    return L.T(consumables ? "setup.gotConsumables" : "setup.gotItems", player.playerName, bg.Name, names.ToString());
                 },
                 () => new List<string> { L.T("setup.continue") }, i => PlainButton, i => "");
             ShowWeapons(null);
@@ -675,7 +675,7 @@ public class GameSetup : MonoBehaviour
             if (injuries) yield return injuries.Give(player, bg.startInjury, false, null);
             else { player.injuries.Add(bg.startInjury); player.Refresh(); }
             if (!silent)
-                yield return Choose(() => L.T("setup.startInjury", player.playerName, bg.backgroundName, bg.startInjury.Title, bg.startInjury.effect),
+                yield return Choose(() => L.T("setup.startInjury", player.playerName, bg.Name, bg.startInjury.Title, bg.startInjury.EffectText),
                     () => new List<string> { L.T("setup.continue") }, i => PlainButton, i => "");
         }
     }
@@ -717,7 +717,7 @@ public class GameSetup : MonoBehaviour
         for (int i = 0; i < c.weapons.Count; i++)
         {
             if (i > 0) sb.Append(L.T("setup.listSep"));
-            sb.Append(c.weapons[i] ? c.weapons[i].itemName : "?");
+            sb.Append(c.weapons[i] ? c.weapons[i].Name : "?");
         }
         return sb.ToString();
     }

@@ -16,3 +16,5 @@ MonoBehaviour:
   description: "\u201C\u8BA9\u6211\u8BD5\u8BD5\uFF0C\u8BF4\u4E0D\u5B9A\u884C\u3002\u201D\n\u4EC0\u4E48\u90FD\u4F1A\u4E00\u70B9\uFF0C\u4EC0\u4E48\u90FD\u6562\u8D4C\u4E00\u628A\u3002\u4ECA\u5929\u80FD\u8C08\u5224\uFF0C\u660E\u5929\u4E5F\u8BB8\u5C31\u80FD\u6253\u67B6\u3002"
   weapons:
   - {fileID: 11400000, guid: 8ab777ffc25784f4586feddac2998a2a, type: 2}
+  classNameEn: "Ranger"
+  descriptionEn: "\"Let me try. It might just work.\"\nA bit of everything, and ready to gamble on anything. Negotiating today, maybe brawling tomorrow."

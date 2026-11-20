@@ -16,3 +16,5 @@ MonoBehaviour:
   description: "\u201C\u7B49\u7B49\uFF0C\u6211\u5305\u91CC\u597D\u50CF\u6709\u3002\u201D\n\u522B\u4EBA\u7F3A\u6280\u80FD\uFF0C\u4F60\u7F3A\u7684\u53EA\u662F\u6750\u6599\u3002\u53EA\u8981\u4E1C\u897F\u5E26\u591F\uFF0C\u4EC0\u4E48\u573A\u9762\u90FD\u80FD\u51D1\u5408\u7740\u89E3\u51B3\u3002"
   weapons:
   - {fileID: 11400000, guid: 29cfc7b4200eb924289b6a0eab48d940, type: 2}
+  classNameEn: "Craftsman"
+  descriptionEn: "\"Hold on, I think I've got one in my bag.\"\nOthers lack skills; all you lack is materials. As long as you've packed enough, you can patch your way through anything."

@@ -272,13 +272,13 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
             var fitter = portraitImage.GetComponent<AspectRatioFitter>();
             if (fitter && portrait) fitter.aspectRatio = portrait.rect.width / portrait.rect.height;
         }
-        if (speciesText) speciesText.text = L.T("card.species") + L.SpeciesName(species) + (characterClass ? "   " + L.T("card.class") + characterClass.className : "");
+        if (speciesText) speciesText.text = L.T("card.species") + L.SpeciesName(species) + (characterClass ? "   " + L.T("card.class") + characterClass.Name : "");
         if (elementText) elementText.text = L.T("card.element") + (elementChosen ? L.ElementName(primaryElement) : "—");
         if (elementBadge) elementBadge.enabled = elementChosen;
         if (elementBadgeText) elementBadgeText.enabled = elementChosen;
         if (equippedText)
         {
-            var sb = new System.Text.StringBuilder(L.T("card.equipped") + (Equipped ? Equipped.itemName : "—"));
+            var sb = new System.Text.StringBuilder(L.T("card.equipped") + (Equipped ? Equipped.Name : "—"));
             if (injuries.Count > 0)
             {
                 sb.Append("   " + L.T("card.injuries"));
@@ -289,7 +289,7 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         // Fixed primary element token in the top right corner (not draggable).
         if (elementBadge) elementBadge.color = ElementToken.ColorFor(primaryElement);
         if (elementBadgeText) elementBadgeText.text = L.ElementName(primaryElement);
-        if (backgroundText) backgroundText.text = L.T("card.background") + (background ? background.backgroundName : "");
+        if (backgroundText) backgroundText.text = L.T("card.background") + (background ? background.Name : "");
         if (itemsButton)
         {
             var label = itemsButton.GetComponentInChildren<Text>();

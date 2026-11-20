@@ -16,3 +16,5 @@ MonoBehaviour:
   description: "\u201C\u8FD9\u70B9\u4F24\uFF0C\u4E0D\u788D\u4E8B\u3002\u201D\n\u4F24\u53E3\u8D8A\u591A\uFF0C\u624B\u6BB5\u8D8A\u591A\u3002\u4E94\u77F3\u6563\u4E00\u53E3\u4E0B\u53BB\uFF0C\u4ECA\u5929\u8FD8\u80FD\u518D\u75AF\u4E00\u4F1A\u513F\u3002"
   weapons:
   - {fileID: 11400000, guid: 2d4f9292183e7d24993e7cb3fb22c75d, type: 2}
+  classNameEn: "Perfumer"
+  descriptionEn: "\"This little wound? It's nothing.\"\nThe more wounds, the more tricks. One dose of Five Minerals Powder and you can keep going wild a while longer today."

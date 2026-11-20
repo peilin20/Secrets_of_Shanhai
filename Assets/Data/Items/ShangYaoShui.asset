@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679c"
     value: "\u6d88\u96641\u6c34\u5c5e\u6027\u8d1f\u4f24\u724c"
+    labelEn: "Effect"
+    valueEn: "Remove 1 Water injury card"
   copiesInPile: 4
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Wound Salve \u2013 Water"
+  descriptionEn: ""

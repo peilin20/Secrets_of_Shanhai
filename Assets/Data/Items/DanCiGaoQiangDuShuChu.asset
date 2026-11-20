@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u6D88\u80175\u5C5E\u6027token\u5404\u4E00\u679A\uFF0C\u6253\u51FA10\u70B9\u4E3B\u5C5E\u6027\u4F24\u5BB3"
+    labelEn: "Effect"
+    valueEn: "Spend 1 token of each of the 5 elements: deal 10 primary-element damage"
   copiesInPile: 2
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Full Burst"
+  descriptionEn: ""

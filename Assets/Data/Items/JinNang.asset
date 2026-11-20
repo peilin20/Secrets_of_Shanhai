@@ -23,6 +23,8 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679c"
     value: "\u6253\u5f00\u65f6\u83b7\u5f97\u9053\u5177\u201c\u5355\u6b21\u9ad8\u5f3a\u5ea6\u8f93\u51fa\u201d\u548c\u201c\u5931\u8d25\u4fdd\u62a4\u201d\u5404\u4e00\u4efd"
+    labelEn: "Effect"
+    valueEn: "When opened, gain one each of the items \"Full Burst\" and \"Failure Protection\""
   copiesInPile: 0
   exclusiveTo: {fileID: 0}
   speciesOnly: 0
@@ -31,3 +33,5 @@ MonoBehaviour:
   contents:
   - {fileID: 11400000, guid: c6c39ab958ced0041a5d57963a4e8529, type: 2}
   - {fileID: 11400000, guid: 151f8c4fe66ebfd4b98489b8fe022224, type: 2}
+  itemNameEn: "Brocade Pouch"
+  descriptionEn: ""

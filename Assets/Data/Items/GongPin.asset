@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u5728\u4E00\u6B21\u63B7\u9AB0\u540E\u7ACB\u523B\u4F7F\u7528\uFF0C\u53EF\u4EE5\u91CD\u65B0\u63B7\u9AB0\uFF0C\u4F46\u5FC5\u987B\u4F7F\u7528\u65B0\u7684\u7ED3\u679C"
+    labelEn: "Effect"
+    valueEn: "Use right after a roll to roll again; you must take the new result"
   copiesInPile: 3
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Offering"
+  descriptionEn: "Only usable when you're not the active player"

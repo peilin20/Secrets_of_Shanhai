@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u5728\u6218\u6597\u6216\u793E\u4EA4\u5931\u8D25\u65F6\u4F7F\u7528\uFF0C\u4E3A\u8BE5\u89D2\u8272\u62B5\u6321\u4E00\u6B21\u5931\u8D25\u6548\u679C\u3002\u4F7F\u7528\u6B64\u9053\u5177\u540E\uFF0C\u5728\u5931\u8D25\u65F6\u89E6\u53D1\u7684\u6548\u679C\u4E0D\u4F1A\u89E6\u53D1\u3002"
+    labelEn: "Effect"
+    valueEn: "Use when combat or a social encounter fails to block one failure effect for this character. Effects that trigger on failure don't trigger."
   copiesInPile: 3
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Failure Protection"
+  descriptionEn: ""

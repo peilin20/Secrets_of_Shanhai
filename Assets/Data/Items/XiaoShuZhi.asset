@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u52A01\u6728\u5C5E\u6027\u6218\u6597\u503C"
+    labelEn: "Effect"
+    valueEn: "+1 Wood combat value"
   copiesInPile: 5
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Twig"
+  descriptionEn: "None"

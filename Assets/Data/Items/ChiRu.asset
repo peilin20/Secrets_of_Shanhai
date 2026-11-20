@@ -23,9 +23,13 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679c"
     value: "\u5360\u636e2\u80cc\u5305\u4f4d\u3002\u6bcf\u6d88\u80171\u6c34token\uff0c\u83b7\u5f971\u6c34\u6218\u6597\u503c"
+    labelEn: "Effect"
+    valueEn: "Takes up 2 backpack slots. +1 Water combat value for each Water token spent"
   copiesInPile: 0
   exclusiveTo: {fileID: 0}
   speciesOnly: 1
   exclusiveSpecies: 2
   backpackSlots: 2
   contents: []
+  itemNameEn: "Chiru"
+  descriptionEn: "Baize only"

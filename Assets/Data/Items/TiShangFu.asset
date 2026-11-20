@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u4F60\u53EF\u4EE5\u6D88\u8017\u4EFB\u610F\u6570\u91CFtoken\uFF0C\u6BCF\u6D88\u8017\u4E00\u679Atoken\uFF0C\u53EF\u4EE5\u5C06\u4E00\u5F20\u540C\u5C5E\u6027\u8D1F\u4F24\u724C\u8F6C\u79FB\u81F3\u53E6\u4E00\u4E2A\u751F\u7269\u8EAB\u4E0A\uFF08\u5305\u62EC\u961F\u53CB\uFF09\u3002\u5982\u679C\u8F6C\u79FB\u81F3\u654C\u5BF9\u751F\u7269\u8EAB\u4E0A\uFF0C\u6BCF\u6B21\u8F6C\u79FB\u4F7F\u5BF9\u65B9\u80DC\u5229\u6761\u4EF6\u6240\u9700\u6218\u6597\u503C/\u597D\u611F\u5EA6 -2d4"
+    labelEn: "Effect"
+    valueEn: "You may spend any number of tokens. For each token spent, move one injury card of the same element onto another creature (teammates included). Each time you move one onto a hostile creature, the combat value / affinity needed for Success drops by 2d4"
   copiesInPile: 1
   exclusiveTo: {fileID: 11400000, guid: 7e4f9474d97c72b4a992a68842357233, type: 2}
+  itemNameEn: "Wound-Transfer Talisman"
+  descriptionEn: "Perfumer only"

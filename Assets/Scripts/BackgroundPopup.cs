@@ -18,8 +18,8 @@ public class BackgroundPopup : MonoBehaviour
     public void Show(BackgroundData background)
     {
         if (!background) return;
-        titleText.text = background.backgroundName;
-        descriptionText.text = background.description;
+        titleText.text = background.Name;
+        descriptionText.text = background.Description;
         gameObject.SetActive(true);
         transform.SetAsLastSibling();
     }

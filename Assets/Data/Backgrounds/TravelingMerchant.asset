@@ -17,3 +17,5 @@ MonoBehaviour:
   startItems: []
   randomConsumables: 2
   startInjury: {fileID: 0}
+  backgroundNameEn: "Traveling Merchant"
+  descriptionEn: "You've traveled far and wide for years, always carrying odd and curious goods. You've heard that Xuri Village is rich in rare stones and strange herbs, so you've decided to do a little trading on the side during this mapping job.\n\nYou get two extra random consumables."

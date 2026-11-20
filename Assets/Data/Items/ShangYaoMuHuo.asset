@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679c"
     value: "\u6d88\u96641\u6728\u6216\u706b\u5c5e\u6027\u8d1f\u4f24\u724c"
+    labelEn: "Effect"
+    valueEn: "Remove 1 Wood or Fire injury card"
   copiesInPile: 3
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Wound Salve \u2013 Wood, Fire"
+  descriptionEn: ""

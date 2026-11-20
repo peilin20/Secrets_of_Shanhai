@@ -57,7 +57,7 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
         if (itemImage) itemImage.enabled = false;
         if (descriptionText) descriptionText.text = data.special ? L.T("injury.special")
             : L.T("injury.kind", L.ElementName(data.element), data.Level) + "\n" + InjuryData.TypeOf(data.element);
-        if (effectsText) effectsText.text = "<b>" + L.T("injury.effect") + "</b>" + data.effect;
+        if (effectsText) effectsText.text = "<b>" + L.T("injury.effect") + "</b>" + data.EffectText;
         var background = GetComponent<Image>();
         // Tinted by the injury's element, so its element shows at a glance.
         if (background) background.color = data.special ? InjuryColor : Color.Lerp(InjuryColor, ElementToken.ColorFor(data.element), 0.45f);
@@ -67,7 +67,7 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
     {
         if (!item) return;
         if (valueText) valueText.text = item.value > 0 ? item.value.ToString() : "";
-        if (nameText) nameText.text = item.itemName;
+        if (nameText) nameText.text = item.Name;
         if (elementCircle) { elementCircle.enabled = item.hasElement; elementCircle.color = ElementToken.ColorFor(item.element); }
         if (elementText) elementText.text = item.hasElement ? CombatCard.ElementChar(item.element) : "";
         if (itemImage)
@@ -78,12 +78,12 @@ public class ItemCard : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
             var fitter = itemImage.GetComponent<AspectRatioFitter>();
             if (fitter && item.image) fitter.aspectRatio = item.image.rect.width / item.image.rect.height;
         }
-        if (descriptionText) descriptionText.text = item.description;
+        if (descriptionText) descriptionText.text = item.Description;
         if (effectsText)
         {
             var sb = new StringBuilder();
             foreach (var effect in item.effects)
-                sb.Append("<b>").Append(effect.label).Append(L.T("sep.colon")).Append("</b>").Append(effect.value).Append('\n');
+                sb.Append("<b>").Append(effect.Label).Append(L.T("sep.colon")).Append("</b>").Append(effect.Value).Append('\n');
             effectsText.text = sb.ToString().TrimEnd('\n');
         }
     }

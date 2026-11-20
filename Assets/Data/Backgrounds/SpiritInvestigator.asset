@@ -19,3 +19,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7550fc3070d6c1a4698f782a9df8effe, type: 2}
   randomConsumables: 0
   startInjury: {fileID: 0}
+  backgroundNameEn: "Spirit Investigator"
+  descriptionEn: "Your master sensed that the spiritual energy in this region has fallen out of balance and sent you to look into it. Before you left, your master gave you a brocade pouch and told you to open it only when your life hangs in the balance.\n\nTake the Brocade Pouch card from the item pile."

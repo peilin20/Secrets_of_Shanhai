@@ -18,3 +18,5 @@ MonoBehaviour:
   copiesInPile: 0
   special: 1
   customTitle: "\u7279\u6B8A\u8D1F\u4F24"
+  customTitleEn: "Special Injury"
+  effectEn: "Herb Seekers start with this. It can't be removed, but it can be moved with the Wound-Transfer Talisman (costs any 1 token)."

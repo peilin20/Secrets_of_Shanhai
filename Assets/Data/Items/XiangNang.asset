@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u80DC\u5229\u548C\u5168\u80DC\u6761\u4EF6-1d4. \u5982\u679C\u4F7F\u7528\u8005\u548C\u76EE\u6807\u79CD\u65CF\u76F8\u540C\uFF0C\u9AB0\u503C\u53D6\u6700\u5927\u503C"
+    labelEn: "Effect"
+    valueEn: "Success and Critical Success thresholds -1d4. If the user is the same species as the target, take the highest roll"
   copiesInPile: 3
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Scent Pouch"
+  descriptionEn: ""

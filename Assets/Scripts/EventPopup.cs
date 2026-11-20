@@ -135,13 +135,13 @@ public class EventPopup : MonoBehaviour
             var takers = players.FindAll(p => p.HasRoomFor(item) && p.CanHold(item));
             if (takers.Count == 0)
             {
-                yield return ChoicePrompt.Ask(L.T("event.noRoom", item.itemName), new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
+                yield return ChoicePrompt.Ask(L.T("event.noRoom", item.Name), new System.Collections.Generic.List<string> { L.T("setup.ok") }, null);
                 continue;
             }
             var names = new System.Collections.Generic.List<string>();
             foreach (var p in takers) names.Add(p.playerName);
             int pick = 0;
-            yield return ChoicePrompt.Ask(L.T("event.giveTo", item.itemName), names, x => pick = x);
+            yield return ChoicePrompt.Ask(L.T("event.giveTo", item.Name), names, x => pick = x);
             takers[pick].TryAddItem(item);
             takers[pick].Refresh();
         }

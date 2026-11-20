@@ -14,7 +14,14 @@ public class InjuryData : ScriptableObject
     public bool special;               // e.g. 寻药者's 特殊负伤: no element, can't be removed by anything.
     public string customTitle;
 
-    public string Title => !string.IsNullOrEmpty(customTitle) ? customTitle : L.T("injury.title", L.ElementName(element));
+    [Header("English")]
+    public string customTitleEn;
+    [TextArea(2, 6)] public string effectEn;
+
+    // The effect as shown; `effect` stays the rule text the code reads.
+    public string EffectText => L.Current == Language.English && !string.IsNullOrEmpty(effectEn) ? effectEn : effect;
+
+    public string Title => !string.IsNullOrEmpty(customTitle) ? (L.Current == Language.English && !string.IsNullOrEmpty(customTitleEn) ? customTitleEn : customTitle) : L.T("injury.title", L.ElementName(element));
 
     // 难度 1–3 (the 负伤 sheet says Low / Medium / High).
     public int Level => difficulty == "Medium" ? 2 : difficulty == "High" ? 3 : 1;

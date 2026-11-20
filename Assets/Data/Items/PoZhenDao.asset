@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u6BCF\u6D88\u8017\u4E00\u679Atoken\uFF0C\u6218\u6597\u503C+3. \u6D88\u8017\u7684token\u4E2D\uFF0C\u54EA\u4E2A\u5C5E\u6027\u6700\u591A\uFF0C\u6700\u7EC8\u6218\u6597\u503C\u5C31\u662F\u54EA\u4E2A\u5C5E\u6027\uFF08\u6570\u91CF\u76F8\u540C\u5219\u968F\u673A\u4E00\u4E2A"
+    labelEn: "Effect"
+    valueEn: "+3 combat value for each token spent. The final combat value takes the element you spent the most tokens of (random on a tie)"
   copiesInPile: 1
   exclusiveTo: {fileID: 11400000, guid: 2b5c2a799bfe32e448efcddd2de9c1f0, type: 2}
+  itemNameEn: "Formation-Breaker Blade"
+  descriptionEn: "Warrior only"

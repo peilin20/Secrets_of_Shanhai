@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u672C\u6B21\u4E8B\u4EF6\u4E2D\uFF0C\u5BF9\u65B9\u5C06\u4F60\u8BEF\u8BA4\u4E3A\u7531\u4F60\u9009\u62E9\u7684\u4E00\u4E2A\u79CD\u65CF\u3002\u4E5D\u5C3E\u53EF\u88C5\u5907\u6B64\u9053\u5177"
+    labelEn: "Effect"
+    valueEn: "For this event, the opponent mistakes you for a species of your choice. The Nine-Tailed Fox can equip this item"
   copiesInPile: 3
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Painted Skin Disguise"
+  descriptionEn: ""

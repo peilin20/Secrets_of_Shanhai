@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u6D88\u80173\u76F8\u540C\u5C5E\u6027token, +6token\u5C5E\u6027\u6218\u6597\u503C\u3002\u5982\u679C\u514B\u5236\u654C\u4EBA\u4E3B\u5C5E\u6027\uFF0C\u989D\u5916\u9020\u62105\u70B9token\u5C5E\u6027\u4F24\u5BB3"
+    labelEn: "Effect"
+    valueEn: "Spend 3 tokens of the same element: +6 combat value of that element. If it counters the enemy's primary element, deal an extra 5 damage of that element"
   copiesInPile: 1
   exclusiveTo: {fileID: 11400000, guid: 7e4f9474d97c72b4a992a68842357233, type: 2}
+  itemNameEn: "Incense Burner"
+  descriptionEn: "Perfumer only"

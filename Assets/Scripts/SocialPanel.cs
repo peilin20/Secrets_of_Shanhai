@@ -528,7 +528,7 @@ public class SocialPanel : MonoBehaviour
                 {
                     if (!itemDetailText) return;
                     string why = usable ? WhyNotUsable(player, item, equipment) : null;
-                    itemDetailText.text = L.T("items.nameDetail", item.itemName, CombatPanel.ItemSummary(item)) + (why != null ? "   " + L.T("items.cantUse", why) : "");
+                    itemDetailText.text = L.T("items.nameDetail", item.Name, CombatPanel.ItemSummary(item)) + (why != null ? "   " + L.T("items.cantUse", why) : "");
                 };
                 var use = entry.Find("UseButton").GetComponent<Button>();
                 if (!usable) { use.gameObject.SetActive(false); continue; }
@@ -600,7 +600,7 @@ public class SocialPanel : MonoBehaviour
         busy = true;
         HideFieldButtons();
         used = true;
-        string src = L.T("combat.uses", "  " + L.T("combat.srcItem", player.playerName), item.itemName);
+        string src = L.T("combat.uses", "  " + L.T("combat.srcItem", player.playerName), item.Name);
 
         switch (item.mechanic)
         {

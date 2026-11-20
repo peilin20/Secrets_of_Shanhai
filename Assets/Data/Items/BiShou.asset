@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u6D88\u80171token\uFF0C+1d4 token\u5C5E\u6027\u6218\u6597\u503C"
+    labelEn: "Effect"
+    valueEn: "Spend 1 token: +1d4 combat value of that token's element"
   copiesInPile: 1
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Dagger"
+  descriptionEn: "None"

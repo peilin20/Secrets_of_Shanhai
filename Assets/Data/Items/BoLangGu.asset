@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u4E0D\u503C\u94B1\u7684\u5C0F\u73A9\u610F\u3002\u5728\u548C\u5B69\u5B50\u6216\u8C03\u76AE\u7684\u7CBE\u602A\u8FDB\u884C\u793E\u4EA4\u65F6\uFF0C\u7ACB\u523B\u83B7\u5F972\u597D\u611F\u5EA6"
+    labelEn: "Effect"
+    valueEn: "A cheap little trinket. When talking with a child or a mischievous spirit, gain 2 affinity at once"
   copiesInPile: 0
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Rattle Drum"
+  descriptionEn: "None"

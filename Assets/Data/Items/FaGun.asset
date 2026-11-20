@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u6D88\u8017\u4EFB\u610F1\u679Atoken\uFF0C+1d4token\u5C5E\u6027\u6218\u6597\u503C"
+    labelEn: "Effect"
+    valueEn: "Spend any 1 token: +1d4 combat value of that token's element"
   copiesInPile: 0
   exclusiveTo: {fileID: 11400000, guid: 0ecae4fe3c845344b913bde43c012f56, type: 2}
+  itemNameEn: "Baguette Staff"
+  descriptionEn: "Ranger only (starting equipment)"

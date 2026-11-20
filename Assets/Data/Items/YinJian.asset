@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u6D88\u8017\u89D2\u8272\u4E3B\u5C5E\u6027token1\u679A\uFF0C+1d6\u4E3B\u5C5E\u6027\u6218\u6597\u503C"
+    labelEn: "Effect"
+    valueEn: "Spend 1 primary-element token: +1d6 primary-element combat value"
   copiesInPile: 0
   exclusiveTo: {fileID: 11400000, guid: 2b5c2a799bfe32e448efcddd2de9c1f0, type: 2}
+  itemNameEn: "Silver Sword"
+  descriptionEn: "Warrior only (starting equipment)"

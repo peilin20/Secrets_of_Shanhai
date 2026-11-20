@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u7ACB\u523B\u83B7\u5F975\u597D\u611F\u5EA6"
+    labelEn: "Effect"
+    valueEn: "Gain 5 affinity at once"
   copiesInPile: 3
   exclusiveTo: {fileID: 0}
+  itemNameEn: "Body Spray"
+  descriptionEn: ""

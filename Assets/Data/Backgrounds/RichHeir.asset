@@ -18,3 +18,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: b78079eb84fee094abf79b2480648688, type: 2}
   randomConsumables: 0
   startInjury: {fileID: 0}
+  backgroundNameEn: "Rich Heir"
+  descriptionEn: "You were born into a wealthy family and raised in luxury. For this mapping trip to Xuri Village, your family packed plenty of travel money for you. You don't lack money; you lack a chance to prove you're not useless.\n\nYou get the consumable Some Coins."

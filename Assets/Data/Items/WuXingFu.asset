@@ -23,5 +23,9 @@ MonoBehaviour:
   effects:
   - label: "\u6548\u679C"
     value: "\u6BCF\u6D88\u8017\u4E00\u679Atoken\uFF0C\u5BF9\u5E94\u5C5E\u6027\u6218\u6597\u503C+2. \u6BCF\u4E2A\u5C5E\u6027\u7684token\u6700\u591A\u4F7F\u75281\u679A"
+    labelEn: "Effect"
+    valueEn: "+2 combat value of the matching element for each token spent. At most 1 token of each element"
   copiesInPile: 1
   exclusiveTo: {fileID: 11400000, guid: 0ecae4fe3c845344b913bde43c012f56, type: 2}
+  itemNameEn: "Five Elements Talisman"
+  descriptionEn: "Ranger only"

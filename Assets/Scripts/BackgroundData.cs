@@ -12,4 +12,11 @@ public class BackgroundData : ScriptableObject
     public System.Collections.Generic.List<ItemData> pileItems = new System.Collections.Generic.List<ItemData>();   // Taken out of the item pile (e.g. 灵气调查者: 香囊).
     public int randomConsumables;      // Drawn from the item pile (e.g. 行脚商人: 2).
     public InjuryData startInjury;     // e.g. 寻药者's 特殊负伤.
+
+    [Header("English")]
+    public string backgroundNameEn;
+    [TextArea(5, 20)] public string descriptionEn;
+
+    public string Name => L.Current == Language.English && !string.IsNullOrEmpty(backgroundNameEn) ? backgroundNameEn : backgroundName;
+    public string Description => L.Current == Language.English && !string.IsNullOrEmpty(descriptionEn) ? descriptionEn : description;
 }
