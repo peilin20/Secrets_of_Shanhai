@@ -10,7 +10,7 @@ using UnityEngine.UI;
 // 2. The character card appears on the left with that species. Pick a primary element
 //    (its token comes when the game starts and the first main story card is dealt).
 // 3. Pick a background (its starting items / 负伤 are given).
-// 4. Pick a class, get its weapon cards, equip one (or none).
+// 4. Pick a class and get its weapon cards; the first one is equipped automatically.
 // The 随机角色 button (bottom right) makes the current player at random instead.
 // All text follows the language setting, and switches right away when it changes.
 // When every player is done, the choices go to Party and the game scene loads.
@@ -263,19 +263,14 @@ public class GameSetup : MonoBehaviour
         var chosen = classes[picked];
         var slots = GiveClass(player, chosen);
 
-        // 5. Show the new weapon cards and let the player equip one (or none).
-        ShowWeapons(chosen.weapons);
-        yield return Choose(() => L.T("setup.gotWeapons", player.playerName, WeaponNames(chosen)),
-            () =>
+        // 5. The class's weapon is equipped for the player (the first one they can equip); no extra step.
+        foreach (var slot in slots)
+            if (slot >= 0 && slot < player.items.Count && player.CanEquip(player.items[slot]))
             {
-                var labels = new List<string>();
-                foreach (var weapon in chosen.weapons) labels.Add(L.T("setup.equip", weapon.itemName));
-                labels.Add(L.T("setup.noEquip"));
-                return labels;
-            },
-            i => PlainButton, i => "");
-        if (picked < slots.Count) player.ToggleEquip(slots[picked]);
-        ShowWeapons(null);
+                player.ToggleEquip(slot);
+                break;
+            }
+        player.Refresh();
 
         SavePlayer(tokens);
     }
