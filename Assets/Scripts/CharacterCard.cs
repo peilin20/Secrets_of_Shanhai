@@ -290,7 +290,8 @@ public class CharacterCard : MonoBehaviour, IPointerClickHandler
         }
         // Fixed primary element token in the top right corner (not draggable).
         if (elementBadge) elementBadge.color = ElementToken.ColorFor(primaryElement);
-        if (elementBadgeText) elementBadgeText.text = L.ElementName(primaryElement);
+        // Chinese: the element's character on its colour. English: just the colour (the word doesn't fit the small circle).
+        if (elementBadgeText) elementBadgeText.text = L.Current == Language.English ? "" : L.ElementName(primaryElement);
         if (backgroundText) backgroundText.text = L.T("card.background") + (background ? background.Name : "");
         if (itemsButton)
         {
